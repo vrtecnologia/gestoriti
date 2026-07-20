@@ -85,10 +85,30 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
 .tag-pendente,.tag-portal{background:#fef9c3;color:#854d0e}
 .toast{position:fixed;bottom:24px;right:24px;background:#0f172a;color:#fff;padding:13px 18px;border-radius:10px;font-size:14px;opacity:0;transform:translateY(10px);transition:.25s;z-index:100;pointer-events:none;max-width:340px}
 .toast.mostra{opacity:1;transform:translateY(0)}.toast.erro{background:#991b1b}.toast.sucesso{background:#166534}
+.lock{position:fixed;inset:0;background:#0f172a;display:flex;align-items:center;justify-content:center;z-index:200}
+.lock-card{background:#fff;border-radius:14px;padding:32px;width:360px;max-width:92vw;box-shadow:0 10px 40px rgba(0,0,0,.35)}
+.lock-card .lm{background:var(--azul);color:#fff;font-weight:700;padding:6px 9px;border-radius:8px;font-size:15px}
+.lock-card h1{font-size:19px;margin-bottom:6px;display:flex;align-items:center;gap:10px}
+.lock-card p{font-size:13px;color:var(--cinza);margin-bottom:18px}
+.lock-card input{width:100%;padding:11px;border:1px solid var(--borda);border-radius:8px;font-size:14px;margin-bottom:10px}
+.lock-card input:focus{outline:none;border-color:var(--azul);box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+.lock-card button{width:100%;padding:11px;background:var(--azul);color:#fff;border:none;border-radius:8px;font-weight:600;font-size:15px;cursor:pointer}
+.lock-card button:hover{background:var(--azul-esc)}
+.lock-erro{color:var(--vermelho);font-size:13px;margin-bottom:8px;min-height:18px}
 @media(max-width:640px){.sidebar{width:64px}.logo-text,.sidebar nav a span.txt{display:none}.conteudo{margin-left:64px;width:calc(100% - 64px);padding:0 14px 20px}.sidebar nav a{text-align:center;padding:14px 0;font-size:18px}}
 </style>
 </head>
 <body>
+<div id="lock" class="lock">
+  <div class="lock-card">
+    <h1><span class="lm">TI</span> Gestor de TI</h1>
+    <p>Acesso restrito. Entre com seu usuário e senha.</p>
+    <div class="lock-erro" id="lock-erro"></div>
+    <input id="lock-user" placeholder="Usuário" autocomplete="username">
+    <input id="lock-pass" type="password" placeholder="Senha" autocomplete="current-password" onkeydown="if(event.key==='Enter')desbloquear()">
+    <button onclick="desbloquear()">Entrar</button>
+  </div>
+</div>
 <div class="app">
   <aside class="sidebar">
     <div class="logo"><span class="logo-mark">TI</span><span class="logo-text">Gestor de TI</span></div>
@@ -106,6 +126,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
       <button class="btn btn-ms" id="btn-entrar" onclick="entrar()">Entrar com Microsoft</button>
       <button class="btn btn-secundario oculto" id="btn-sync" onclick="sincronizarTudo()">🔄 Sincronizar</button>
       <button class="btn btn-secundario oculto" id="btn-sair" onclick="sair()">Sair</button>
+      <button class="btn btn-secundario" onclick="bloquear()" title="Bloquear o acesso">🔒</button>
     </div>
 
     <!-- AGENDA -->
@@ -222,6 +243,32 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
 
 <script src="https://alcdn.msftauth.net/lib/1.4.18/js/msal-browser.min.js"></script>
 <script>
+// ================== Tela de acesso (tranca leve) ==================
+// Observação: por ser um arquivo público, esta tranca barra acesso casual,
+// mas não é criptografia. A proteção real dos dados é o login da Microsoft
+// (os dados ficam no SEU OneDrive e exigem sua conta para aparecer).
+const LOCK_USER='vrtecnologia';
+const LOCK_HASH='9909e8adb1d927908c1b47bc0d5ab63f18c05c85ee5e171104df2adaf0d3f568';
+async function sha256(txt){
+  if(!(crypto&&crypto.subtle)) return '';
+  const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(txt));
+  return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('');
+}
+async function desbloquear(){
+  const u=(document.getElementById('lock-user').value||'').trim().toLowerCase();
+  const p=document.getElementById('lock-pass').value||'';
+  const h=await sha256(p);
+  if(u===LOCK_USER && h===LOCK_HASH){
+    localStorage.setItem('ti_unlocked','1');
+    document.getElementById('lock').classList.add('oculto');
+  }else{
+    document.getElementById('lock-erro').textContent='Usuário ou senha incorretos.';
+    document.getElementById('lock-pass').value='';
+  }
+}
+function bloquear(){ localStorage.removeItem('ti_unlocked'); location.reload(); }
+if(localStorage.getItem('ti_unlocked')==='1'){ document.getElementById('lock').classList.add('oculto'); }
+
 // ================== Configuração de conexão ==================
 const AUTHORITY='https://login.microsoftonline.com/consumers';
 const SCOPES=['User.Read','Files.ReadWrite.AppFolder','Calendars.ReadWrite'];
