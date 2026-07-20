@@ -205,6 +205,22 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
     <label>Status<select id="ag-status"><option value="agendado">Agendado</option><option value="concluido">Concluído</option><option value="cancelado">Cancelado</option></select></label>
     <label class="col2">Local<input id="ag-local" placeholder="Endereço, online..."></label>
     <label class="col2">Descrição<textarea id="ag-descricao" rows="3"></textarea></label>
+    <div class="col2" id="bloco-recorrencia" style="border-top:1px solid var(--borda);padding-top:12px">
+      <div style="font-size:13px;font-weight:600;color:#374151;margin-bottom:8px">🔁 Repetir semanalmente (para clientes fixos)</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px" id="dow-box">
+        <label style="display:inline-flex;align-items:center;gap:4px;font-weight:500;font-size:13px"><input type="checkbox" class="dow" value="1">Seg</label>
+        <label style="display:inline-flex;align-items:center;gap:4px;font-weight:500;font-size:13px"><input type="checkbox" class="dow" value="2">Ter</label>
+        <label style="display:inline-flex;align-items:center;gap:4px;font-weight:500;font-size:13px"><input type="checkbox" class="dow" value="3">Qua</label>
+        <label style="display:inline-flex;align-items:center;gap:4px;font-weight:500;font-size:13px"><input type="checkbox" class="dow" value="4">Qui</label>
+        <label style="display:inline-flex;align-items:center;gap:4px;font-weight:500;font-size:13px"><input type="checkbox" class="dow" value="5">Sex</label>
+        <label style="display:inline-flex;align-items:center;gap:4px;font-weight:500;font-size:13px"><input type="checkbox" class="dow" value="6">Sáb</label>
+        <label style="display:inline-flex;align-items:center;gap:4px;font-weight:500;font-size:13px"><input type="checkbox" class="dow" value="0">Dom</label>
+      </div>
+      <label style="font-size:13px;font-weight:600;color:#374151;display:block">Repetir até
+        <input type="date" id="ag-repetir-ate" style="max-width:220px;padding:9px 11px;border:1px solid var(--borda);border-radius:8px;margin-top:4px;display:block">
+      </label>
+      <p class="dim" style="margin-top:6px">Marque os dias e a data final. O horário e o cliente são os mesmos preenchidos acima. (Deixe desmarcado para um agendamento único.)</p>
+    </div>
   </div>
   <div id="bloco-nfse" class="bloco-nfse oculto"><h3>Nota Fiscal (NFS-e)</h3><div id="nfse-info"></div></div>
   <div class="modal-rodape">
@@ -311,8 +327,8 @@ const CAMPOS_CLI=['nome','tipo_pessoa','documento','email','telefone','inscricao
 const MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 const DIAS=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
 let DB=carregarLocal();
-function dbPadrao(){return{clientes:[],agendamentos:[],notas:[],config:{desc:'REPARAÇÃO E MANUTENÇÃO DE COMPUTADORES',ctrib:'140101',cnpj:'',mun:'',razao:'',pix:'PIX CNPJ 42.612.058/0001-36'},seq:{cli:1,ag:1,nota:1}};}
-function carregarLocal(){try{const r=localStorage.getItem(CHAVE);if(r)return Object.assign(dbPadrao(),JSON.parse(r));}catch(e){}return dbPadrao();}
+function dbPadrao(){return{clientes:[],agendamentos:[],notas:[],config:{desc:'REPARAÇÃO E MANUTENÇÃO DE COMPUTADORES',ctrib:'140101',cnpj:'42612058000136',mun:'3304557',razao:'',pix:'PIX CNPJ 42.612.058/0001-36'},seq:{cli:1,ag:1,nota:1}};}
+function carregarLocal(){try{const r=localStorage.getItem(CHAVE);if(r){const d=Object.assign(dbPadrao(),JSON.parse(r));const def=dbPadrao().config;['desc','ctrib','cnpj','mun','pix'].forEach(k=>{if(!d.config[k])d.config[k]=def[k];});return d;}}catch(e){}return dbPadrao();}
 function salvarLocal(){try{localStorage.setItem(CHAVE,JSON.stringify(DB));}catch(e){}}
 function salvarDB(){salvarLocal();agendarSalvarNuvem();}
 function novoId(t){const id=DB.seq[t]++;salvarDB();return id;}
@@ -352,11 +368,49 @@ function nomeCurto(e){const c=DB.clientes.find(x=>x.id==e.cliente_id);return(c?c
 function renderMes(){const ref=calState.ref,primeiro=primeiroDiaMes(ref),ini=new Date(primeiro);ini.setDate(1-primeiro.getDay());const hoje=new Date();let h='<div class="cal-grade">'+DIAS.map(d=>`<div class="cal-cabdia">${d}</div>`).join('');for(let i=0;i<42;i++){const dia=new Date(ini);dia.setDate(ini.getDate()+i);const fora=dia.getMonth()!==ref.getMonth(),eh=mesmaData(dia,hoje);const chips=eventosDoDia(dia).map(e=>`<div class="cal-chip" style="background:${corEvento(e)}" title="${esc(e.titulo)}" onclick="event.stopPropagation();abrirAgendamento(${e.id})"><span class="cal-chip-h">${(e.inicio||'').slice(11,16)}</span> ${esc(nomeCurto(e))}</div>`).join('');h+=`<div class="cal-cel ${fora?'fora':''} ${eh?'hoje':''}" onclick="abrirNovoAgendamento('${fmtData(dia)}')"><div class="cal-num">${dia.getDate()}</div><div class="cal-chips">${chips}</div></div>`;}return h+'</div>';}
 function renderLista(){const hojeStr=fmtData(new Date());const fut=DB.agendamentos.filter(e=>(e.inicio||'').slice(0,10)>=hojeStr).sort((a,b)=>(a.inicio||'').localeCompare(b.inicio||''));if(!fut.length)return'<p class="vazio">Nenhum agendamento futuro.</p>';let h='<div class="cal-lista">',ult='';fut.forEach(e=>{const dia=(e.inicio||'').slice(0,10);if(dia!==ult){const d=new Date(dia+'T12:00');h+=`<div class="cal-lista-dia">${DIAS[d.getDay()]}, ${d.getDate()} de ${MESES[d.getMonth()]}</div>`;ult=dia;}h+=`<div class="cal-lista-item" onclick="abrirAgendamento(${e.id})"><span class="cal-lista-hora">${(e.inicio||'').slice(11,16)}</span><span class="cal-lista-cor" style="background:${corEvento(e)}"></span><span class="cal-lista-tit">${esc(nomeCurto(e))}</span></div>`;});return h+'</div>';}
 function fmtLocal(dt){return dt?dt.slice(0,16):'';}
-function abrirNovoAgendamento(dataStr){carregarClientesSelect();document.getElementById('ag-id').value='';['ag-titulo','ag-valor','ag-local','ag-descricao'].forEach(i=>document.getElementById(i).value='');document.getElementById('ag-cliente').value='';document.getElementById('ag-status').value='agendado';document.getElementById('modal-titulo').textContent='Novo agendamento';document.getElementById('btn-excluir-ag').style.display='none';document.getElementById('btn-emitir-nfse').style.display='none';document.getElementById('btn-outlook').style.display='none';document.getElementById('bloco-nfse').classList.add('oculto');const base=(dataStr||fmtData(new Date()))+'T09:00';document.getElementById('ag-inicio').value=base;document.getElementById('ag-fim').value=base.slice(0,11)+'10:00';abrirModal('modal-agendamento');}
-function abrirAgendamento(id){carregarClientesSelect();const a=DB.agendamentos.find(x=>x.id===id);if(!a)return;document.getElementById('ag-id').value=a.id;document.getElementById('ag-titulo').value=a.titulo||'';document.getElementById('ag-cliente').value=a.cliente_id||'';document.getElementById('ag-inicio').value=fmtLocal(a.inicio);document.getElementById('ag-fim').value=fmtLocal(a.fim);document.getElementById('ag-valor').value=a.valor||'';document.getElementById('ag-status').value=a.status||'agendado';document.getElementById('ag-local').value=a.local||'';document.getElementById('ag-descricao').value=a.descricao||'';document.getElementById('modal-titulo').textContent='Editar agendamento';document.getElementById('btn-excluir-ag').style.display='inline-block';document.getElementById('btn-emitir-nfse').style.display='inline-block';document.getElementById('btn-outlook').style.display='inline-block';const nota=DB.notas.filter(n=>n.agendamento_id===a.id).slice(-1)[0];if(nota){renderNota(nota,null);document.getElementById('btn-emitir-nfse').textContent=nota.status==='portal'?'🧾 Reabrir emissor':'🧾 Reemitir NFS-e';}else{document.getElementById('bloco-nfse').classList.add('oculto');document.getElementById('btn-emitir-nfse').textContent='🧾 Emitir NFS-e';}abrirModal('modal-agendamento');}
+function abrirNovoAgendamento(dataStr){carregarClientesSelect();document.getElementById('ag-id').value='';['ag-titulo','ag-valor','ag-local','ag-descricao'].forEach(i=>document.getElementById(i).value='');document.getElementById('ag-cliente').value='';document.getElementById('ag-status').value='agendado';document.getElementById('modal-titulo').textContent='Novo agendamento';document.getElementById('btn-excluir-ag').style.display='none';document.getElementById('btn-emitir-nfse').style.display='none';document.getElementById('btn-outlook').style.display='none';document.getElementById('bloco-nfse').classList.add('oculto');document.getElementById('bloco-recorrencia').style.display='';document.querySelectorAll('.dow').forEach(c=>c.checked=false);document.getElementById('ag-repetir-ate').value=(new Date().getFullYear())+'-12-31';const base=(dataStr||fmtData(new Date()))+'T09:00';document.getElementById('ag-inicio').value=base;document.getElementById('ag-fim').value=base.slice(0,11)+'10:00';abrirModal('modal-agendamento');}
+function abrirAgendamento(id){carregarClientesSelect();const a=DB.agendamentos.find(x=>x.id===id);if(!a)return;document.getElementById('ag-id').value=a.id;document.getElementById('ag-titulo').value=a.titulo||'';document.getElementById('ag-cliente').value=a.cliente_id||'';document.getElementById('ag-inicio').value=fmtLocal(a.inicio);document.getElementById('ag-fim').value=fmtLocal(a.fim);document.getElementById('ag-valor').value=a.valor||'';document.getElementById('ag-status').value=a.status||'agendado';document.getElementById('ag-local').value=a.local||'';document.getElementById('ag-descricao').value=a.descricao||'';document.getElementById('modal-titulo').textContent='Editar agendamento';document.getElementById('btn-excluir-ag').style.display='inline-block';document.getElementById('btn-emitir-nfse').style.display='inline-block';document.getElementById('btn-outlook').style.display='inline-block';document.getElementById('bloco-recorrencia').style.display='none';const nota=DB.notas.filter(n=>n.agendamento_id===a.id).slice(-1)[0];if(nota){renderNota(nota,null);document.getElementById('btn-emitir-nfse').textContent=nota.status==='portal'?'🧾 Reabrir emissor':'🧾 Reemitir NFS-e';}else{document.getElementById('bloco-nfse').classList.add('oculto');document.getElementById('btn-emitir-nfse').textContent='🧾 Emitir NFS-e';}abrirModal('modal-agendamento');}
 function coletarAg(){const v=id=>document.getElementById(id).value;return{titulo:v('ag-titulo').trim(),cliente_id:v('ag-cliente')||null,inicio:v('ag-inicio'),fim:v('ag-fim'),valor:parseFloat(v('ag-valor'))||0,status:v('ag-status'),local:v('ag-local'),descricao:v('ag-descricao')};}
-function salvarAgendamento(){const d=coletarAg();if(!d.titulo||!d.inicio||!d.fim){toast('Preencha título, início e fim.','erro');return;}const id=document.getElementById('ag-id').value;if(id){Object.assign(DB.agendamentos.find(x=>x.id==id),d);}else{d.id=novoId('ag');DB.agendamentos.push(d);}salvarDB();fecharModal('modal-agendamento');renderCalendario();toast('Agendamento salvo!','sucesso');}
-function excluirAgendamento(){const id=+document.getElementById('ag-id').value;if(!id)return;if(!confirm('Excluir este agendamento?'))return;DB.agendamentos=DB.agendamentos.filter(x=>x.id!==id);salvarDB();fecharModal('modal-agendamento');renderCalendario();toast('Agendamento excluído.','sucesso');}
+function salvarAgendamento(){
+  const d=coletarAg();
+  if(!d.titulo||!d.inicio||!d.fim){toast('Preencha título, início e fim.','erro');return;}
+  const id=document.getElementById('ag-id').value;
+  if(id){Object.assign(DB.agendamentos.find(x=>x.id==id),d);salvarDB();fecharModal('modal-agendamento');renderCalendario();toast('Agendamento salvo!','sucesso');return;}
+  // Novo: verifica repetição semanal
+  const dows=[...document.querySelectorAll('.dow:checked')].map(c=>+c.value);
+  const ate=document.getElementById('ag-repetir-ate').value;
+  if(dows.length && ate){
+    const durMs=new Date(d.fim)-new Date(d.inicio);
+    const hora=d.inicio.slice(11,16);
+    const ateFim=new Date(ate+'T23:59');
+    const grupo='r'+Date.now();
+    let cur=new Date(d.inicio.slice(0,10)+'T00:00'), n=0;
+    while(cur<=ateFim && n<500){
+      if(dows.includes(cur.getDay())){
+        const ini=fmtData(cur)+'T'+hora;
+        const f=new Date(new Date(ini).getTime()+durMs);
+        const fimStr=fmtData(f)+'T'+String(f.getHours()).padStart(2,'0')+':'+String(f.getMinutes()).padStart(2,'0');
+        DB.agendamentos.push({id:novoId('ag'),titulo:d.titulo,cliente_id:d.cliente_id,inicio:ini,fim:fimStr,local:d.local,descricao:d.descricao,valor:d.valor,status:'agendado',origem:'app',recorrencia:grupo});
+        n++;
+      }
+      cur.setDate(cur.getDate()+1);
+    }
+    salvarDB();fecharModal('modal-agendamento');renderCalendario();
+    toast('Série criada: '+n+' agendamentos.','sucesso');
+    return;
+  }
+  d.id=novoId('ag');d.origem='app';DB.agendamentos.push(d);salvarDB();fecharModal('modal-agendamento');renderCalendario();toast('Agendamento salvo!','sucesso');
+}
+function excluirAgendamento(){const id=+document.getElementById('ag-id').value;if(!id)return;const a=DB.agendamentos.find(x=>x.id===id);if(!a)return;
+  if(a.recorrencia){
+    const serie=confirm('Este agendamento se repete (série).\n\nOK = excluir TODA a série.\nCancelar = excluir só este.');
+    if(serie)DB.agendamentos=DB.agendamentos.filter(x=>x.recorrencia!==a.recorrencia);
+    else DB.agendamentos=DB.agendamentos.filter(x=>x.id!==id);
+  }else{
+    if(!confirm('Excluir este agendamento?'))return;
+    DB.agendamentos=DB.agendamentos.filter(x=>x.id!==id);
+  }
+  salvarDB();fecharModal('modal-agendamento');renderCalendario();toast('Excluído.','sucesso');}
 
 // ================== Outlook via .ics ==================
 function icsData(dtLocal){return(dtLocal||'').replace(/[-:]/g,'').slice(0,15).padEnd(15,'0');}
