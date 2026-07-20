@@ -20,7 +20,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
 .sidebar-rodape{padding:14px 20px;font-size:12px;color:#475569}
 .conteudo{margin-left:230px;flex:1;padding:0 32px 32px;width:calc(100% - 230px)}
 .barra-conta{display:flex;align-items:center;gap:10px;justify-content:flex-end;padding:12px 0;border-bottom:1px solid var(--borda);margin-bottom:18px;flex-wrap:wrap}
-.barra-conta .pill{font-size:13px;padding:5px 12px;border-radius:99px;background:#eef2ff;color:#4338ca;font-weight:600}
+.barra-conta .pill{font-size:13px;padding:5px 12px;border-radius:99px;background:#dcfce7;color:#166534;font-weight:600}
 .barra-conta .pill.off{background:#fef2f2;color:#991b1b}
 .topo{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:12px}
 .topo h1{font-size:22px;font-weight:700}
@@ -30,7 +30,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
 .btn-secundario{background:#fff;color:var(--txt);border:1px solid var(--borda)}.btn-secundario:hover{background:var(--cinza-cl)}
 .btn-perigo{background:#fef2f2;color:var(--vermelho);border:1px solid #fecaca}.btn-perigo:hover{background:#fee2e2}
 .btn-nfse{background:var(--nfse);color:#fff}.btn-nfse:hover{opacity:.9}
-.btn-ms{background:#2f2f2f;color:#fff}.btn-ms:hover{background:#000}
+.btn-outlook{background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe}.btn-outlook:hover{background:#e0e7ff}
 .legenda{display:flex;gap:18px;margin-bottom:14px;font-size:13px;color:var(--cinza);flex-wrap:wrap}
 .legenda i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:middle}
 #calendario{background:#fff;border-radius:12px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
@@ -118,60 +118,61 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
       <a data-view="notas" onclick="showView('notas')">🧾 <span class="txt">Notas Fiscais</span></a>
       <a data-view="config" onclick="showView('config')">⚙️ <span class="txt">Configurações</span></a>
     </nav>
-    <div class="sidebar-rodape">v2.0 · web</div>
+    <div class="sidebar-rodape">v2.1 · web</div>
   </aside>
   <main class="conteudo">
     <div class="barra-conta">
-      <span id="conta-status" class="pill off">Não conectado</span>
-      <button class="btn btn-ms" id="btn-entrar" onclick="entrar()">Entrar com Microsoft</button>
-      <button class="btn btn-secundario oculto" id="btn-sync" onclick="sincronizarTudo()">🔄 Sincronizar</button>
-      <button class="btn btn-secundario oculto" id="btn-sair" onclick="sair()">Sair</button>
+      <span id="conta-status" class="pill off">Sincronização desligada</span>
+      <button class="btn btn-secundario oculto" id="btn-sync" onclick="nuvemCarregar(true)">🔄 Atualizar</button>
       <button class="btn btn-secundario" onclick="bloquear()" title="Bloquear o acesso">🔒</button>
     </div>
 
-    <!-- AGENDA -->
     <section id="view-agenda">
-      <div class="topo"><h1>Agenda</h1><div class="topo-acoes"><button class="btn btn-primario" onclick="abrirNovoAgendamento()">+ Novo agendamento</button></div></div>
+      <div class="topo"><h1>Agenda</h1><div class="topo-acoes">
+        <label class="btn btn-outlook" style="display:inline-block" title="Importar sua agenda do Outlook (arquivo .ics)">📥 Importar Outlook (.ics)<input type="file" accept=".ics,text/calendar" style="display:none" onchange="importarICS(this)"></label>
+        <button class="btn btn-primario" onclick="abrirNovoAgendamento()">+ Novo agendamento</button>
+      </div></div>
       <div class="legenda"><span><i style="background:#2563eb"></i> Agendado</span><span><i style="background:#16a34a"></i> Concluído</span><span><i style="background:#7c3aed"></i> Do Outlook</span><span><i style="background:#9ca3af"></i> Cancelado</span></div>
       <div id="calendario"></div>
     </section>
 
-    <!-- CLIENTES -->
     <section id="view-clientes" class="oculto">
       <div class="topo"><h1>Clientes</h1><div class="topo-acoes"><input type="search" id="busca-cliente" class="busca" placeholder="Buscar..." oninput="renderClientes(this.value)"><button class="btn btn-primario" onclick="abrirNovoCliente()">+ Novo cliente</button></div></div>
       <table class="tabela"><thead><tr><th>Nome</th><th>Tipo</th><th>CPF/CNPJ</th><th>Telefone</th><th>Município</th><th></th></tr></thead><tbody id="lista-clientes"></tbody></table>
     </section>
 
-    <!-- NOTAS -->
     <section id="view-notas" class="oculto"><div class="topo"><h1>Notas Fiscais (NFS-e)</h1></div><div id="lista-notas"></div></section>
 
-    <!-- CONFIG -->
     <section id="view-config" class="oculto">
       <div class="topo"><h1>Configurações</h1></div>
 
       <div class="card">
-        <h2>🔗 Conexão com a Microsoft</h2>
-        <p id="conexao-detalhe" class="dim">Entre com sua conta Microsoft para guardar os dados no seu OneDrive e sincronizar a agenda com o Outlook.</p>
+        <h2>☁️ Sincronização (iPhone + notebook)</h2>
+        <p id="sync-detalhe" class="dim">Conecte ao seu GitHub para guardar os dados na nuvem e ter os mesmos dados em todos os aparelhos.</p>
         <div class="form-grid" style="margin-top:12px">
-          <label class="col2">Client ID do aplicativo (Azure) — cole aqui
-            <input id="cfg-clientid" placeholder="ex.: 12345678-abcd-....">
+          <label class="col2">Repositório de dados (formato: usuario/repositorio)
+            <input id="cfg-repo" placeholder="ex.: vrtecnologia/gestor-dados">
+          </label>
+          <label class="col2">Token de acesso do GitHub
+            <input id="cfg-token" type="password" placeholder="cole aqui o token (github_pat_...)">
           </label>
         </div>
         <div class="acoes-linha">
-          <button class="btn btn-primario" onclick="salvarClientId()">Salvar Client ID</button>
-          <button class="btn btn-ms" onclick="entrar()">Entrar com Microsoft</button>
+          <button class="btn btn-primario" onclick="conectarGitHub()">Conectar / Testar</button>
+          <button class="btn btn-secundario" onclick="nuvemCarregar(true)">🔄 Baixar dados da nuvem</button>
         </div>
-        <p class="dim" style="margin-top:10px">O passo a passo para obter o Client ID está no guia que acompanha o programa.</p>
+        <p class="dim" style="margin-top:10px">O token fica salvo só neste aparelho. No iPhone, você cola o mesmo repositório e token. O passo a passo está no guia.</p>
       </div>
 
       <div class="card">
         <h2>🧾 NFS-e (Padrão Nacional · MEI / gov.br)</h2>
         <div class="form-grid">
-          <label>Descrição padrão do serviço<input id="cfg-desc" placeholder="Suporte técnico em informática"></label>
-          <label>Código de tributação nacional<input id="cfg-ctrib" placeholder="010701"></label>
+          <label class="col2">Descrição do serviço (vai na mensagem da nota)<input id="cfg-desc" placeholder="REPARAÇÃO E MANUTENÇÃO DE COMPUTADORES"></label>
+          <label>Código de tributação nacional<input id="cfg-ctrib" placeholder="140101"></label>
           <label>CNPJ (seu)<input id="cfg-cnpj" placeholder="Somente números"></label>
           <label>Código IBGE do seu município<input id="cfg-mun" placeholder="7 dígitos"></label>
-          <label class="col2">Razão social<input id="cfg-razao" placeholder="Nome da sua empresa"></label>
+          <label>Razão social<input id="cfg-razao" placeholder="Nome da sua empresa"></label>
+          <label class="col2">Dados para pagamento (PIX) — vai na mensagem da nota<input id="cfg-pix" placeholder="PIX CNPJ 42.612.058/0001-36"></label>
         </div>
         <div class="acoes-linha">
           <button class="btn btn-primario" onclick="salvarConfig()">Salvar configurações</button>
@@ -181,8 +182,8 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
       </div>
 
       <div class="card">
-        <h2>💾 Backup manual</h2>
-        <p class="dim">Com a conta Microsoft conectada, seus dados já ficam salvos no OneDrive automaticamente. Este backup é um extra, caso queira uma cópia em arquivo.</p>
+        <h2>💾 Backup em arquivo</h2>
+        <p class="dim">Além da nuvem, você pode baixar uma cópia de tudo em um arquivo.</p>
         <div class="acoes-linha">
           <button class="btn btn-secundario" onclick="exportarBackup()">⬇️ Baixar backup</button>
           <label class="btn btn-secundario" style="display:inline-block">⬆️ Restaurar backup<input type="file" accept="application/json" style="display:none" onchange="importarBackup(this)"></label>
@@ -192,7 +193,6 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
   </main>
 </div>
 
-<!-- MODAL AGENDAMENTO -->
 <div id="modal-agendamento" class="modal-overlay oculto"><div class="modal">
   <div class="modal-topo"><h2 id="modal-titulo">Novo agendamento</h2><button class="fechar" onclick="fecharModal('modal-agendamento')">✕</button></div>
   <div class="form-grid">
@@ -210,12 +210,12 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
   <div class="modal-rodape">
     <button class="btn btn-perigo" id="btn-excluir-ag" onclick="excluirAgendamento()">Excluir</button>
     <div style="flex:1"></div>
+    <button class="btn btn-outlook" id="btn-outlook" onclick="adicionarAoOutlook()">📅 Adicionar ao Outlook</button>
     <button class="btn btn-nfse" id="btn-emitir-nfse" onclick="emitirNFSe()">🧾 Emitir NFS-e</button>
     <button class="btn btn-primario" onclick="salvarAgendamento()">Salvar</button>
   </div>
 </div></div>
 
-<!-- MODAL CLIENTE -->
 <div id="modal-cliente" class="modal-overlay oculto"><div class="modal modal-largo">
   <div class="modal-topo"><h2 id="modal-cliente-titulo">Novo cliente</h2><button class="fechar" onclick="fecharModal('modal-cliente')">✕</button></div>
   <div class="form-grid">
@@ -226,6 +226,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
     <label>E-mail<input id="cli-email"></label>
     <label>Telefone<input id="cli-telefone"></label>
     <label>Inscrição Municipal<input id="cli-inscricao_municipal"></label>
+    <label>Dia de vencimento da NFS-e<input id="cli-venc_dia" type="number" min="1" max="31" placeholder="ex.: 10"></label>
     <label>CEP<input id="cli-cep"></label>
     <label class="col2">Logradouro<input id="cli-logradouro"></label>
     <label>Número<input id="cli-numero"></label>
@@ -241,48 +242,76 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
 
 <div id="toast" class="toast"></div>
 
-<script src="https://alcdn.msftauth.net/lib/1.4.18/js/msal-browser.min.js"></script>
 <script>
 // ================== Tela de acesso (tranca leve) ==================
-// Observação: por ser um arquivo público, esta tranca barra acesso casual,
-// mas não é criptografia. A proteção real dos dados é o login da Microsoft
-// (os dados ficam no SEU OneDrive e exigem sua conta para aparecer).
 const LOCK_USER='vrtecnologia';
 const LOCK_HASH='9909e8adb1d927908c1b47bc0d5ab63f18c05c85ee5e171104df2adaf0d3f568';
-async function sha256(txt){
-  if(!(crypto&&crypto.subtle)) return '';
-  const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(txt));
-  return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('');
-}
-async function desbloquear(){
-  const u=(document.getElementById('lock-user').value||'').trim().toLowerCase();
-  const p=document.getElementById('lock-pass').value||'';
-  const h=await sha256(p);
-  if(u===LOCK_USER && h===LOCK_HASH){
-    localStorage.setItem('ti_unlocked','1');
-    document.getElementById('lock').classList.add('oculto');
-  }else{
-    document.getElementById('lock-erro').textContent='Usuário ou senha incorretos.';
-    document.getElementById('lock-pass').value='';
-  }
-}
-function bloquear(){ localStorage.removeItem('ti_unlocked'); location.reload(); }
-if(localStorage.getItem('ti_unlocked')==='1'){ document.getElementById('lock').classList.add('oculto'); }
+async function sha256(txt){if(!(crypto&&crypto.subtle))return'';const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(txt));return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('');}
+async function desbloquear(){const u=(document.getElementById('lock-user').value||'').trim().toLowerCase();const p=document.getElementById('lock-pass').value||'';const h=await sha256(p);if(u===LOCK_USER&&h===LOCK_HASH){localStorage.setItem('ti_unlocked','1');document.getElementById('lock').classList.add('oculto');}else{document.getElementById('lock-erro').textContent='Usuário ou senha incorretos.';document.getElementById('lock-pass').value='';}}
+function bloquear(){localStorage.removeItem('ti_unlocked');location.reload();}
+if(localStorage.getItem('ti_unlocked')==='1'){document.getElementById('lock').classList.add('oculto');}
 
-// ================== Configuração de conexão ==================
-const AUTHORITY='https://login.microsoftonline.com/consumers';
-const SCOPES=['User.Read','Files.ReadWrite.AppFolder','Calendars.ReadWrite'];
-const GRAPH='https://graph.microsoft.com/v1.0';
-let CLIENT_ID = localStorage.getItem('ti_client_id')||'';
-let msalApp=null, conta=null, saveTimer=null, sincronizando=false;
+// ================== Sincronização (GitHub) ==================
+let GH_REPO=localStorage.getItem('ti_gh_repo')||'';
+let GH_TOKEN=localStorage.getItem('ti_gh_token')||'';
+let ghSha=null, conectado=false, saveTimer=null, carregando=false;
+const GH='https://api.github.com';
+function ghHeaders(){return{Authorization:'Bearer '+GH_TOKEN,'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'};}
+function b64enc(s){return btoa(unescape(encodeURIComponent(s)));}
+function b64dec(b){return decodeURIComponent(escape(atob(b)));}
+
+async function conectarGitHub(){
+  GH_REPO=(document.getElementById('cfg-repo').value||'').trim().replace(/^https?:\/\/github.com\//,'').replace(/\.git$/,'');
+  GH_TOKEN=(document.getElementById('cfg-token').value||'').trim();
+  localStorage.setItem('ti_gh_repo',GH_REPO); localStorage.setItem('ti_gh_token',GH_TOKEN);
+  if(!GH_REPO||!GH_TOKEN){toast('Preencha o repositório e o token.','erro');return;}
+  toast('Conectando...');
+  try{
+    const r=await fetch(GH+'/repos/'+GH_REPO,{headers:ghHeaders()});
+    if(r.ok){conectado=true;atualizarBarra();toast('Conectado! Buscando seus dados...','sucesso');await nuvemCarregar(false);}
+    else if(r.status===404){conectado=false;atualizarBarra();toast('Repositório não encontrado. Confira o nome (usuario/repositorio) e se o token tem acesso a ele.','erro');}
+    else if(r.status===401){conectado=false;atualizarBarra();toast('Token inválido ou expirado.','erro');}
+    else{conectado=false;atualizarBarra();toast('Não consegui conectar (erro '+r.status+').','erro');}
+  }catch(e){conectado=false;atualizarBarra();toast('Erro de conexão: '+e.message,'erro');}
+}
+function atualizarBarra(){
+  const st=document.getElementById('conta-status'), bSync=document.getElementById('btn-sync'), det=document.getElementById('sync-detalhe');
+  if(conectado){st.textContent='☁️ Sincronizado ('+GH_REPO+')';st.className='pill';bSync.classList.remove('oculto');if(det)det.innerHTML='<span class="ok-box" style="display:inline-block">Conectado ao repositório <b>'+esc(GH_REPO)+'</b>. Seus dados estão sendo salvos na nuvem.</span>';}
+  else{st.textContent='Sincronização desligada';st.className='pill off';bSync.classList.add('oculto');}
+}
+async function nuvemCarregar(avisar){
+  if(!conectado||carregando)return; carregando=true;
+  try{
+    const r=await fetch(GH+'/repos/'+GH_REPO+'/contents/dados.json',{headers:ghHeaders(),cache:'no-store'});
+    if(r.status===200){const j=await r.json();ghSha=j.sha;const dados=JSON.parse(b64dec(j.content));DB=Object.assign(dbPadrao(),dados);salvarLocal();rerenderTudo();if(avisar)toast('Dados atualizados da nuvem.','sucesso');}
+    else if(r.status===404){ghSha=null;await nuvemSalvarAgora();if(avisar)toast('Nuvem iniciada com os dados deste aparelho.','sucesso');}
+    else if(avisar)toast('Não consegui baixar (erro '+r.status+').','erro');
+  }catch(e){if(avisar)toast('Erro ao baixar: '+e.message,'erro');}
+  carregando=false;
+}
+function agendarSalvarNuvem(){if(!conectado)return;clearTimeout(saveTimer);saveTimer=setTimeout(nuvemSalvarAgora,1500);}
+async function nuvemSalvarAgora(){
+  if(!conectado)return;
+  const body={message:'Atualizar dados '+fmtData(new Date()),content:b64enc(JSON.stringify(DB,null,2))};
+  if(ghSha)body.sha=ghSha;
+  try{
+    let r=await fetch(GH+'/repos/'+GH_REPO+'/contents/dados.json',{method:'PUT',headers:{...ghHeaders(),'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(r.status===409){ // outro aparelho salvou antes: pega o sha novo e regrava
+      const g=await fetch(GH+'/repos/'+GH_REPO+'/contents/dados.json',{headers:ghHeaders(),cache:'no-store'});
+      if(g.ok){const j=await g.json();body.sha=j.sha;r=await fetch(GH+'/repos/'+GH_REPO+'/contents/dados.json',{method:'PUT',headers:{...ghHeaders(),'Content-Type':'application/json'},body:JSON.stringify(body)});}
+    }
+    if(r.ok){const j=await r.json();ghSha=j.content.sha;}
+    else console.warn('salvar nuvem',r.status);
+  }catch(e){console.warn('salvar nuvem',e);}
+}
 
 // ================== Persistência local (cache) ==================
 const CHAVE='gestor_ti_db_v2';
-const CAMPOS_CLI=['nome','tipo_pessoa','documento','email','telefone','inscricao_municipal','cep','logradouro','numero','complemento','bairro','municipio','codigo_municipio_ibge','uf','observacoes'];
+const CAMPOS_CLI=['nome','tipo_pessoa','documento','email','telefone','inscricao_municipal','venc_dia','cep','logradouro','numero','complemento','bairro','municipio','codigo_municipio_ibge','uf','observacoes'];
 const MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 const DIAS=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
 let DB=carregarLocal();
-function dbPadrao(){return{clientes:[],agendamentos:[],notas:[],config:{desc:'Suporte técnico em informática',ctrib:'010701',cnpj:'',mun:'',razao:''},seq:{cli:1,ag:1,nota:1}};}
+function dbPadrao(){return{clientes:[],agendamentos:[],notas:[],config:{desc:'REPARAÇÃO E MANUTENÇÃO DE COMPUTADORES',ctrib:'140101',cnpj:'',mun:'',razao:'',pix:'PIX CNPJ 42.612.058/0001-36'},seq:{cli:1,ag:1,nota:1}};}
 function carregarLocal(){try{const r=localStorage.getItem(CHAVE);if(r)return Object.assign(dbPadrao(),JSON.parse(r));}catch(e){}return dbPadrao();}
 function salvarLocal(){try{localStorage.setItem(CHAVE,JSON.stringify(DB));}catch(e){}}
 function salvarDB(){salvarLocal();agendarSalvarNuvem();}
@@ -297,161 +326,11 @@ function esc(t){return(t==null?'':String(t)).replace(/&/g,'&amp;').replace(/</g,
 document.addEventListener('click',e=>{if(e.target.classList&&e.target.classList.contains('modal-overlay'))e.target.classList.add('oculto');});
 function rerenderTudo(){renderCalendario();renderClientes();renderNotas();carregarClientesSelect();carregarConfigForm();}
 
-// ================== Autenticação (MSAL) ==================
-function initMsal(){
-  if(typeof msal==='undefined'){ console.warn('MSAL não carregou (sem internet?)'); return; }
-  if(!CLIENT_ID) return;
-  msalApp=new msal.PublicClientApplication({
-    auth:{clientId:CLIENT_ID,authority:AUTHORITY,redirectUri:location.origin+location.pathname},
-    cache:{cacheLocation:'localStorage'}
-  });
-}
-async function initAuth(){
-  if(!msalApp) { atualizarBarra(); return; }
-  try{
-    const resp=await msalApp.handleRedirectPromise();
-    if(resp&&resp.account) conta=resp.account;
-    else { const cs=msalApp.getAllAccounts(); if(cs.length) conta=cs[0]; }
-    if(conta){ msalApp.setActiveAccount(conta); atualizarBarra(); await nuvemCarregar(); }
-  }catch(e){ console.warn('Auth erro',e); toast('Erro no login: '+e.message,'erro'); }
-  atualizarBarra();
-}
-async function entrar(){
-  if(!CLIENT_ID){ toast('Cole o Client ID em Configurações primeiro.','erro'); showView('config'); return; }
-  if(!msalApp){ initMsal(); if(!msalApp){ toast('Não foi possível iniciar o login (sem internet?).','erro'); return; } }
-  try{ await msalApp.loginRedirect({scopes:SCOPES}); }
-  catch(e){ toast('Erro ao entrar: '+e.message,'erro'); }
-}
-async function sair(){ if(msalApp&&conta){ await msalApp.logoutRedirect({account:conta}); } }
-async function getToken(){
-  const req={scopes:SCOPES,account:conta};
-  try{ const r=await msalApp.acquireTokenSilent(req); return r.accessToken; }
-  catch(e){ await msalApp.acquireTokenRedirect(req); throw e; }
-}
-function atualizarBarra(){
-  const st=document.getElementById('conta-status');
-  const bEntrar=document.getElementById('btn-entrar'), bSync=document.getElementById('btn-sync'), bSair=document.getElementById('btn-sair');
-  const det=document.getElementById('conexao-detalhe');
-  if(conta){
-    st.textContent='✔ '+(conta.username||'conectado'); st.className='pill';
-    bEntrar.classList.add('oculto'); bSync.classList.remove('oculto'); bSair.classList.remove('oculto');
-    if(det) det.innerHTML='<span class="ok-box" style="display:inline-block">Conectado como <b>'+esc(conta.username)+'</b>. Seus dados estão sendo salvos no OneDrive.</span>';
-  }else{
-    st.textContent=CLIENT_ID?'Não conectado':'Configurar conexão'; st.className='pill off';
-    bEntrar.classList.remove('oculto'); bSync.classList.add('oculto'); bSair.classList.add('oculto');
-  }
-}
-
-// ================== Graph: OneDrive (dados) ==================
-async function graph(path,method,body,extraHeaders){
-  const t=await getToken();
-  const h={Authorization:'Bearer '+t};
-  if(body&&!(extraHeaders&&extraHeaders['Content-Type'])) h['Content-Type']='application/json';
-  Object.assign(h,extraHeaders||{});
-  const r=await fetch(GRAPH+path,{method:method||'GET',headers:h,body:body?(typeof body==='string'?body:JSON.stringify(body)):undefined});
-  return r;
-}
-async function nuvemCarregar(){
-  if(!conta) return;
-  try{
-    const r=await graph('/me/drive/special/approot:/dados.json:/content');
-    if(r.status===200){
-      const dados=await r.json();
-      DB=Object.assign(dbPadrao(),dados); salvarLocal(); rerenderTudo();
-      toast('Dados carregados do OneDrive.','sucesso');
-    } else if(r.status===404){
-      await nuvemSalvarAgora(); // primeira vez: cria o arquivo com o que houver localmente
-    } else { console.warn('nuvemCarregar status',r.status); }
-  }catch(e){ console.warn('nuvemCarregar',e); }
-}
-function agendarSalvarNuvem(){
-  if(!conta) return;
-  clearTimeout(saveTimer);
-  saveTimer=setTimeout(nuvemSalvarAgora,1500);
-}
-async function nuvemSalvarAgora(){
-  if(!conta) return;
-  try{
-    const r=await graph('/me/drive/special/approot:/dados.json:/content','PUT',JSON.stringify(DB));
-    if(!r.ok) console.warn('nuvemSalvar status',r.status);
-  }catch(e){ console.warn('nuvemSalvar',e); }
-}
-
-// ================== Graph: Outlook (agenda) ==================
-function eventoPayload(a){
-  const cli=DB.clientes.find(x=>x.id==a.cliente_id);
-  return {subject:a.titulo,
-    body:{contentType:'text',content:(cli?('Cliente: '+cli.nome+'\n'):'')+(a.descricao||'')},
-    start:{dateTime:a.inicio,timeZone:'America/Sao_Paulo'},
-    end:{dateTime:a.fim,timeZone:'America/Sao_Paulo'},
-    location:{displayName:a.local||''}};
-}
-async function outlookEnviar(a){
-  if(!conta) return null;
-  const payload=eventoPayload(a);
-  let r;
-  if(a.outlook_event_id){
-    r=await graph('/me/events/'+a.outlook_event_id,'PATCH',payload);
-    if(r.status===404) r=await graph('/me/events','POST',payload);
-  } else r=await graph('/me/events','POST',payload);
-  if(r.ok){ const j=await r.json(); return j.id; }
-  return null;
-}
-async function outlookExcluir(id){ if(conta&&id){ try{ await graph('/me/events/'+id,'DELETE'); }catch(e){} } }
-async function outlookPuxar(){
-  if(!conta) return 0;
-  const ini=new Date(Date.now()-30*864e5).toISOString().slice(0,19);
-  const fim=new Date(Date.now()+120*864e5).toISOString().slice(0,19);
-  let url='/me/calendarView?startDateTime='+ini+'&endDateTime='+fim+'&$top=200&$orderby=start/dateTime';
-  let importados=0;
-  while(url){
-    const r=await graph(url,'GET',null,{Prefer:'outlook.timezone="America/Sao_Paulo"'});
-    if(!r.ok){ console.warn('calendarView',r.status); break; }
-    const data=await r.json();
-    (data.value||[]).forEach(ev=>{
-      const existe=DB.agendamentos.find(a=>a.outlook_event_id===ev.id);
-      const dados={titulo:ev.subject||'(sem título)',inicio:(ev.start.dateTime||'').slice(0,16),fim:(ev.end.dateTime||'').slice(0,16),local:(ev.location||{}).displayName||'',outlook_event_id:ev.id,origem:'outlook'};
-      if(existe) Object.assign(existe,dados);
-      else { dados.id=novoId('ag'); dados.status='agendado'; DB.agendamentos.push(dados); importados++; }
-    });
-    const next=data['@odata.nextLink'];
-    url=next?next.replace(GRAPH,''):null;
-  }
-  salvarDB(); return importados;
-}
-async function sincronizarTudo(){
-  if(!conta){ toast('Entre com a Microsoft primeiro.','erro'); return; }
-  if(sincronizando) return; sincronizando=true;
-  toast('Sincronizando...');
-  try{
-    // envia os que ainda não têm evento no Outlook
-    for(const a of DB.agendamentos.filter(x=>x.origem!=='outlook'&&!x.outlook_event_id&&x.status!=='cancelado')){
-      const oid=await outlookEnviar(a); if(oid){ a.outlook_event_id=oid; }
-    }
-    salvarDB();
-    const n=await outlookPuxar();
-    await nuvemSalvarAgora();
-    renderCalendario();
-    toast('Sincronizado! '+n+' evento(s) novo(s) do Outlook.','sucesso');
-  }catch(e){ toast('Falha ao sincronizar: '+e.message,'erro'); }
-  sincronizando=false;
-}
-
 // ================== Navegação ==================
-function showView(v){
-  ['agenda','clientes','notas','config'].forEach(n=>document.getElementById('view-'+n).classList.toggle('oculto',n!==v));
-  document.querySelectorAll('.sidebar nav a').forEach(a=>a.classList.toggle('ativo',a.dataset.view===v));
-  if(v==='agenda')renderCalendario(); if(v==='clientes')renderClientes(); if(v==='notas')renderNotas(); if(v==='config')carregarConfigForm();
-}
+function showView(v){['agenda','clientes','notas','config'].forEach(n=>document.getElementById('view-'+n).classList.toggle('oculto',n!==v));document.querySelectorAll('.sidebar nav a').forEach(a=>a.classList.toggle('ativo',a.dataset.view===v));if(v==='agenda')renderCalendario();if(v==='clientes')renderClientes();if(v==='notas')renderNotas();if(v==='config')carregarConfigForm();}
 
 // ================== Clientes ==================
-function renderClientes(q){
-  q=(q||'').toLowerCase();
-  const lista=DB.clientes.filter(c=>!q||(c.nome||'').toLowerCase().includes(q)||(c.documento||'').includes(q)).sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));
-  const tb=document.getElementById('lista-clientes');
-  if(!lista.length){tb.innerHTML='<tr><td colspan="6" class="vazio">Nenhum cliente cadastrado.</td></tr>';return;}
-  tb.innerHTML=lista.map(c=>`<tr><td><b>${esc(c.nome)}</b></td><td>${c.tipo_pessoa==='J'?'Jurídica':'Física'}</td><td>${esc(c.documento)||'—'}</td><td>${esc(c.telefone)||'—'}</td><td>${esc(c.municipio)||'—'}</td><td class="acoes-cel"><span class="link-acao" onclick="editarCliente(${c.id})">Editar</span><span class="link-acao perigo" onclick="excluirCliente(${c.id})">Excluir</span></td></tr>`).join('');
-}
+function renderClientes(q){q=(q||'').toLowerCase();const lista=DB.clientes.filter(c=>!q||(c.nome||'').toLowerCase().includes(q)||(c.documento||'').includes(q)).sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));const tb=document.getElementById('lista-clientes');if(!lista.length){tb.innerHTML='<tr><td colspan="6" class="vazio">Nenhum cliente cadastrado.</td></tr>';return;}tb.innerHTML=lista.map(c=>`<tr><td><b>${esc(c.nome)}</b></td><td>${c.tipo_pessoa==='J'?'Jurídica':'Física'}</td><td>${esc(c.documento)||'—'}</td><td>${esc(c.telefone)||'—'}</td><td>${esc(c.municipio)||'—'}</td><td class="acoes-cel"><span class="link-acao" onclick="editarCliente(${c.id})">Editar</span><span class="link-acao perigo" onclick="excluirCliente(${c.id})">Excluir</span></td></tr>`).join('');}
 function abrirNovoCliente(){document.getElementById('cli-id').value='';CAMPOS_CLI.forEach(c=>{const el=document.getElementById('cli-'+c);if(el)el.value=c==='tipo_pessoa'?'F':'';});document.getElementById('modal-cliente-titulo').textContent='Novo cliente';abrirModal('modal-cliente');}
 function editarCliente(id){const c=DB.clientes.find(x=>x.id===id);if(!c)return;document.getElementById('cli-id').value=c.id;CAMPOS_CLI.forEach(k=>{const el=document.getElementById('cli-'+k);if(el)el.value=c[k]||'';});document.getElementById('modal-cliente-titulo').textContent='Editar cliente';abrirModal('modal-cliente');}
 function salvarCliente(){const nome=document.getElementById('cli-nome').value.trim();if(!nome){toast('Informe o nome.','erro');return;}const id=document.getElementById('cli-id').value;const d={};CAMPOS_CLI.forEach(k=>{const el=document.getElementById('cli-'+k);d[k]=el?el.value:'';});if(id){Object.assign(DB.clientes.find(x=>x.id==id),d);}else{d.id=novoId('cli');DB.clientes.push(d);}salvarDB();toast('Cliente salvo!','sucesso');fecharModal('modal-cliente');renderClientes();carregarClientesSelect();}
@@ -467,38 +346,44 @@ function corEvento(a){if(a.status==='concluido')return'#16a34a';if(a.status==='c
 function mudarMes(d){calState.ref=new Date(calState.ref.getFullYear(),calState.ref.getMonth()+d,1);renderCalendario();}
 function irHoje(){calState.ref=primeiroDiaMes(new Date());renderCalendario();}
 function trocarView(v){calState.view=v;renderCalendario();}
-function renderCalendario(){const el=document.getElementById('calendario');const ref=calState.ref;
-  const cab=`<div class="cal-cab"><div class="cal-nav"><button class="btn btn-secundario" onclick="mudarMes(-1)">‹</button><button class="btn btn-secundario" onclick="irHoje()">Hoje</button><button class="btn btn-secundario" onclick="mudarMes(1)">›</button><h2>${MESES[ref.getMonth()]} de ${ref.getFullYear()}</h2></div><div class="cal-views"><button class="btn ${calState.view==='mes'?'btn-primario':'btn-secundario'}" onclick="trocarView('mes')">Mês</button><button class="btn ${calState.view==='lista'?'btn-primario':'btn-secundario'}" onclick="trocarView('lista')">Lista</button></div></div>`;
-  el.innerHTML=cab+(calState.view==='mes'?renderMes():renderLista());}
+function renderCalendario(){const el=document.getElementById('calendario');const ref=calState.ref;const cab=`<div class="cal-cab"><div class="cal-nav"><button class="btn btn-secundario" onclick="mudarMes(-1)">‹</button><button class="btn btn-secundario" onclick="irHoje()">Hoje</button><button class="btn btn-secundario" onclick="mudarMes(1)">›</button><h2>${MESES[ref.getMonth()]} de ${ref.getFullYear()}</h2></div><div class="cal-views"><button class="btn ${calState.view==='mes'?'btn-primario':'btn-secundario'}" onclick="trocarView('mes')">Mês</button><button class="btn ${calState.view==='lista'?'btn-primario':'btn-secundario'}" onclick="trocarView('lista')">Lista</button></div></div>`;el.innerHTML=cab+(calState.view==='mes'?renderMes():renderLista());}
 function eventosDoDia(d){const s=fmtData(d);return DB.agendamentos.filter(e=>(e.inicio||'').slice(0,10)===s).sort((a,b)=>(a.inicio||'').localeCompare(b.inicio||''));}
 function nomeCurto(e){const c=DB.clientes.find(x=>x.id==e.cliente_id);return(c?c.nome+' - ':'')+e.titulo;}
-function renderMes(){const ref=calState.ref,primeiro=primeiroDiaMes(ref),ini=new Date(primeiro);ini.setDate(1-primeiro.getDay());const hoje=new Date();let h='<div class="cal-grade">'+DIAS.map(d=>`<div class="cal-cabdia">${d}</div>`).join('');
-  for(let i=0;i<42;i++){const dia=new Date(ini);dia.setDate(ini.getDate()+i);const fora=dia.getMonth()!==ref.getMonth(),eh=mesmaData(dia,hoje);
-    const chips=eventosDoDia(dia).map(e=>`<div class="cal-chip" style="background:${corEvento(e)}" title="${esc(e.titulo)}" onclick="event.stopPropagation();abrirAgendamento(${e.id})"><span class="cal-chip-h">${(e.inicio||'').slice(11,16)}</span> ${esc(nomeCurto(e))}</div>`).join('');
-    h+=`<div class="cal-cel ${fora?'fora':''} ${eh?'hoje':''}" onclick="abrirNovoAgendamento('${fmtData(dia)}')"><div class="cal-num">${dia.getDate()}</div><div class="cal-chips">${chips}</div></div>`;}
-  return h+'</div>';}
+function renderMes(){const ref=calState.ref,primeiro=primeiroDiaMes(ref),ini=new Date(primeiro);ini.setDate(1-primeiro.getDay());const hoje=new Date();let h='<div class="cal-grade">'+DIAS.map(d=>`<div class="cal-cabdia">${d}</div>`).join('');for(let i=0;i<42;i++){const dia=new Date(ini);dia.setDate(ini.getDate()+i);const fora=dia.getMonth()!==ref.getMonth(),eh=mesmaData(dia,hoje);const chips=eventosDoDia(dia).map(e=>`<div class="cal-chip" style="background:${corEvento(e)}" title="${esc(e.titulo)}" onclick="event.stopPropagation();abrirAgendamento(${e.id})"><span class="cal-chip-h">${(e.inicio||'').slice(11,16)}</span> ${esc(nomeCurto(e))}</div>`).join('');h+=`<div class="cal-cel ${fora?'fora':''} ${eh?'hoje':''}" onclick="abrirNovoAgendamento('${fmtData(dia)}')"><div class="cal-num">${dia.getDate()}</div><div class="cal-chips">${chips}</div></div>`;}return h+'</div>';}
 function renderLista(){const hojeStr=fmtData(new Date());const fut=DB.agendamentos.filter(e=>(e.inicio||'').slice(0,10)>=hojeStr).sort((a,b)=>(a.inicio||'').localeCompare(b.inicio||''));if(!fut.length)return'<p class="vazio">Nenhum agendamento futuro.</p>';let h='<div class="cal-lista">',ult='';fut.forEach(e=>{const dia=(e.inicio||'').slice(0,10);if(dia!==ult){const d=new Date(dia+'T12:00');h+=`<div class="cal-lista-dia">${DIAS[d.getDay()]}, ${d.getDate()} de ${MESES[d.getMonth()]}</div>`;ult=dia;}h+=`<div class="cal-lista-item" onclick="abrirAgendamento(${e.id})"><span class="cal-lista-hora">${(e.inicio||'').slice(11,16)}</span><span class="cal-lista-cor" style="background:${corEvento(e)}"></span><span class="cal-lista-tit">${esc(nomeCurto(e))}</span></div>`;});return h+'</div>';}
 function fmtLocal(dt){return dt?dt.slice(0,16):'';}
-function abrirNovoAgendamento(dataStr){carregarClientesSelect();document.getElementById('ag-id').value='';['ag-titulo','ag-valor','ag-local','ag-descricao'].forEach(i=>document.getElementById(i).value='');document.getElementById('ag-cliente').value='';document.getElementById('ag-status').value='agendado';document.getElementById('modal-titulo').textContent='Novo agendamento';document.getElementById('btn-excluir-ag').style.display='none';document.getElementById('btn-emitir-nfse').style.display='none';document.getElementById('bloco-nfse').classList.add('oculto');const base=(dataStr||fmtData(new Date()))+'T09:00';document.getElementById('ag-inicio').value=base;document.getElementById('ag-fim').value=base.slice(0,11)+'10:00';abrirModal('modal-agendamento');}
-function abrirAgendamento(id){carregarClientesSelect();const a=DB.agendamentos.find(x=>x.id===id);if(!a)return;document.getElementById('ag-id').value=a.id;document.getElementById('ag-titulo').value=a.titulo||'';document.getElementById('ag-cliente').value=a.cliente_id||'';document.getElementById('ag-inicio').value=fmtLocal(a.inicio);document.getElementById('ag-fim').value=fmtLocal(a.fim);document.getElementById('ag-valor').value=a.valor||'';document.getElementById('ag-status').value=a.status||'agendado';document.getElementById('ag-local').value=a.local||'';document.getElementById('ag-descricao').value=a.descricao||'';document.getElementById('modal-titulo').textContent='Editar agendamento';document.getElementById('btn-excluir-ag').style.display='inline-block';document.getElementById('btn-emitir-nfse').style.display='inline-block';
-  const nota=DB.notas.filter(n=>n.agendamento_id===a.id).slice(-1)[0];
-  if(nota){renderNota(nota,null);document.getElementById('btn-emitir-nfse').textContent=nota.status==='portal'?'🧾 Reabrir emissor':'🧾 Reemitir NFS-e';}
-  else{document.getElementById('bloco-nfse').classList.add('oculto');document.getElementById('btn-emitir-nfse').textContent='🧾 Emitir NFS-e';}
-  abrirModal('modal-agendamento');}
+function abrirNovoAgendamento(dataStr){carregarClientesSelect();document.getElementById('ag-id').value='';['ag-titulo','ag-valor','ag-local','ag-descricao'].forEach(i=>document.getElementById(i).value='');document.getElementById('ag-cliente').value='';document.getElementById('ag-status').value='agendado';document.getElementById('modal-titulo').textContent='Novo agendamento';document.getElementById('btn-excluir-ag').style.display='none';document.getElementById('btn-emitir-nfse').style.display='none';document.getElementById('btn-outlook').style.display='none';document.getElementById('bloco-nfse').classList.add('oculto');const base=(dataStr||fmtData(new Date()))+'T09:00';document.getElementById('ag-inicio').value=base;document.getElementById('ag-fim').value=base.slice(0,11)+'10:00';abrirModal('modal-agendamento');}
+function abrirAgendamento(id){carregarClientesSelect();const a=DB.agendamentos.find(x=>x.id===id);if(!a)return;document.getElementById('ag-id').value=a.id;document.getElementById('ag-titulo').value=a.titulo||'';document.getElementById('ag-cliente').value=a.cliente_id||'';document.getElementById('ag-inicio').value=fmtLocal(a.inicio);document.getElementById('ag-fim').value=fmtLocal(a.fim);document.getElementById('ag-valor').value=a.valor||'';document.getElementById('ag-status').value=a.status||'agendado';document.getElementById('ag-local').value=a.local||'';document.getElementById('ag-descricao').value=a.descricao||'';document.getElementById('modal-titulo').textContent='Editar agendamento';document.getElementById('btn-excluir-ag').style.display='inline-block';document.getElementById('btn-emitir-nfse').style.display='inline-block';document.getElementById('btn-outlook').style.display='inline-block';const nota=DB.notas.filter(n=>n.agendamento_id===a.id).slice(-1)[0];if(nota){renderNota(nota,null);document.getElementById('btn-emitir-nfse').textContent=nota.status==='portal'?'🧾 Reabrir emissor':'🧾 Reemitir NFS-e';}else{document.getElementById('bloco-nfse').classList.add('oculto');document.getElementById('btn-emitir-nfse').textContent='🧾 Emitir NFS-e';}abrirModal('modal-agendamento');}
 function coletarAg(){const v=id=>document.getElementById(id).value;return{titulo:v('ag-titulo').trim(),cliente_id:v('ag-cliente')||null,inicio:v('ag-inicio'),fim:v('ag-fim'),valor:parseFloat(v('ag-valor'))||0,status:v('ag-status'),local:v('ag-local'),descricao:v('ag-descricao')};}
-async function salvarAgendamento(){const d=coletarAg();if(!d.titulo||!d.inicio||!d.fim){toast('Preencha título, início e fim.','erro');return;}const id=document.getElementById('ag-id').value;let alvo;
-  if(id){alvo=DB.agendamentos.find(x=>x.id==id);Object.assign(alvo,d);}else{d.id=novoId('ag');d.origem='app';DB.agendamentos.push(d);alvo=d;}
-  salvarDB();fecharModal('modal-agendamento');renderCalendario();toast('Agendamento salvo!','sucesso');
-  if(conta){ try{ const oid=await outlookEnviar(alvo); if(oid){alvo.outlook_event_id=oid;salvarDB();} }catch(e){console.warn(e);} }
-}
-async function excluirAgendamento(){const id=+document.getElementById('ag-id').value;if(!id)return;if(!confirm('Excluir este agendamento? Também será removido do Outlook.'))return;const a=DB.agendamentos.find(x=>x.id===id);if(a&&a.outlook_event_id)await outlookExcluir(a.outlook_event_id);DB.agendamentos=DB.agendamentos.filter(x=>x.id!==id);salvarDB();fecharModal('modal-agendamento');renderCalendario();toast('Agendamento excluído.','sucesso');}
+function salvarAgendamento(){const d=coletarAg();if(!d.titulo||!d.inicio||!d.fim){toast('Preencha título, início e fim.','erro');return;}const id=document.getElementById('ag-id').value;if(id){Object.assign(DB.agendamentos.find(x=>x.id==id),d);}else{d.id=novoId('ag');DB.agendamentos.push(d);}salvarDB();fecharModal('modal-agendamento');renderCalendario();toast('Agendamento salvo!','sucesso');}
+function excluirAgendamento(){const id=+document.getElementById('ag-id').value;if(!id)return;if(!confirm('Excluir este agendamento?'))return;DB.agendamentos=DB.agendamentos.filter(x=>x.id!==id);salvarDB();fecharModal('modal-agendamento');renderCalendario();toast('Agendamento excluído.','sucesso');}
+
+// ================== Outlook via .ics ==================
+function icsData(dtLocal){return(dtLocal||'').replace(/[-:]/g,'').slice(0,15).padEnd(15,'0');}
+function adicionarAoOutlook(){const id=document.getElementById('ag-id').value;const a=id?DB.agendamentos.find(x=>x.id==id):coletarAg();if(!a||!a.titulo||!a.inicio){toast('Salve o agendamento primeiro.','erro');return;}const cli=DB.clientes.find(x=>x.id==a.cliente_id);const resumo=(cli?('Cliente: '+cli.nome+'\\n'):'')+(a.descricao||'');const ics=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Gestor de TI//PT-BR','CALSCALE:GREGORIAN','METHOD:PUBLISH','BEGIN:VEVENT','UID:gestorti-'+(a.id||'novo')+'@local','DTSTAMP:'+icsData(fmtData(new Date())+'T000000'),'DTSTART:'+icsData(a.inicio),'DTEND:'+icsData(a.fim||a.inicio),'SUMMARY:'+(a.titulo||'').replace(/\n/g,' '),'DESCRIPTION:'+resumo.replace(/\n/g,'\\n'),'LOCATION:'+(a.local||''),'END:VEVENT','END:VCALENDAR'].join('\r\n');baixarArquivo(new Blob([ics],{type:'text/calendar'}),'agendamento.ics');toast('Arquivo do evento baixado. Abra-o para adicionar ao Outlook.','sucesso');}
 
 // ================== NFS-e (portal MEI) ==================
-function resumoPortal(a){const c=DB.clientes.find(x=>x.id==a.cliente_id)||{};const tipo=c.tipo_pessoa==='J'?'CNPJ':'CPF';const l=[`Tomador (${tipo}): ${soNums(c.documento)}`,`Nome/Razao social: ${c.nome||''}`,`Valor do servico: R$ ${(parseFloat(a.valor)||0).toFixed(2)}`,`Descricao do servico: ${DB.config.desc||a.titulo}`];if(DB.config.ctrib)l.push(`Codigo de tributacao nacional: ${DB.config.ctrib}`);if(c.email)l.push(`E-mail do tomador: ${c.email}`);return l.join('\n');}
+function mensagemNota(a){
+  const c=DB.clientes.find(x=>x.id==a.cliente_id)||{};
+  const now=new Date();
+  const compet=String(now.getMonth()+1).padStart(2,'0')+'/'+now.getFullYear();
+  const venc=c.venc_dia?(String(c.venc_dia).padStart(2,'0')+'/'+compet):'';
+  const desc=DB.config.desc||a.titulo||'';
+  return [desc+' REF. '+compet,'VENCIMENTO: '+venc,'DADOS PARA PAGAMENTO:',(DB.config.pix||'')].join('\n');
+}
+function resumoPortal(a){
+  const c=DB.clientes.find(x=>x.id==a.cliente_id)||{};
+  const tipo=c.tipo_pessoa==='J'?'CNPJ':'CPF';
+  const l=[`TOMADOR (${tipo}): ${soNums(c.documento)}`,`NOME: ${c.nome||''}`,`VALOR: R$ ${(parseFloat(a.valor)||0).toFixed(2)}`];
+  if(DB.config.ctrib)l.push(`CODIGO DE TRIBUTACAO: ${DB.config.ctrib}`);
+  if(c.email)l.push(`E-MAIL DO TOMADOR: ${c.email}`);
+  l.push('');
+  l.push('DISCRIMINACAO / MENSAGEM (cole no campo de descricao do servico):');
+  l.push(mensagemNota(a));
+  return l.join('\n');
+}
 function emitirNFSe(){const id=+document.getElementById('ag-id').value;if(!id){toast('Salve o agendamento primeiro.','erro');return;}const a=DB.agendamentos.find(x=>x.id===id);if(!a.cliente_id){toast('Vincule um cliente para emitir a NFS-e.','erro');return;}if(!confirm('Preparar a NFS-e e abrir o Emissor Nacional?'))return;const nota={id:novoId('nota'),agendamento_id:id,cliente_id:a.cliente_id,numero_nfse:'',valor:parseFloat(a.valor)||0,descricao:DB.config.desc||a.titulo,status:'portal',resumo:resumoPortal(a),emitida_em:fmtData(new Date())};DB.notas.push(nota);salvarDB();window.open('https://www.nfse.gov.br/EmissorNacional/Login','_blank');renderNota(nota,nota.resumo);toast('Emissor Nacional aberto. Emita com seu login gov.br.','sucesso');}
-function renderNota(n,resumo){const bloco=document.getElementById('bloco-nfse');bloco.classList.remove('oculto');const alvo=document.getElementById('nfse-info');
-  if(n.status==='portal'){alvo.innerHTML=`<b>Status:</b> <span class="tag tag-portal">aguardando emissão no portal</span>`+(resumo?`<p style="margin:8px 0 4px">Dados prontos para colar no Emissor Nacional:</p><textarea id="resumo-portal" rows="6" style="width:100%;font-size:12px">${esc(resumo)}</textarea><button class="btn btn-secundario" style="margin-top:6px" onclick="copiarResumo()">📋 Copiar dados</button>`:'')+`<div style="margin-top:12px"><button class="btn btn-secundario" onclick="window.open('https://www.nfse.gov.br/EmissorNacional/Login','_blank')">🌐 Abrir Emissor Nacional</button></div><p style="margin:12px 0 4px">Depois de emitir, registre o número da NFS-e:</p><div style="display:flex;gap:8px"><input id="reg-numero" placeholder="Nº da NFS-e emitida" style="flex:1;padding:8px;border:1px solid #cbd5e1;border-radius:6px"><button class="btn btn-primario" onclick="registrarNumero(${n.id})">Registrar</button></div>`;}
-  else{alvo.innerHTML=`<b>Status:</b> <span class="tag tag-${n.status}">${n.status}</span><br><b>Nº NFS-e:</b> ${esc(n.numero_nfse)||'—'}<br><b>Valor:</b> R$ ${(n.valor||0).toFixed(2)}<br><b>Descrição:</b> ${esc(n.descricao)||''}`;}}
+function renderNota(n,resumo){const bloco=document.getElementById('bloco-nfse');bloco.classList.remove('oculto');const alvo=document.getElementById('nfse-info');if(n.status==='portal'){alvo.innerHTML=`<b>Status:</b> <span class="tag tag-portal">aguardando emissão no portal</span>`+(resumo?`<p style="margin:8px 0 4px">Dados prontos para colar no Emissor Nacional:</p><textarea id="resumo-portal" rows="6" style="width:100%;font-size:12px">${esc(resumo)}</textarea><button class="btn btn-secundario" style="margin-top:6px" onclick="copiarResumo()">📋 Copiar dados</button>`:'')+`<div style="margin-top:12px"><button class="btn btn-secundario" onclick="window.open('https://www.nfse.gov.br/EmissorNacional/Login','_blank')">🌐 Abrir Emissor Nacional</button></div><p style="margin:12px 0 4px">Depois de emitir, registre o número da NFS-e:</p><div style="display:flex;gap:8px"><input id="reg-numero" placeholder="Nº da NFS-e emitida" style="flex:1;padding:8px;border:1px solid #cbd5e1;border-radius:6px"><button class="btn btn-primario" onclick="registrarNumero(${n.id})">Registrar</button></div>`;}else{alvo.innerHTML=`<b>Status:</b> <span class="tag tag-${n.status}">${n.status}</span><br><b>Nº NFS-e:</b> ${esc(n.numero_nfse)||'—'}<br><b>Valor:</b> R$ ${(n.valor||0).toFixed(2)}<br><b>Descrição:</b> ${esc(n.descricao)||''}`;}}
 function copiarResumo(){const t=document.getElementById('resumo-portal');if(!t)return;t.select();navigator.clipboard.writeText(t.value).then(()=>toast('Dados copiados!','sucesso'),()=>toast('Copie manualmente (Ctrl+C).','erro'));}
 function registrarNumero(notaId){const num=document.getElementById('reg-numero').value.trim();if(!num){toast('Informe o número da NFS-e.','erro');return;}const n=DB.notas.find(x=>x.id===notaId);n.numero_nfse=num;n.status='autorizada';salvarDB();toast('Número registrado!','sucesso');renderNota(n,null);renderNotas();}
 
@@ -506,9 +391,52 @@ function registrarNumero(notaId){const num=document.getElementById('reg-numero')
 function renderNotas(){const box=document.getElementById('lista-notas');if(!DB.notas.length){box.innerHTML='<p class="vazio">Nenhuma nota emitida ainda. Emita a partir de um agendamento na Agenda.</p>';return;}const rows=DB.notas.slice().reverse().map(n=>{const c=DB.clientes.find(x=>x.id===n.cliente_id);return`<tr><td>${esc(n.emitida_em)}</td><td>${esc(c?c.nome:'—')}</td><td>${esc(n.numero_nfse)||'—'}</td><td>R$ ${(n.valor||0).toFixed(2)}</td><td><span class="tag tag-${n.status}">${n.status}</span></td></tr>`;}).join('');box.innerHTML=`<table class="tabela"><thead><tr><th>Emitida em</th><th>Cliente</th><th>Nº NFS-e</th><th>Valor</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table>`;}
 
 // ================== Config ==================
-function carregarConfigForm(){const c=DB.config;document.getElementById('cfg-desc').value=c.desc||'';document.getElementById('cfg-ctrib').value=c.ctrib||'';document.getElementById('cfg-cnpj').value=c.cnpj||'';document.getElementById('cfg-mun').value=c.mun||'';document.getElementById('cfg-razao').value=c.razao||'';document.getElementById('cfg-clientid').value=CLIENT_ID;}
-function salvarConfig(){DB.config={desc:document.getElementById('cfg-desc').value,ctrib:document.getElementById('cfg-ctrib').value,cnpj:document.getElementById('cfg-cnpj').value,mun:document.getElementById('cfg-mun').value,razao:document.getElementById('cfg-razao').value};salvarDB();toast('Configurações salvas.','sucesso');}
-function salvarClientId(){CLIENT_ID=document.getElementById('cfg-clientid').value.trim();localStorage.setItem('ti_client_id',CLIENT_ID);initMsal();atualizarBarra();toast('Client ID salvo. Agora clique em "Entrar com Microsoft".','sucesso');}
+function carregarConfigForm(){const c=DB.config;document.getElementById('cfg-desc').value=c.desc||'';document.getElementById('cfg-ctrib').value=c.ctrib||'';document.getElementById('cfg-cnpj').value=c.cnpj||'';document.getElementById('cfg-mun').value=c.mun||'';document.getElementById('cfg-razao').value=c.razao||'';document.getElementById('cfg-pix').value=c.pix||'';document.getElementById('cfg-repo').value=GH_REPO;document.getElementById('cfg-token').value=GH_TOKEN;}
+function salvarConfig(){DB.config={desc:document.getElementById('cfg-desc').value,ctrib:document.getElementById('cfg-ctrib').value,cnpj:document.getElementById('cfg-cnpj').value,mun:document.getElementById('cfg-mun').value,razao:document.getElementById('cfg-razao').value,pix:document.getElementById('cfg-pix').value};salvarDB();toast('Configurações salvas.','sucesso');}
+
+// ================== Importar agenda do Outlook (.ics) ==================
+function parseICSDate(v){
+  if(!v)return'';
+  v=v.trim();
+  const m=v.match(/(\d{4})(\d{2})(\d{2})(?:T(\d{2})(\d{2})(\d{2})(Z)?)?/);
+  if(!m)return'';
+  const Y=m[1],Mo=m[2],D=m[3]; let h=m[4]||'00',mi=m[5]||'00'; const s=m[6]||'00',z=m[7];
+  if(z){ // horário em UTC -> converte para o horário local do aparelho
+    const d=new Date(Date.UTC(+Y,+Mo-1,+D,+h,+mi,+s));
+    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')+'T'+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+  }
+  return Y+'-'+Mo+'-'+D+'T'+h+':'+mi;
+}
+function importarICS(input){
+  const f=input.files[0]; if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const txt=String(r.result).replace(/\r\n/g,'\n').replace(/\n[ \t]/g,''); // junta linhas dobradas
+      const blocos=txt.split('BEGIN:VEVENT').slice(1);
+      if(!blocos.length){toast('Nenhum evento encontrado no arquivo.','erro');input.value='';return;}
+      let add=0,dup=0;
+      blocos.forEach(b=>{
+        b=b.split('END:VEVENT')[0];
+        const get=re=>{const m=b.match(re);return m?m[1].trim():'';};
+        const uid=get(/\nUID:(.*)/);
+        const titulo=get(/\nSUMMARY:(.*)/)||'(sem título)';
+        const ini=parseICSDate(get(/\nDTSTART[^:\n]*:(.*)/));
+        const fim=parseICSDate(get(/\nDTEND[^:\n]*:(.*)/))||ini;
+        const local=get(/\nLOCATION:(.*)/).replace(/\\,/g,',');
+        const desc=get(/\nDESCRIPTION:(.*)/).replace(/\\n/g,' ').replace(/\\,/g,',');
+        if(!ini)return;
+        if(uid && DB.agendamentos.some(a=>a.outlook_uid===uid)){dup++;return;}
+        DB.agendamentos.push({id:novoId('ag'),titulo:titulo.replace(/\\,/g,','),cliente_id:null,inicio:ini,fim:fim,local:local,descricao:desc,valor:0,status:'agendado',origem:'outlook',outlook_uid:uid});
+        add++;
+      });
+      salvarDB(); renderCalendario();
+      toast('Importados '+add+' evento(s)'+(dup?', '+dup+' já existiam':'')+'.', 'sucesso');
+    }catch(e){toast('Não consegui ler esse arquivo .ics.','erro');}
+    input.value='';
+  };
+  r.readAsText(f);
+}
 
 // ================== Backup ==================
 function baixarArquivo(blob,nome){const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download=nome;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1000);}
@@ -517,8 +445,7 @@ function importarBackup(input){const f=input.files[0];if(!f)return;const r=new F
 
 // ================== Início ==================
 carregarClientesSelect();renderCalendario();
-initMsal();
-initAuth();
+if(GH_REPO&&GH_TOKEN){ conectarGitHub(); }
 </script>
 </body>
 </html>
