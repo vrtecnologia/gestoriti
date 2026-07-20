@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestor de TI</title>
+<style>
+:root{--azul:#2563eb;--azul-esc:#1d4ed8;--verde:#16a34a;--roxo:#7c3aed;--cinza:#6b7280;--cinza-cl:#f3f4f6;--borda:#e5e7eb;--txt:#111827;--vermelho:#dc2626;--nfse:#0891b2;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);background:#f8fafc}
+.app{display:flex;min-height:100vh}
+.sidebar{width:230px;background:#0f172a;color:#cbd5e1;display:flex;flex-direction:column;position:fixed;height:100vh;z-index:20}
+.logo{padding:20px 18px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #1e293b}
+.logo-mark{background:var(--azul);color:#fff;font-weight:700;padding:6px 8px;border-radius:8px;font-size:14px}
+.logo-text{font-size:15px;font-weight:600;color:#fff}
+.sidebar nav{display:flex;flex-direction:column;padding:12px 0;flex:1}
+.sidebar nav a{color:#cbd5e1;text-decoration:none;padding:12px 20px;font-size:14px;cursor:pointer;transition:.15s}
+.sidebar nav a:hover{background:#1e293b;color:#fff}
+.sidebar nav a.ativo{background:#1e293b;color:#fff;border-left:3px solid var(--azul)}
+.sidebar-rodape{padding:14px 20px;font-size:12px;color:#475569}
+.conteudo{margin-left:230px;flex:1;padding:0 32px 32px;width:calc(100% - 230px)}
+.barra-conta{display:flex;align-items:center;gap:10px;justify-content:flex-end;padding:12px 0;border-bottom:1px solid var(--borda);margin-bottom:18px;flex-wrap:wrap}
+.barra-conta .pill{font-size:13px;padding:5px 12px;border-radius:99px;background:#eef2ff;color:#4338ca;font-weight:600}
+.barra-conta .pill.off{background:#fef2f2;color:#991b1b}
+.topo{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:12px}
+.topo h1{font-size:22px;font-weight:700}
+.topo-acoes{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.btn{border:none;border-radius:8px;padding:9px 15px;font-size:14px;cursor:pointer;font-weight:600;transition:.15s}
+.btn-primario{background:var(--azul);color:#fff}.btn-primario:hover{background:var(--azul-esc)}
+.btn-secundario{background:#fff;color:var(--txt);border:1px solid var(--borda)}.btn-secundario:hover{background:var(--cinza-cl)}
+.btn-perigo{background:#fef2f2;color:var(--vermelho);border:1px solid #fecaca}.btn-perigo:hover{background:#fee2e2}
+.btn-nfse{background:var(--nfse);color:#fff}.btn-nfse:hover{opacity:.9}
+.btn-ms{background:#2f2f2f;color:#fff}.btn-ms:hover{background:#000}
+.legenda{display:flex;gap:18px;margin-bottom:14px;font-size:13px;color:var(--cinza);flex-wrap:wrap}
+.legenda i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:middle}
+#calendario{background:#fff;border-radius:12px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.cal-cab{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px}
+.cal-nav{display:flex;align-items:center;gap:8px}.cal-nav h2{font-size:18px;margin-left:8px}.cal-nav .btn{padding:7px 12px}
+.cal-views{display:flex;gap:6px}
+.cal-grade{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--borda);border:1px solid var(--borda);border-radius:8px;overflow:hidden}
+.cal-cabdia{background:#f8fafc;text-align:center;padding:8px 0;font-size:12px;font-weight:700;color:var(--cinza);text-transform:uppercase}
+.cal-cel{background:#fff;min-height:104px;padding:5px 6px;cursor:pointer;transition:.12s;display:flex;flex-direction:column;gap:3px}
+.cal-cel:hover{background:#f0f7ff}.cal-cel.fora{background:#fafafa}.cal-cel.fora .cal-num{color:#cbd5e1}
+.cal-cel.hoje{background:#eff6ff}.cal-cel.hoje .cal-num{background:var(--azul);color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center}
+.cal-num{font-size:13px;font-weight:600;color:#374151}
+.cal-chips{display:flex;flex-direction:column;gap:2px;overflow:hidden}
+.cal-chip{color:#fff;font-size:11px;padding:2px 6px;border-radius:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+.cal-chip:hover{opacity:.88}.cal-chip-h{font-weight:700;opacity:.9}
+.cal-lista{display:flex;flex-direction:column}
+.cal-lista-dia{font-size:13px;font-weight:700;color:var(--cinza);padding:14px 4px 6px;border-bottom:1px solid var(--borda);text-transform:capitalize}
+.cal-lista-item{display:flex;align-items:center;gap:12px;padding:11px 8px;border-bottom:1px solid var(--cinza-cl);cursor:pointer}
+.cal-lista-item:hover{background:#f0f7ff}
+.cal-lista-hora{font-weight:700;width:48px}.cal-lista-cor{width:10px;height:10px;border-radius:50%}.cal-lista-tit{font-size:14px}
+.tabela{width:100%;background:#fff;border-radius:12px;border-collapse:collapse;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.tabela th{text-align:left;padding:12px 14px;background:#f8fafc;font-size:12px;text-transform:uppercase;color:var(--cinza);letter-spacing:.03em}
+.tabela td{padding:12px 14px;border-top:1px solid var(--borda);font-size:14px}
+.tabela tr:hover td{background:#f9fafb}
+.acoes-cel{text-align:right;white-space:nowrap}
+.link-acao{color:var(--azul);cursor:pointer;margin-left:12px;font-size:13px}.link-acao.perigo{color:var(--vermelho)}
+.busca{padding:9px 12px;border:1px solid var(--borda);border-radius:8px;font-size:14px;width:280px;max-width:60vw}
+.vazio{color:var(--cinza);padding:30px;text-align:center}
+.card{background:#fff;border-radius:12px;padding:22px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.card h2{font-size:17px;margin-bottom:14px}.card h3{font-size:14px;margin:18px 0 10px;color:var(--cinza);text-transform:uppercase;letter-spacing:.03em}
+.acoes-linha{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+.dim{color:var(--cinza);font-size:13px}
+.aviso{background:#fffbeb;border:1px solid #fde68a;color:#92400e;padding:12px;border-radius:8px;margin-top:16px;font-size:13px;line-height:1.5}
+.ok-box{background:#ecfdf5;border:1px solid #a7f3d0;color:#065f46;padding:12px;border-radius:8px;font-size:13px;line-height:1.5}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-grid label{display:flex;flex-direction:column;font-size:13px;font-weight:600;color:#374151;gap:5px}
+.form-grid .col2{grid-column:span 2}
+.form-grid input,.form-grid select,.form-grid textarea{padding:9px 11px;border:1px solid var(--borda);border-radius:8px;font-size:14px;font-family:inherit;font-weight:400}
+.form-grid input:focus,.form-grid select:focus,.form-grid textarea:focus{outline:none;border-color:var(--azul);box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+.modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,.55);display:flex;align-items:center;justify-content:center;z-index:50}
+.oculto{display:none!important}
+.modal{background:#fff;border-radius:14px;width:560px;max-width:94vw;max-height:92vh;overflow-y:auto;padding:22px}
+.modal-largo{width:720px}
+.modal-topo{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}.modal-topo h2{font-size:18px}
+.fechar{background:none;border:none;font-size:18px;cursor:pointer;color:var(--cinza)}
+.modal-rodape{display:flex;gap:10px;margin-top:20px;align-items:center;flex-wrap:wrap}
+.bloco-nfse{background:#ecfeff;border:1px solid #a5f3fc;border-radius:8px;padding:14px;margin-top:16px;font-size:13px}
+.bloco-nfse h3{font-size:13px;color:#155e75;margin-bottom:8px}
+.tag{display:inline-block;padding:3px 10px;border-radius:99px;font-size:12px;font-weight:600;text-transform:capitalize}
+.tag-autorizada,.tag-simulada{background:#dcfce7;color:#166534}
+.tag-rejeitada,.tag-cancelada{background:#fee2e2;color:#991b1b}
+.tag-pendente,.tag-portal{background:#fef9c3;color:#854d0e}
+.toast{position:fixed;bottom:24px;right:24px;background:#0f172a;color:#fff;padding:13px 18px;border-radius:10px;font-size:14px;opacity:0;transform:translateY(10px);transition:.25s;z-index:100;pointer-events:none;max-width:340px}
+.toast.mostra{opacity:1;transform:translateY(0)}.toast.erro{background:#991b1b}.toast.sucesso{background:#166534}
+@media(max-width:640px){.sidebar{width:64px}.logo-text,.sidebar nav a span.txt{display:none}.conteudo{margin-left:64px;width:calc(100% - 64px);padding:0 14px 20px}.sidebar nav a{text-align:center;padding:14px 0;font-size:18px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="logo"><span class="logo-mark">TI</span><span class="logo-text">Gestor de TI</span></div>
+    <nav>
+      <a data-view="agenda" class="ativo" onclick="showView('agenda')">📅 <span class="txt">Agenda</span></a>
+      <a data-view="clientes" onclick="showView('clientes')">👥 <span class="txt">Clientes</span></a>
+      <a data-view="notas" onclick="showView('notas')">🧾 <span class="txt">Notas Fiscais</span></a>
+      <a data-view="config" onclick="showView('config')">⚙️ <span class="txt">Configurações</span></a>
+    </nav>
+    <div class="sidebar-rodape">v2.0 · web</div>
+  </aside>
+  <main class="conteudo">
+    <div class="barra-conta">
+      <span id="conta-status" class="pill off">Não conectado</span>
+      <button class="btn btn-ms" id="btn-entrar" onclick="entrar()">Entrar com Microsoft</button>
+      <button class="btn btn-secundario oculto" id="btn-sync" onclick="sincronizarTudo()">🔄 Sincronizar</button>
+      <button class="btn btn-secundario oculto" id="btn-sair" onclick="sair()">Sair</button>
+    </div>
+
+    <!-- AGENDA -->
+    <section id="view-agenda">
+      <div class="topo"><h1>Agenda</h1><div class="topo-acoes"><button class="btn btn-primario" onclick="abrirNovoAgendamento()">+ Novo agendamento</button></div></div>
+      <div class="legenda"><span><i style="background:#2563eb"></i> Agendado</span><span><i style="background:#16a34a"></i> Concluído</span><span><i style="background:#7c3aed"></i> Do Outlook</span><span><i style="background:#9ca3af"></i> Cancelado</span></div>
+      <div id="calendario"></div>
+    </section>
+
+    <!-- CLIENTES -->
+    <section id="view-clientes" class="oculto">
+      <div class="topo"><h1>Clientes</h1><div class="topo-acoes"><input type="search" id="busca-cliente" class="busca" placeholder="Buscar..." oninput="renderClientes(this.value)"><button class="btn btn-primario" onclick="abrirNovoCliente()">+ Novo cliente</button></div></div>
+      <table class="tabela"><thead><tr><th>Nome</th><th>Tipo</th><th>CPF/CNPJ</th><th>Telefone</th><th>Município</th><th></th></tr></thead><tbody id="lista-clientes"></tbody></table>
+    </section>
+
+    <!-- NOTAS -->
+    <section id="view-notas" class="oculto"><div class="topo"><h1>Notas Fiscais (NFS-e)</h1></div><div id="lista-notas"></div></section>
+
+    <!-- CONFIG -->
+    <section id="view-config" class="oculto">
+      <div class="topo"><h1>Configurações</h1></div>
+
+      <div class="card">
+        <h2>🔗 Conexão com a Microsoft</h2>
+        <p id="conexao-detalhe" class="dim">Entre com sua conta Microsoft para guardar os dados no seu OneDrive e sincronizar a agenda com o Outlook.</p>
+        <div class="form-grid" style="margin-top:12px">
+          <label class="col2">Client ID do aplicativo (Azure) — cole aqui
+            <input id="cfg-clientid" placeholder="ex.: 12345678-abcd-....">
+          </label>
+        </div>
+        <div class="acoes-linha">
+          <button class="btn btn-primario" onclick="salvarClientId()">Salvar Client ID</button>
+          <button class="btn btn-ms" onclick="entrar()">Entrar com Microsoft</button>
+        </div>
+        <p class="dim" style="margin-top:10px">O passo a passo para obter o Client ID está no guia que acompanha o programa.</p>
+      </div>
+
+      <div class="card">
+        <h2>🧾 NFS-e (Padrão Nacional · MEI / gov.br)</h2>
+        <div class="form-grid">
+          <label>Descrição padrão do serviço<input id="cfg-desc" placeholder="Suporte técnico em informática"></label>
+          <label>Código de tributação nacional<input id="cfg-ctrib" placeholder="010701"></label>
+          <label>CNPJ (seu)<input id="cfg-cnpj" placeholder="Somente números"></label>
+          <label>Código IBGE do seu município<input id="cfg-mun" placeholder="7 dígitos"></label>
+          <label class="col2">Razão social<input id="cfg-razao" placeholder="Nome da sua empresa"></label>
+        </div>
+        <div class="acoes-linha">
+          <button class="btn btn-primario" onclick="salvarConfig()">Salvar configurações</button>
+          <button class="btn btn-secundario" onclick="window.open('https://www.nfse.gov.br/EmissorNacional/Login','_blank')">🌐 Abrir Emissor Nacional</button>
+        </div>
+        <p class="aviso">💡 Você é <b>MEI e usa login gov.br</b>. Como MEI, o <b>ISS já está incluído no seu DAS mensal</b> (valor fixo), então a nota <b>não destaca alíquota de ISS</b>. Ao clicar em "Emitir NFS-e" o programa prepara os dados e abre o Emissor Nacional; você emite com sua conta gov.br e cola o número da nota de volta. O código <b>010701</b> é sugestão para suporte técnico (item 1.07) — confirme com seu contador.</p>
+      </div>
+
+      <div class="card">
+        <h2>💾 Backup manual</h2>
+        <p class="dim">Com a conta Microsoft conectada, seus dados já ficam salvos no OneDrive automaticamente. Este backup é um extra, caso queira uma cópia em arquivo.</p>
+        <div class="acoes-linha">
+          <button class="btn btn-secundario" onclick="exportarBackup()">⬇️ Baixar backup</button>
+          <label class="btn btn-secundario" style="display:inline-block">⬆️ Restaurar backup<input type="file" accept="application/json" style="display:none" onchange="importarBackup(this)"></label>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- MODAL AGENDAMENTO -->
+<div id="modal-agendamento" class="modal-overlay oculto"><div class="modal">
+  <div class="modal-topo"><h2 id="modal-titulo">Novo agendamento</h2><button class="fechar" onclick="fecharModal('modal-agendamento')">✕</button></div>
+  <div class="form-grid">
+    <input type="hidden" id="ag-id">
+    <label class="col2">Título / Serviço *<input id="ag-titulo" placeholder="Ex.: Suporte técnico - Cliente ACME"></label>
+    <label class="col2">Cliente<select id="ag-cliente"><option value="">— nenhum —</option></select></label>
+    <label>Início *<input type="datetime-local" id="ag-inicio"></label>
+    <label>Fim *<input type="datetime-local" id="ag-fim"></label>
+    <label>Valor (R$)<input type="number" step="0.01" id="ag-valor" placeholder="0,00"></label>
+    <label>Status<select id="ag-status"><option value="agendado">Agendado</option><option value="concluido">Concluído</option><option value="cancelado">Cancelado</option></select></label>
+    <label class="col2">Local<input id="ag-local" placeholder="Endereço, online..."></label>
+    <label class="col2">Descrição<textarea id="ag-descricao" rows="3"></textarea></label>
+  </div>
+  <div id="bloco-nfse" class="bloco-nfse oculto"><h3>Nota Fiscal (NFS-e)</h3><div id="nfse-info"></div></div>
+  <div class="modal-rodape">
+    <button class="btn btn-perigo" id="btn-excluir-ag" onclick="excluirAgendamento()">Excluir</button>
+    <div style="flex:1"></div>
+    <button class="btn btn-nfse" id="btn-emitir-nfse" onclick="emitirNFSe()">🧾 Emitir NFS-e</button>
+    <button class="btn btn-primario" onclick="salvarAgendamento()">Salvar</button>
+  </div>
+</div></div>
+
+<!-- MODAL CLIENTE -->
+<div id="modal-cliente" class="modal-overlay oculto"><div class="modal modal-largo">
+  <div class="modal-topo"><h2 id="modal-cliente-titulo">Novo cliente</h2><button class="fechar" onclick="fecharModal('modal-cliente')">✕</button></div>
+  <div class="form-grid">
+    <input type="hidden" id="cli-id">
+    <label class="col2">Nome / Razão social *<input id="cli-nome"></label>
+    <label>Tipo de pessoa<select id="cli-tipo_pessoa"><option value="F">Pessoa Física (CPF)</option><option value="J">Pessoa Jurídica (CNPJ)</option></select></label>
+    <label>CPF / CNPJ<input id="cli-documento" placeholder="Somente números"></label>
+    <label>E-mail<input id="cli-email"></label>
+    <label>Telefone<input id="cli-telefone"></label>
+    <label>Inscrição Municipal<input id="cli-inscricao_municipal"></label>
+    <label>CEP<input id="cli-cep"></label>
+    <label class="col2">Logradouro<input id="cli-logradouro"></label>
+    <label>Número<input id="cli-numero"></label>
+    <label>Complemento<input id="cli-complemento"></label>
+    <label>Bairro<input id="cli-bairro"></label>
+    <label>Município<input id="cli-municipio"></label>
+    <label>Código IBGE do município<input id="cli-codigo_municipio_ibge" placeholder="7 dígitos"></label>
+    <label>UF<input id="cli-uf" maxlength="2"></label>
+    <label class="col2">Observações<textarea id="cli-observacoes" rows="2"></textarea></label>
+  </div>
+  <div class="modal-rodape"><div style="flex:1"></div><button class="btn btn-primario" onclick="salvarCliente()">Salvar</button></div>
+</div></div>
+
+<div id="toast" class="toast"></div>
+
+<script src="https://alcdn.msftauth.net/lib/1.4.18/js/msal-browser.min.js"></script>
+<script>
+// ================== Configuração de conexão ==================
+const AUTHORITY='https://login.microsoftonline.com/consumers';
+const SCOPES=['User.Read','Files.ReadWrite.AppFolder','Calendars.ReadWrite'];
+const GRAPH='https://graph.microsoft.com/v1.0';
+let CLIENT_ID = localStorage.getItem('ti_client_id')||'';
+let msalApp=null, conta=null, saveTimer=null, sincronizando=false;
+
+// ================== Persistência local (cache) ==================
+const CHAVE='gestor_ti_db_v2';
+const CAMPOS_CLI=['nome','tipo_pessoa','documento','email','telefone','inscricao_municipal','cep','logradouro','numero','complemento','bairro','municipio','codigo_municipio_ibge','uf','observacoes'];
+const MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const DIAS=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+let DB=carregarLocal();
+function dbPadrao(){return{clientes:[],agendamentos:[],notas:[],config:{desc:'Suporte técnico em informática',ctrib:'010701',cnpj:'',mun:'',razao:''},seq:{cli:1,ag:1,nota:1}};}
+function carregarLocal(){try{const r=localStorage.getItem(CHAVE);if(r)return Object.assign(dbPadrao(),JSON.parse(r));}catch(e){}return dbPadrao();}
+function salvarLocal(){try{localStorage.setItem(CHAVE,JSON.stringify(DB));}catch(e){}}
+function salvarDB(){salvarLocal();agendarSalvarNuvem();}
+function novoId(t){const id=DB.seq[t]++;salvarDB();return id;}
+
+// ================== Utils ==================
+function toast(m,t){const e=document.getElementById('toast');e.textContent=m;e.className='toast mostra '+(t||'');clearTimeout(window._tt);window._tt=setTimeout(()=>e.className='toast',3800);}
+function abrirModal(id){document.getElementById(id).classList.remove('oculto');}
+function fecharModal(id){document.getElementById(id).classList.add('oculto');}
+function soNums(t){return(t||'').replace(/\D/g,'');}
+function esc(t){return(t==null?'':String(t)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+document.addEventListener('click',e=>{if(e.target.classList&&e.target.classList.contains('modal-overlay'))e.target.classList.add('oculto');});
+function rerenderTudo(){renderCalendario();renderClientes();renderNotas();carregarClientesSelect();carregarConfigForm();}
+
+// ================== Autenticação (MSAL) ==================
+function initMsal(){
+  if(typeof msal==='undefined'){ console.warn('MSAL não carregou (sem internet?)'); return; }
+  if(!CLIENT_ID) return;
+  msalApp=new msal.PublicClientApplication({
+    auth:{clientId:CLIENT_ID,authority:AUTHORITY,redirectUri:location.origin+location.pathname},
+    cache:{cacheLocation:'localStorage'}
+  });
+}
+async function initAuth(){
+  if(!msalApp) { atualizarBarra(); return; }
+  try{
+    const resp=await msalApp.handleRedirectPromise();
+    if(resp&&resp.account) conta=resp.account;
+    else { const cs=msalApp.getAllAccounts(); if(cs.length) conta=cs[0]; }
+    if(conta){ msalApp.setActiveAccount(conta); atualizarBarra(); await nuvemCarregar(); }
+  }catch(e){ console.warn('Auth erro',e); toast('Erro no login: '+e.message,'erro'); }
+  atualizarBarra();
+}
+async function entrar(){
+  if(!CLIENT_ID){ toast('Cole o Client ID em Configurações primeiro.','erro'); showView('config'); return; }
+  if(!msalApp){ initMsal(); if(!msalApp){ toast('Não foi possível iniciar o login (sem internet?).','erro'); return; } }
+  try{ await msalApp.loginRedirect({scopes:SCOPES}); }
+  catch(e){ toast('Erro ao entrar: '+e.message,'erro'); }
+}
+async function sair(){ if(msalApp&&conta){ await msalApp.logoutRedirect({account:conta}); } }
+async function getToken(){
+  const req={scopes:SCOPES,account:conta};
+  try{ const r=await msalApp.acquireTokenSilent(req); return r.accessToken; }
+  catch(e){ await msalApp.acquireTokenRedirect(req); throw e; }
+}
+function atualizarBarra(){
+  const st=document.getElementById('conta-status');
+  const bEntrar=document.getElementById('btn-entrar'), bSync=document.getElementById('btn-sync'), bSair=document.getElementById('btn-sair');
+  const det=document.getElementById('conexao-detalhe');
+  if(conta){
+    st.textContent='✔ '+(conta.username||'conectado'); st.className='pill';
+    bEntrar.classList.add('oculto'); bSync.classList.remove('oculto'); bSair.classList.remove('oculto');
+    if(det) det.innerHTML='<span class="ok-box" style="display:inline-block">Conectado como <b>'+esc(conta.username)+'</b>. Seus dados estão sendo salvos no OneDrive.</span>';
+  }else{
+    st.textContent=CLIENT_ID?'Não conectado':'Configurar conexão'; st.className='pill off';
+    bEntrar.classList.remove('oculto'); bSync.classList.add('oculto'); bSair.classList.add('oculto');
+  }
+}
+
+// ================== Graph: OneDrive (dados) ==================
+async function graph(path,method,body,extraHeaders){
+  const t=await getToken();
+  const h={Authorization:'Bearer '+t};
+  if(body&&!(extraHeaders&&extraHeaders['Content-Type'])) h['Content-Type']='application/json';
+  Object.assign(h,extraHeaders||{});
+  const r=await fetch(GRAPH+path,{method:method||'GET',headers:h,body:body?(typeof body==='string'?body:JSON.stringify(body)):undefined});
+  return r;
+}
+async function nuvemCarregar(){
+  if(!conta) return;
+  try{
+    const r=await graph('/me/drive/special/approot:/dados.json:/content');
+    if(r.status===200){
+      const dados=await r.json();
+      DB=Object.assign(dbPadrao(),dados); salvarLocal(); rerenderTudo();
+      toast('Dados carregados do OneDrive.','sucesso');
+    } else if(r.status===404){
+      await nuvemSalvarAgora(); // primeira vez: cria o arquivo com o que houver localmente
+    } else { console.warn('nuvemCarregar status',r.status); }
+  }catch(e){ console.warn('nuvemCarregar',e); }
+}
+function agendarSalvarNuvem(){
+  if(!conta) return;
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(nuvemSalvarAgora,1500);
+}
+async function nuvemSalvarAgora(){
+  if(!conta) return;
+  try{
+    const r=await graph('/me/drive/special/approot:/dados.json:/content','PUT',JSON.stringify(DB));
+    if(!r.ok) console.warn('nuvemSalvar status',r.status);
+  }catch(e){ console.warn('nuvemSalvar',e); }
+}
+
+// ================== Graph: Outlook (agenda) ==================
+function eventoPayload(a){
+  const cli=DB.clientes.find(x=>x.id==a.cliente_id);
+  return {subject:a.titulo,
+    body:{contentType:'text',content:(cli?('Cliente: '+cli.nome+'\n'):'')+(a.descricao||'')},
+    start:{dateTime:a.inicio,timeZone:'America/Sao_Paulo'},
+    end:{dateTime:a.fim,timeZone:'America/Sao_Paulo'},
+    location:{displayName:a.local||''}};
+}
+async function outlookEnviar(a){
+  if(!conta) return null;
+  const payload=eventoPayload(a);
+  let r;
+  if(a.outlook_event_id){
+    r=await graph('/me/events/'+a.outlook_event_id,'PATCH',payload);
+    if(r.status===404) r=await graph('/me/events','POST',payload);
+  } else r=await graph('/me/events','POST',payload);
+  if(r.ok){ const j=await r.json(); return j.id; }
+  return null;
+}
+async function outlookExcluir(id){ if(conta&&id){ try{ await graph('/me/events/'+id,'DELETE'); }catch(e){} } }
+async function outlookPuxar(){
+  if(!conta) return 0;
+  const ini=new Date(Date.now()-30*864e5).toISOString().slice(0,19);
+  const fim=new Date(Date.now()+120*864e5).toISOString().slice(0,19);
+  let url='/me/calendarView?startDateTime='+ini+'&endDateTime='+fim+'&$top=200&$orderby=start/dateTime';
+  let importados=0;
+  while(url){
+    const r=await graph(url,'GET',null,{Prefer:'outlook.timezone="America/Sao_Paulo"'});
+    if(!r.ok){ console.warn('calendarView',r.status); break; }
+    const data=await r.json();
+    (data.value||[]).forEach(ev=>{
+      const existe=DB.agendamentos.find(a=>a.outlook_event_id===ev.id);
+      const dados={titulo:ev.subject||'(sem título)',inicio:(ev.start.dateTime||'').slice(0,16),fim:(ev.end.dateTime||'').slice(0,16),local:(ev.location||{}).displayName||'',outlook_event_id:ev.id,origem:'outlook'};
+      if(existe) Object.assign(existe,dados);
+      else { dados.id=novoId('ag'); dados.status='agendado'; DB.agendamentos.push(dados); importados++; }
+    });
+    const next=data['@odata.nextLink'];
+    url=next?next.replace(GRAPH,''):null;
+  }
+  salvarDB(); return importados;
+}
+async function sincronizarTudo(){
+  if(!conta){ toast('Entre com a Microsoft primeiro.','erro'); return; }
+  if(sincronizando) return; sincronizando=true;
+  toast('Sincronizando...');
+  try{
+    // envia os que ainda não têm evento no Outlook
+    for(const a of DB.agendamentos.filter(x=>x.origem!=='outlook'&&!x.outlook_event_id&&x.status!=='cancelado')){
+      const oid=await outlookEnviar(a); if(oid){ a.outlook_event_id=oid; }
+    }
+    salvarDB();
+    const n=await outlookPuxar();
+    await nuvemSalvarAgora();
+    renderCalendario();
+    toast('Sincronizado! '+n+' evento(s) novo(s) do Outlook.','sucesso');
+  }catch(e){ toast('Falha ao sincronizar: '+e.message,'erro'); }
+  sincronizando=false;
+}
+
+// ================== Navegação ==================
+function showView(v){
+  ['agenda','clientes','notas','config'].forEach(n=>document.getElementById('view-'+n).classList.toggle('oculto',n!==v));
+  document.querySelectorAll('.sidebar nav a').forEach(a=>a.classList.toggle('ativo',a.dataset.view===v));
+  if(v==='agenda')renderCalendario(); if(v==='clientes')renderClientes(); if(v==='notas')renderNotas(); if(v==='config')carregarConfigForm();
+}
+
+// ================== Clientes ==================
+function renderClientes(q){
+  q=(q||'').toLowerCase();
+  const lista=DB.clientes.filter(c=>!q||(c.nome||'').toLowerCase().includes(q)||(c.documento||'').includes(q)).sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));
+  const tb=document.getElementById('lista-clientes');
+  if(!lista.length){tb.innerHTML='<tr><td colspan="6" class="vazio">Nenhum cliente cadastrado.</td></tr>';return;}
+  tb.innerHTML=lista.map(c=>`<tr><td><b>${esc(c.nome)}</b></td><td>${c.tipo_pessoa==='J'?'Jurídica':'Física'}</td><td>${esc(c.documento)||'—'}</td><td>${esc(c.telefone)||'—'}</td><td>${esc(c.municipio)||'—'}</td><td class="acoes-cel"><span class="link-acao" onclick="editarCliente(${c.id})">Editar</span><span class="link-acao perigo" onclick="excluirCliente(${c.id})">Excluir</span></td></tr>`).join('');
+}
+function abrirNovoCliente(){document.getElementById('cli-id').value='';CAMPOS_CLI.forEach(c=>{const el=document.getElementById('cli-'+c);if(el)el.value=c==='tipo_pessoa'?'F':'';});document.getElementById('modal-cliente-titulo').textContent='Novo cliente';abrirModal('modal-cliente');}
+function editarCliente(id){const c=DB.clientes.find(x=>x.id===id);if(!c)return;document.getElementById('cli-id').value=c.id;CAMPOS_CLI.forEach(k=>{const el=document.getElementById('cli-'+k);if(el)el.value=c[k]||'';});document.getElementById('modal-cliente-titulo').textContent='Editar cliente';abrirModal('modal-cliente');}
+function salvarCliente(){const nome=document.getElementById('cli-nome').value.trim();if(!nome){toast('Informe o nome.','erro');return;}const id=document.getElementById('cli-id').value;const d={};CAMPOS_CLI.forEach(k=>{const el=document.getElementById('cli-'+k);d[k]=el?el.value:'';});if(id){Object.assign(DB.clientes.find(x=>x.id==id),d);}else{d.id=novoId('cli');DB.clientes.push(d);}salvarDB();toast('Cliente salvo!','sucesso');fecharModal('modal-cliente');renderClientes();carregarClientesSelect();}
+function excluirCliente(id){if(!confirm('Excluir este cliente?'))return;DB.clientes=DB.clientes.filter(c=>c.id!==id);salvarDB();renderClientes();carregarClientesSelect();toast('Cliente excluído.','sucesso');}
+function carregarClientesSelect(){const sel=document.getElementById('ag-cliente');const at=sel.value;sel.innerHTML='<option value="">— nenhum —</option>'+DB.clientes.slice().sort((a,b)=>(a.nome||'').localeCompare(b.nome||'')).map(c=>`<option value="${c.id}">${esc(c.nome)}</option>`).join('');sel.value=at;}
+
+// ================== Agenda ==================
+const calState={ref:primeiroDiaMes(new Date()),view:'mes'};
+function primeiroDiaMes(d){return new Date(d.getFullYear(),d.getMonth(),1);}
+function fmtData(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function mesmaData(a,b){return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate();}
+function corEvento(a){if(a.status==='concluido')return'#16a34a';if(a.status==='cancelado')return'#9ca3af';if(a.origem==='outlook')return'#7c3aed';return'#2563eb';}
+function mudarMes(d){calState.ref=new Date(calState.ref.getFullYear(),calState.ref.getMonth()+d,1);renderCalendario();}
+function irHoje(){calState.ref=primeiroDiaMes(new Date());renderCalendario();}
+function trocarView(v){calState.view=v;renderCalendario();}
+function renderCalendario(){const el=document.getElementById('calendario');const ref=calState.ref;
+  const cab=`<div class="cal-cab"><div class="cal-nav"><button class="btn btn-secundario" onclick="mudarMes(-1)">‹</button><button class="btn btn-secundario" onclick="irHoje()">Hoje</button><button class="btn btn-secundario" onclick="mudarMes(1)">›</button><h2>${MESES[ref.getMonth()]} de ${ref.getFullYear()}</h2></div><div class="cal-views"><button class="btn ${calState.view==='mes'?'btn-primario':'btn-secundario'}" onclick="trocarView('mes')">Mês</button><button class="btn ${calState.view==='lista'?'btn-primario':'btn-secundario'}" onclick="trocarView('lista')">Lista</button></div></div>`;
+  el.innerHTML=cab+(calState.view==='mes'?renderMes():renderLista());}
+function eventosDoDia(d){const s=fmtData(d);return DB.agendamentos.filter(e=>(e.inicio||'').slice(0,10)===s).sort((a,b)=>(a.inicio||'').localeCompare(b.inicio||''));}
+function nomeCurto(e){const c=DB.clientes.find(x=>x.id==e.cliente_id);return(c?c.nome+' - ':'')+e.titulo;}
+function renderMes(){const ref=calState.ref,primeiro=primeiroDiaMes(ref),ini=new Date(primeiro);ini.setDate(1-primeiro.getDay());const hoje=new Date();let h='<div class="cal-grade">'+DIAS.map(d=>`<div class="cal-cabdia">${d}</div>`).join('');
+  for(let i=0;i<42;i++){const dia=new Date(ini);dia.setDate(ini.getDate()+i);const fora=dia.getMonth()!==ref.getMonth(),eh=mesmaData(dia,hoje);
+    const chips=eventosDoDia(dia).map(e=>`<div class="cal-chip" style="background:${corEvento(e)}" title="${esc(e.titulo)}" onclick="event.stopPropagation();abrirAgendamento(${e.id})"><span class="cal-chip-h">${(e.inicio||'').slice(11,16)}</span> ${esc(nomeCurto(e))}</div>`).join('');
+    h+=`<div class="cal-cel ${fora?'fora':''} ${eh?'hoje':''}" onclick="abrirNovoAgendamento('${fmtData(dia)}')"><div class="cal-num">${dia.getDate()}</div><div class="cal-chips">${chips}</div></div>`;}
+  return h+'</div>';}
+function renderLista(){const hojeStr=fmtData(new Date());const fut=DB.agendamentos.filter(e=>(e.inicio||'').slice(0,10)>=hojeStr).sort((a,b)=>(a.inicio||'').localeCompare(b.inicio||''));if(!fut.length)return'<p class="vazio">Nenhum agendamento futuro.</p>';let h='<div class="cal-lista">',ult='';fut.forEach(e=>{const dia=(e.inicio||'').slice(0,10);if(dia!==ult){const d=new Date(dia+'T12:00');h+=`<div class="cal-lista-dia">${DIAS[d.getDay()]}, ${d.getDate()} de ${MESES[d.getMonth()]}</div>`;ult=dia;}h+=`<div class="cal-lista-item" onclick="abrirAgendamento(${e.id})"><span class="cal-lista-hora">${(e.inicio||'').slice(11,16)}</span><span class="cal-lista-cor" style="background:${corEvento(e)}"></span><span class="cal-lista-tit">${esc(nomeCurto(e))}</span></div>`;});return h+'</div>';}
+function fmtLocal(dt){return dt?dt.slice(0,16):'';}
+function abrirNovoAgendamento(dataStr){carregarClientesSelect();document.getElementById('ag-id').value='';['ag-titulo','ag-valor','ag-local','ag-descricao'].forEach(i=>document.getElementById(i).value='');document.getElementById('ag-cliente').value='';document.getElementById('ag-status').value='agendado';document.getElementById('modal-titulo').textContent='Novo agendamento';document.getElementById('btn-excluir-ag').style.display='none';document.getElementById('btn-emitir-nfse').style.display='none';document.getElementById('bloco-nfse').classList.add('oculto');const base=(dataStr||fmtData(new Date()))+'T09:00';document.getElementById('ag-inicio').value=base;document.getElementById('ag-fim').value=base.slice(0,11)+'10:00';abrirModal('modal-agendamento');}
+function abrirAgendamento(id){carregarClientesSelect();const a=DB.agendamentos.find(x=>x.id===id);if(!a)return;document.getElementById('ag-id').value=a.id;document.getElementById('ag-titulo').value=a.titulo||'';document.getElementById('ag-cliente').value=a.cliente_id||'';document.getElementById('ag-inicio').value=fmtLocal(a.inicio);document.getElementById('ag-fim').value=fmtLocal(a.fim);document.getElementById('ag-valor').value=a.valor||'';document.getElementById('ag-status').value=a.status||'agendado';document.getElementById('ag-local').value=a.local||'';document.getElementById('ag-descricao').value=a.descricao||'';document.getElementById('modal-titulo').textContent='Editar agendamento';document.getElementById('btn-excluir-ag').style.display='inline-block';document.getElementById('btn-emitir-nfse').style.display='inline-block';
+  const nota=DB.notas.filter(n=>n.agendamento_id===a.id).slice(-1)[0];
+  if(nota){renderNota(nota,null);document.getElementById('btn-emitir-nfse').textContent=nota.status==='portal'?'🧾 Reabrir emissor':'🧾 Reemitir NFS-e';}
+  else{document.getElementById('bloco-nfse').classList.add('oculto');document.getElementById('btn-emitir-nfse').textContent='🧾 Emitir NFS-e';}
+  abrirModal('modal-agendamento');}
+function coletarAg(){const v=id=>document.getElementById(id).value;return{titulo:v('ag-titulo').trim(),cliente_id:v('ag-cliente')||null,inicio:v('ag-inicio'),fim:v('ag-fim'),valor:parseFloat(v('ag-valor'))||0,status:v('ag-status'),local:v('ag-local'),descricao:v('ag-descricao')};}
+async function salvarAgendamento(){const d=coletarAg();if(!d.titulo||!d.inicio||!d.fim){toast('Preencha título, início e fim.','erro');return;}const id=document.getElementById('ag-id').value;let alvo;
+  if(id){alvo=DB.agendamentos.find(x=>x.id==id);Object.assign(alvo,d);}else{d.id=novoId('ag');d.origem='app';DB.agendamentos.push(d);alvo=d;}
+  salvarDB();fecharModal('modal-agendamento');renderCalendario();toast('Agendamento salvo!','sucesso');
+  if(conta){ try{ const oid=await outlookEnviar(alvo); if(oid){alvo.outlook_event_id=oid;salvarDB();} }catch(e){console.warn(e);} }
+}
+async function excluirAgendamento(){const id=+document.getElementById('ag-id').value;if(!id)return;if(!confirm('Excluir este agendamento? Também será removido do Outlook.'))return;const a=DB.agendamentos.find(x=>x.id===id);if(a&&a.outlook_event_id)await outlookExcluir(a.outlook_event_id);DB.agendamentos=DB.agendamentos.filter(x=>x.id!==id);salvarDB();fecharModal('modal-agendamento');renderCalendario();toast('Agendamento excluído.','sucesso');}
+
+// ================== NFS-e (portal MEI) ==================
+function resumoPortal(a){const c=DB.clientes.find(x=>x.id==a.cliente_id)||{};const tipo=c.tipo_pessoa==='J'?'CNPJ':'CPF';const l=[`Tomador (${tipo}): ${soNums(c.documento)}`,`Nome/Razao social: ${c.nome||''}`,`Valor do servico: R$ ${(parseFloat(a.valor)||0).toFixed(2)}`,`Descricao do servico: ${DB.config.desc||a.titulo}`];if(DB.config.ctrib)l.push(`Codigo de tributacao nacional: ${DB.config.ctrib}`);if(c.email)l.push(`E-mail do tomador: ${c.email}`);return l.join('\n');}
+function emitirNFSe(){const id=+document.getElementById('ag-id').value;if(!id){toast('Salve o agendamento primeiro.','erro');return;}const a=DB.agendamentos.find(x=>x.id===id);if(!a.cliente_id){toast('Vincule um cliente para emitir a NFS-e.','erro');return;}if(!confirm('Preparar a NFS-e e abrir o Emissor Nacional?'))return;const nota={id:novoId('nota'),agendamento_id:id,cliente_id:a.cliente_id,numero_nfse:'',valor:parseFloat(a.valor)||0,descricao:DB.config.desc||a.titulo,status:'portal',resumo:resumoPortal(a),emitida_em:fmtData(new Date())};DB.notas.push(nota);salvarDB();window.open('https://www.nfse.gov.br/EmissorNacional/Login','_blank');renderNota(nota,nota.resumo);toast('Emissor Nacional aberto. Emita com seu login gov.br.','sucesso');}
+function renderNota(n,resumo){const bloco=document.getElementById('bloco-nfse');bloco.classList.remove('oculto');const alvo=document.getElementById('nfse-info');
+  if(n.status==='portal'){alvo.innerHTML=`<b>Status:</b> <span class="tag tag-portal">aguardando emissão no portal</span>`+(resumo?`<p style="margin:8px 0 4px">Dados prontos para colar no Emissor Nacional:</p><textarea id="resumo-portal" rows="6" style="width:100%;font-size:12px">${esc(resumo)}</textarea><button class="btn btn-secundario" style="margin-top:6px" onclick="copiarResumo()">📋 Copiar dados</button>`:'')+`<div style="margin-top:12px"><button class="btn btn-secundario" onclick="window.open('https://www.nfse.gov.br/EmissorNacional/Login','_blank')">🌐 Abrir Emissor Nacional</button></div><p style="margin:12px 0 4px">Depois de emitir, registre o número da NFS-e:</p><div style="display:flex;gap:8px"><input id="reg-numero" placeholder="Nº da NFS-e emitida" style="flex:1;padding:8px;border:1px solid #cbd5e1;border-radius:6px"><button class="btn btn-primario" onclick="registrarNumero(${n.id})">Registrar</button></div>`;}
+  else{alvo.innerHTML=`<b>Status:</b> <span class="tag tag-${n.status}">${n.status}</span><br><b>Nº NFS-e:</b> ${esc(n.numero_nfse)||'—'}<br><b>Valor:</b> R$ ${(n.valor||0).toFixed(2)}<br><b>Descrição:</b> ${esc(n.descricao)||''}`;}}
+function copiarResumo(){const t=document.getElementById('resumo-portal');if(!t)return;t.select();navigator.clipboard.writeText(t.value).then(()=>toast('Dados copiados!','sucesso'),()=>toast('Copie manualmente (Ctrl+C).','erro'));}
+function registrarNumero(notaId){const num=document.getElementById('reg-numero').value.trim();if(!num){toast('Informe o número da NFS-e.','erro');return;}const n=DB.notas.find(x=>x.id===notaId);n.numero_nfse=num;n.status='autorizada';salvarDB();toast('Número registrado!','sucesso');renderNota(n,null);renderNotas();}
+
+// ================== Notas ==================
+function renderNotas(){const box=document.getElementById('lista-notas');if(!DB.notas.length){box.innerHTML='<p class="vazio">Nenhuma nota emitida ainda. Emita a partir de um agendamento na Agenda.</p>';return;}const rows=DB.notas.slice().reverse().map(n=>{const c=DB.clientes.find(x=>x.id===n.cliente_id);return`<tr><td>${esc(n.emitida_em)}</td><td>${esc(c?c.nome:'—')}</td><td>${esc(n.numero_nfse)||'—'}</td><td>R$ ${(n.valor||0).toFixed(2)}</td><td><span class="tag tag-${n.status}">${n.status}</span></td></tr>`;}).join('');box.innerHTML=`<table class="tabela"><thead><tr><th>Emitida em</th><th>Cliente</th><th>Nº NFS-e</th><th>Valor</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table>`;}
+
+// ================== Config ==================
+function carregarConfigForm(){const c=DB.config;document.getElementById('cfg-desc').value=c.desc||'';document.getElementById('cfg-ctrib').value=c.ctrib||'';document.getElementById('cfg-cnpj').value=c.cnpj||'';document.getElementById('cfg-mun').value=c.mun||'';document.getElementById('cfg-razao').value=c.razao||'';document.getElementById('cfg-clientid').value=CLIENT_ID;}
+function salvarConfig(){DB.config={desc:document.getElementById('cfg-desc').value,ctrib:document.getElementById('cfg-ctrib').value,cnpj:document.getElementById('cfg-cnpj').value,mun:document.getElementById('cfg-mun').value,razao:document.getElementById('cfg-razao').value};salvarDB();toast('Configurações salvas.','sucesso');}
+function salvarClientId(){CLIENT_ID=document.getElementById('cfg-clientid').value.trim();localStorage.setItem('ti_client_id',CLIENT_ID);initMsal();atualizarBarra();toast('Client ID salvo. Agora clique em "Entrar com Microsoft".','sucesso');}
+
+// ================== Backup ==================
+function baixarArquivo(blob,nome){const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download=nome;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1000);}
+function exportarBackup(){baixarArquivo(new Blob([JSON.stringify(DB,null,2)],{type:'application/json'}),'backup-gestor-ti.json');toast('Backup baixado!','sucesso');}
+function importarBackup(input){const f=input.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.clientes||!d.agendamentos)throw new Error('inv');if(!confirm('Isso substitui os dados atuais pelos do backup. Continuar?'))return;DB=Object.assign(dbPadrao(),d);salvarDB();rerenderTudo();toast('Backup restaurado!','sucesso');}catch(e){toast('Arquivo de backup inválido.','erro');}input.value='';};r.readAsText(f);}
+
+// ================== Início ==================
+carregarClientesSelect();renderCalendario();
+initMsal();
+initAuth();
+</script>
+</body>
+</html>
