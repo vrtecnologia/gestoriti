@@ -615,15 +615,22 @@ function imprimirOS(){
   const num=document.getElementById('os-numero').value||'';
   let totV=0,totH=0;
   const rows=itens.map(s=>{totV+=parseFloat(s.valor)||0;totH+=parseFloat(s.horas)||0;return `<tr><td>${brdata(s.data)}</td><td>${esc(s.descricao)}</td><td>${fmtHoras(s.horas)}</td><td>R$ ${(parseFloat(s.valor)||0).toFixed(2)}</td></tr>`;}).join('');
-  document.getElementById('os-print').innerHTML=`<div class="os-doc">
+  const html=`<!DOCTYPE html><html lang="pt-br"><head><meta charset="utf-8"><title>Ordem de Servico ${esc(num)}</title>
+  <style>body{font-family:Arial,sans-serif;color:#000;margin:24px}img{height:64px;margin-bottom:6px}h2{text-align:center;font-size:18px;margin:12px 0 16px}
+  table{width:100%;border-collapse:collapse;font-size:13px}th,td{border:1px solid #333;padding:6px 8px;text-align:left;vertical-align:top}th{background:#f0f0f0;font-size:11px}.tot{font-weight:700;text-align:right}
+  .cli{font-size:13px;margin-bottom:10px}.rod{font-size:11px;margin-top:16px;color:#444}</style></head>
+  <body>
     <img src="${LOGO_URL}" alt="VR Tecnologia">
     <h2>Ordem de Serviço Nº${esc(num)}</h2>
-    <div style="font-size:13px;margin-bottom:10px"><b>Cliente:</b> ${esc(c.nome||'')}${c.documento?' — '+esc(c.documento):''}</div>
+    <div class="cli"><b>Cliente:</b> ${esc(c.nome||'')}${c.documento?' — '+esc(c.documento):''}</div>
     <table><thead><tr><th>DATA DO SERVIÇO</th><th>SERVIÇO REALIZADO</th><th>TEMPO DE SERVIÇO</th><th>VALOR DO SERVIÇO</th></tr></thead>
     <tbody>${rows}<tr><td colspan="2" class="tot">TOTAL</td><td class="tot">${String(totH).replace('.',',')}h</td><td class="tot">R$ ${totV.toFixed(2)}</td></tr></tbody></table>
-    <p style="font-size:11px;margin-top:16px;color:#444">VR Tecnologia Consultoria · CNPJ 42.612.058/0001-36</p>
-  </div>`;
-  window.print();
+    <p class="rod">VR Tecnologia Consultoria · CNPJ 42.612.058/0001-36</p>
+    <script>window.onload=function(){setTimeout(function(){window.print();},350);};<\/script>
+  </body></html>`;
+  const w=window.open('','_blank');
+  if(!w){toast('Seu navegador bloqueou a janela. Permita pop-ups para imprimir a OS.','erro');return;}
+  w.document.open(); w.document.write(html); w.document.close();
 }
 
 // ================== Backup ==================
