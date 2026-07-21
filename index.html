@@ -95,6 +95,24 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
 .lock-card button{width:100%;padding:11px;background:var(--azul);color:#fff;border:none;border-radius:8px;font-weight:600;font-size:15px;cursor:pointer}
 .lock-card button:hover{background:var(--azul-esc)}
 .lock-erro{color:var(--vermelho);font-size:13px;margin-bottom:8px;min-height:18px}
+.os-filtros{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
+.os-filtros .campo{display:flex;flex-direction:column;gap:5px;font-size:13px;font-weight:600;color:#374151}
+.os-filtros input,.os-filtros select{padding:9px 11px;border:1px solid var(--borda);border-radius:8px;font-size:14px;font-weight:400}
+.os-total{font-size:17px;font-weight:700;text-align:right;padding:14px 4px}
+#os-print{position:fixed;left:-99999px;top:0}
+.os-doc{font-family:Arial,sans-serif;color:#000;max-width:760px;margin:0 auto}
+.os-doc img{height:60px;margin-bottom:6px}
+.os-doc h2{text-align:center;font-size:18px;margin:12px 0 16px}
+.os-doc table{width:100%;border-collapse:collapse;font-size:13px}
+.os-doc th,.os-doc td{border:1px solid #333;padding:6px 8px;text-align:left;vertical-align:top}
+.os-doc th{background:#f0f0f0;font-size:11px}
+.os-doc .tot{font-weight:700;text-align:right}
+@media print{
+  body *{visibility:hidden}
+  #os-print,#os-print *{visibility:visible}
+  #os-print{position:absolute;left:0;top:0;width:100%;padding:6px 10px}
+  .no-print{display:none!important}
+}
 @media(max-width:640px){.sidebar{width:64px}.logo-text,.sidebar nav a span.txt{display:none}.conteudo{margin-left:64px;width:calc(100% - 64px);padding:0 14px 20px}.sidebar nav a{text-align:center;padding:14px 0;font-size:18px}}
 </style>
 </head>
@@ -116,6 +134,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
       <a data-view="agenda" class="ativo" onclick="showView('agenda')">📅 <span class="txt">Agenda</span></a>
       <a data-view="clientes" onclick="showView('clientes')">👥 <span class="txt">Clientes</span></a>
       <a data-view="notas" onclick="showView('notas')">🧾 <span class="txt">Notas Fiscais</span></a>
+      <a data-view="os" onclick="showView('os')">📄 <span class="txt">Ordens de Serviço</span></a>
       <a data-view="config" onclick="showView('config')">⚙️ <span class="txt">Configurações</span></a>
     </nav>
     <div class="sidebar-rodape">v2.1 · web</div>
@@ -142,6 +161,29 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
     </section>
 
     <section id="view-notas" class="oculto"><div class="topo"><h1>Notas Fiscais (NFS-e)</h1></div><div id="lista-notas"></div></section>
+
+    <section id="view-os" class="oculto">
+      <div class="topo"><h1>Ordens de Serviço</h1></div>
+      <div class="card no-print">
+        <div class="os-filtros">
+          <div class="campo">Cliente<select id="os-cliente" onchange="renderOS()"><option value="">— selecione —</option></select></div>
+          <div class="campo">Mês<input type="month" id="os-mes" onchange="renderOS()"></div>
+          <div class="campo">Nº da OS<input id="os-numero" style="width:150px"></div>
+          <button class="btn btn-secundario" onclick="importarServicosDaAgenda()">📥 Puxar da agenda</button>
+          <button class="btn btn-primario" onclick="imprimirOS()">🖨️ Imprimir OS</button>
+        </div>
+        <h3>Adicionar serviço</h3>
+        <div class="os-filtros">
+          <div class="campo">Data<input type="date" id="os-data"></div>
+          <div class="campo" style="flex:1;min-width:240px">Serviço realizado<input id="os-desc" placeholder="Descrição do serviço realizado"></div>
+          <div class="campo">Horas<input type="number" step="0.5" id="os-horas" style="width:90px" placeholder="1"></div>
+          <div class="campo">Valor (R$)<input type="number" step="0.01" id="os-valor" style="width:120px" placeholder="0,00"></div>
+          <button class="btn btn-primario" onclick="addServico()">+ Adicionar</button>
+        </div>
+      </div>
+      <div id="os-lista"></div>
+      <div id="os-print"></div>
+    </section>
 
     <section id="view-config" class="oculto">
       <div class="topo"><h1>Configurações</h1></div>
@@ -259,6 +301,9 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
 <div id="toast" class="toast"></div>
 
 <script>
+// ================== Logomarca (VR Tecnologia) ==================
+const LOGO_URL='data:image/jpeg;base64,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';
+
 // ================== Tela de acesso (tranca leve) ==================
 const LOCK_USER='vrtecnologia';
 const LOCK_HASH='9909e8adb1d927908c1b47bc0d5ab63f18c05c85ee5e171104df2adaf0d3f568';
@@ -327,8 +372,8 @@ const CAMPOS_CLI=['nome','tipo_pessoa','documento','email','telefone','inscricao
 const MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 const DIAS=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
 let DB=carregarLocal();
-function dbPadrao(){return{clientes:[],agendamentos:[],notas:[],config:{desc:'REPARAÇÃO E MANUTENÇÃO DE COMPUTADORES',ctrib:'140101',cnpj:'42612058000136',mun:'3304557',razao:'',pix:'PIX CNPJ 42.612.058/0001-36'},seq:{cli:1,ag:1,nota:1}};}
-function carregarLocal(){try{const r=localStorage.getItem(CHAVE);if(r){const d=Object.assign(dbPadrao(),JSON.parse(r));const def=dbPadrao().config;['desc','ctrib','cnpj','mun','pix'].forEach(k=>{if(!d.config[k])d.config[k]=def[k];});return d;}}catch(e){}return dbPadrao();}
+function dbPadrao(){return{clientes:[],agendamentos:[],notas:[],servicos:[],config:{desc:'REPARAÇÃO E MANUTENÇÃO DE COMPUTADORES',ctrib:'140101',cnpj:'42612058000136',mun:'3304557',razao:'',pix:'PIX CNPJ 42.612.058/0001-36'},seq:{cli:1,ag:1,nota:1,serv:1}};}
+function carregarLocal(){try{const r=localStorage.getItem(CHAVE);if(r){const d=Object.assign(dbPadrao(),JSON.parse(r));const def=dbPadrao().config;['desc','ctrib','cnpj','mun','pix'].forEach(k=>{if(!d.config[k])d.config[k]=def[k];});if(!d.servicos)d.servicos=[];if(!d.seq.serv)d.seq.serv=1;return d;}}catch(e){}return dbPadrao();}
 function salvarLocal(){try{localStorage.setItem(CHAVE,JSON.stringify(DB));}catch(e){}}
 function salvarDB(){salvarLocal();agendarSalvarNuvem();}
 function novoId(t){const id=DB.seq[t]++;salvarDB();return id;}
@@ -343,7 +388,7 @@ document.addEventListener('click',e=>{if(e.target.classList&&e.target.classList.
 function rerenderTudo(){renderCalendario();renderClientes();renderNotas();carregarClientesSelect();carregarConfigForm();}
 
 // ================== Navegação ==================
-function showView(v){['agenda','clientes','notas','config'].forEach(n=>document.getElementById('view-'+n).classList.toggle('oculto',n!==v));document.querySelectorAll('.sidebar nav a').forEach(a=>a.classList.toggle('ativo',a.dataset.view===v));if(v==='agenda')renderCalendario();if(v==='clientes')renderClientes();if(v==='notas')renderNotas();if(v==='config')carregarConfigForm();}
+function showView(v){['agenda','clientes','notas','os','config'].forEach(n=>document.getElementById('view-'+n).classList.toggle('oculto',n!==v));document.querySelectorAll('.sidebar nav a').forEach(a=>a.classList.toggle('ativo',a.dataset.view===v));if(v==='agenda')renderCalendario();if(v==='clientes')renderClientes();if(v==='notas')renderNotas();if(v==='os')renderOS();if(v==='config')carregarConfigForm();}
 
 // ================== Clientes ==================
 function renderClientes(q){q=(q||'').toLowerCase();const lista=DB.clientes.filter(c=>!q||(c.nome||'').toLowerCase().includes(q)||(c.documento||'').includes(q)).sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));const tb=document.getElementById('lista-clientes');if(!lista.length){tb.innerHTML='<tr><td colspan="6" class="vazio">Nenhum cliente cadastrado.</td></tr>';return;}tb.innerHTML=lista.map(c=>`<tr><td><b>${esc(c.nome)}</b></td><td>${c.tipo_pessoa==='J'?'Jurídica':'Física'}</td><td>${esc(c.documento)||'—'}</td><td>${esc(c.telefone)||'—'}</td><td>${esc(c.municipio)||'—'}</td><td class="acoes-cel"><span class="link-acao" onclick="editarCliente(${c.id})">Editar</span><span class="link-acao perigo" onclick="excluirCliente(${c.id})">Excluir</span></td></tr>`).join('');}
@@ -490,6 +535,77 @@ function importarICS(input){
     input.value='';
   };
   r.readAsText(f);
+}
+
+// ================== Ordens de Serviço ==================
+function preencherClientesOS(){const sel=document.getElementById('os-cliente');const at=sel.value;sel.innerHTML='<option value="">— selecione —</option>'+DB.clientes.slice().sort((a,b)=>(a.nome||'').localeCompare(b.nome||'')).map(c=>`<option value="${c.id}">${esc(c.nome)}</option>`).join('');sel.value=at;}
+function mesDefaultOS(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');}
+function brdata(d){if(!d)return'';const p=String(d).slice(0,10).split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:d;}
+function fmtHoras(h){h=parseFloat(h)||0;if(Number.isInteger(h))return h+' HORA'+(h===1?'':'S');return String(h).replace('.',',')+'h';}
+function servicosFiltrados(){const cid=document.getElementById('os-cliente').value;const mes=document.getElementById('os-mes').value;return DB.servicos.filter(s=>String(s.cliente_id)===String(cid)&&(s.data||'').slice(0,7)===mes).sort((a,b)=>(a.data||'').localeCompare(b.data||''));}
+function renderOS(){
+  preencherClientesOS();
+  if(!document.getElementById('os-mes').value)document.getElementById('os-mes').value=mesDefaultOS();
+  if(!document.getElementById('os-numero').value){const d=new Date();document.getElementById('os-numero').value=String(d.getDate()).padStart(2,'0')+String(d.getMonth()+1).padStart(2,'0')+d.getFullYear();}
+  const box=document.getElementById('os-lista'); const cid=document.getElementById('os-cliente').value;
+  if(!cid){box.innerHTML='<p class="vazio">Escolha um cliente e o mês para montar a OS.</p>';return;}
+  const itens=servicosFiltrados();
+  if(!itens.length){box.innerHTML='<p class="vazio">Nenhum serviço neste mês. Adicione acima, ou clique em "Puxar da agenda".</p>';return;}
+  let totV=0,totH=0;
+  const rows=itens.map(s=>{totV+=parseFloat(s.valor)||0;totH+=parseFloat(s.horas)||0;return `<tr><td>${brdata(s.data)}</td><td>${esc(s.descricao)}</td><td>${fmtHoras(s.horas)}</td><td>R$ ${(parseFloat(s.valor)||0).toFixed(2)}</td><td class="acoes-cel"><span class="link-acao" onclick="editServico(${s.id})">Editar</span><span class="link-acao perigo" onclick="excluirServico(${s.id})">Excluir</span></td></tr>`;}).join('');
+  box.innerHTML=`<table class="tabela"><thead><tr><th>Data</th><th>Serviço realizado</th><th>Tempo</th><th>Valor</th><th></th></tr></thead><tbody>${rows}</tbody></table><div class="os-total">Total de horas: ${String(totH).replace('.',',')}h &nbsp;·&nbsp; Total: R$ ${totV.toFixed(2)}</div>`;
+}
+function addServico(){
+  const cid=document.getElementById('os-cliente').value;
+  if(!cid){toast('Escolha o cliente primeiro.','erro');return;}
+  const data=document.getElementById('os-data').value||((document.getElementById('os-mes').value||mesDefaultOS())+'-01');
+  const desc=document.getElementById('os-desc').value.trim();
+  if(!desc){toast('Descreva o serviço.','erro');return;}
+  DB.servicos.push({id:novoId('serv'),cliente_id:cid,data:data,descricao:desc,horas:parseFloat(document.getElementById('os-horas').value)||0,valor:parseFloat(document.getElementById('os-valor').value)||0});
+  salvarDB();
+  document.getElementById('os-desc').value='';document.getElementById('os-horas').value='';document.getElementById('os-valor').value='';document.getElementById('os-data').value='';
+  renderOS(); toast('Serviço adicionado.','sucesso');
+}
+function editServico(id){const s=DB.servicos.find(x=>x.id===id);if(!s)return;
+  const desc=prompt('Serviço realizado:',s.descricao);if(desc===null)return;
+  const data=prompt('Data (AAAA-MM-DD):',s.data);if(data===null)return;
+  const horas=prompt('Horas:',s.horas);if(horas===null)return;
+  const valor=prompt('Valor (R$):',s.valor);if(valor===null)return;
+  s.descricao=desc;s.data=data;s.horas=parseFloat(horas)||0;s.valor=parseFloat(valor)||0;salvarDB();renderOS();toast('Serviço atualizado.','sucesso');
+}
+function excluirServico(id){if(!confirm('Excluir este serviço?'))return;DB.servicos=DB.servicos.filter(s=>s.id!==id);salvarDB();renderOS();toast('Serviço excluído.','sucesso');}
+function importarServicosDaAgenda(){
+  const cid=document.getElementById('os-cliente').value, mes=document.getElementById('os-mes').value;
+  if(!cid){toast('Escolha o cliente e o mês.','erro');return;}
+  const ags=DB.agendamentos.filter(a=>String(a.cliente_id)===String(cid)&&(a.inicio||'').slice(0,7)===mes&&a.status!=='cancelado');
+  if(!ags.length){toast('Nenhum agendamento desse cliente neste mês.','erro');return;}
+  let add=0;
+  ags.forEach(a=>{
+    if(DB.servicos.some(s=>s.origem_ag===a.id))return;
+    const dur=(new Date(a.fim)-new Date(a.inicio))/3600000;
+    DB.servicos.push({id:novoId('serv'),cliente_id:cid,data:(a.inicio||'').slice(0,10),descricao:a.descricao||a.titulo,horas:dur>0?Math.round(dur*100)/100:1,valor:parseFloat(a.valor)||0,origem_ag:a.id});
+    add++;
+  });
+  salvarDB();renderOS();toast('Puxados '+add+' serviço(s) da agenda'+(add===0?' (já estavam na OS)':'')+'.','sucesso');
+}
+function imprimirOS(){
+  const cid=document.getElementById('os-cliente').value;
+  if(!cid){toast('Escolha um cliente.','erro');return;}
+  const c=DB.clientes.find(x=>x.id==cid)||{};
+  const itens=servicosFiltrados();
+  if(!itens.length){toast('Nenhum serviço para imprimir neste mês.','erro');return;}
+  const num=document.getElementById('os-numero').value||'';
+  let totV=0,totH=0;
+  const rows=itens.map(s=>{totV+=parseFloat(s.valor)||0;totH+=parseFloat(s.horas)||0;return `<tr><td>${brdata(s.data)}</td><td>${esc(s.descricao)}</td><td>${fmtHoras(s.horas)}</td><td>R$ ${(parseFloat(s.valor)||0).toFixed(2)}</td></tr>`;}).join('');
+  document.getElementById('os-print').innerHTML=`<div class="os-doc">
+    <img src="${LOGO_URL}" alt="VR Tecnologia">
+    <h2>Ordem de Serviço Nº${esc(num)}</h2>
+    <div style="font-size:13px;margin-bottom:10px"><b>Cliente:</b> ${esc(c.nome||'')}${c.documento?' — '+esc(c.documento):''}</div>
+    <table><thead><tr><th>DATA DO SERVIÇO</th><th>SERVIÇO REALIZADO</th><th>TEMPO DE SERVIÇO</th><th>VALOR DO SERVIÇO</th></tr></thead>
+    <tbody>${rows}<tr><td colspan="2" class="tot">TOTAL</td><td class="tot">${String(totH).replace('.',',')}h</td><td class="tot">R$ ${totV.toFixed(2)}</td></tr></tbody></table>
+    <p style="font-size:11px;margin-top:16px;color:#444">VR Tecnologia Consultoria · CNPJ 42.612.058/0001-36</p>
+  </div>`;
+  window.print();
 }
 
 // ================== Backup ==================
