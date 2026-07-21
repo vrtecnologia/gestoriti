@@ -306,14 +306,29 @@ const LOGO_URL='data:image/jpeg;base64,/9j/7gAOQWRvYmUAZAAAAAAB/9sAxQAMCAgICAgMC
 
 // ================== Tela de acesso (tranca leve) ==================
 const LOCK_USER='vrtecnologia';
-const LOCK_HASH='9909e8adb1d927908c1b47bc0d5ab63f18c05c85ee5e171104df2adaf0d3f568';
-async function sha256(txt){if(!(crypto&&crypto.subtle))return'';const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(txt));return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('');}
-async function desbloquear(){const u=(document.getElementById('lock-user').value||'').trim().toLowerCase();const p=document.getElementById('lock-pass').value||'';const h=await sha256(p);if(u===LOCK_USER&&h===LOCK_HASH){localStorage.setItem('ti_unlocked','1');document.getElementById('lock').classList.add('oculto');}else{document.getElementById('lock-erro').textContent='Usuário ou senha incorretos.';document.getElementById('lock-pass').value='';}}
-function bloquear(){localStorage.removeItem('ti_unlocked');location.reload();}
-if(localStorage.getItem('ti_unlocked')==='1'){document.getElementById('lock').classList.add('oculto');}
+const REPO_PADRAO='vrtecnologia/gestor-dados';
+const ENC={"salt": "Md83p/sp8wA8/EzWUAGJ1Q==", "iv": "jexkgXHPoCe9OGll", "ct": "zp+D0l+gZmhS+sqiEgZLtZwhQh2IkRtcY0t4TkxLFlAT+h1lpTspdvbI4NI5gh7dN5489D26gZmHZx/HPZSLNcBnLy9C3galN6BAOnYOw+AkwZL/6om3T4WcOBxdYdPAamF6QnLSEEgv7e5HyQ==", "iter": 210000};
+function b64ToBytes(b){return Uint8Array.from(atob(b),c=>c.charCodeAt(0));}
+async function derivarChave(pass){const km=await crypto.subtle.importKey('raw',new TextEncoder().encode(pass),'PBKDF2',false,['deriveKey']);return crypto.subtle.deriveKey({name:'PBKDF2',salt:b64ToBytes(ENC.salt),iterations:ENC.iter,hash:'SHA-256'},km,{name:'AES-GCM',length:256},false,['decrypt']);}
+async function desbloquear(){
+  const u=(document.getElementById('lock-user').value||'').trim().toLowerCase();
+  const p=document.getElementById('lock-pass').value||'';
+  if(u!==LOCK_USER){document.getElementById('lock-erro').textContent='Usuário ou senha incorretos.';document.getElementById('lock-pass').value='';return;}
+  try{
+    const key=await derivarChave(p);
+    const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:b64ToBytes(ENC.iv)},key,b64ToBytes(ENC.ct));
+    const token=new TextDecoder().decode(pt);
+    GH_TOKEN=token; GH_REPO=localStorage.getItem('ti_gh_repo')||REPO_PADRAO;
+    localStorage.setItem('ti_gh_token',token); localStorage.setItem('ti_gh_repo',GH_REPO); localStorage.setItem('ti_unlocked','1');
+    document.getElementById('lock').classList.add('oculto');
+    conectarNuvem();
+  }catch(e){document.getElementById('lock-erro').textContent='Usuário ou senha incorretos.';document.getElementById('lock-pass').value='';}
+}
+function bloquear(){localStorage.removeItem('ti_unlocked');localStorage.removeItem('ti_gh_token');location.reload();}
+if(localStorage.getItem('ti_unlocked')==='1'&&localStorage.getItem('ti_gh_token')){document.getElementById('lock').classList.add('oculto');}
 
 // ================== Sincronização (GitHub) ==================
-let GH_REPO=localStorage.getItem('ti_gh_repo')||'';
+let GH_REPO=localStorage.getItem('ti_gh_repo')||'vrtecnologia/gestor-dados';
 let GH_TOKEN=localStorage.getItem('ti_gh_token')||'';
 let ghSha=null, conectado=false, saveTimer=null, carregando=false;
 const GH='https://api.github.com';
@@ -321,19 +336,22 @@ function ghHeaders(){return{Authorization:'Bearer '+GH_TOKEN,'Accept':'applicati
 function b64enc(s){return btoa(unescape(encodeURIComponent(s)));}
 function b64dec(b){return decodeURIComponent(escape(atob(b)));}
 
-async function conectarGitHub(){
+async function conectarNuvem(){
+  if(!GH_REPO||!GH_TOKEN){atualizarBarra();return;}
+  try{
+    const r=await fetch(GH+'/repos/'+GH_REPO,{headers:ghHeaders()});
+    if(r.ok){conectado=true;atualizarBarra();toast('Conectado! Buscando seus dados...','sucesso');await nuvemCarregar(false);}
+    else if(r.status===404){conectado=false;atualizarBarra();toast('Repositório "'+GH_REPO+'" não encontrado. Você criou o repositório PRIVADO gestor-dados?','erro');}
+    else if(r.status===401||r.status===403){conectado=false;atualizarBarra();toast('Token inválido, expirado ou sem acesso a esse repositório.','erro');}
+    else{conectado=false;atualizarBarra();toast('Não consegui conectar (erro '+r.status+').','erro');}
+  }catch(e){conectado=false;atualizarBarra();toast('Erro de conexão: '+e.message,'erro');}
+}
+function conectarGitHub(){
   GH_REPO=(document.getElementById('cfg-repo').value||'').trim().replace(/^https?:\/\/github.com\//,'').replace(/\.git$/,'');
   GH_TOKEN=(document.getElementById('cfg-token').value||'').trim();
   localStorage.setItem('ti_gh_repo',GH_REPO); localStorage.setItem('ti_gh_token',GH_TOKEN);
   if(!GH_REPO||!GH_TOKEN){toast('Preencha o repositório e o token.','erro');return;}
-  toast('Conectando...');
-  try{
-    const r=await fetch(GH+'/repos/'+GH_REPO,{headers:ghHeaders()});
-    if(r.ok){conectado=true;atualizarBarra();toast('Conectado! Buscando seus dados...','sucesso');await nuvemCarregar(false);}
-    else if(r.status===404){conectado=false;atualizarBarra();toast('Repositório não encontrado. Confira o nome (usuario/repositorio) e se o token tem acesso a ele.','erro');}
-    else if(r.status===401){conectado=false;atualizarBarra();toast('Token inválido ou expirado.','erro');}
-    else{conectado=false;atualizarBarra();toast('Não consegui conectar (erro '+r.status+').','erro');}
-  }catch(e){conectado=false;atualizarBarra();toast('Erro de conexão: '+e.message,'erro');}
+  toast('Conectando...'); conectarNuvem();
 }
 function atualizarBarra(){
   const st=document.getElementById('conta-status'), bSync=document.getElementById('btn-sync'), det=document.getElementById('sync-detalhe');
@@ -615,7 +633,7 @@ function importarBackup(input){const f=input.files[0];if(!f)return;const r=new F
 
 // ================== Início ==================
 carregarClientesSelect();renderCalendario();
-if(GH_REPO&&GH_TOKEN){ conectarGitHub(); }
+if(GH_REPO&&GH_TOKEN){ conectarNuvem(); }
 </script>
 </body>
 </html>
