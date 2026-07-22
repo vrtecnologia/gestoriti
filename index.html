@@ -137,7 +137,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
       <a data-view="os" onclick="showView('os')">📄 <span class="txt">OS</span></a>
       <a data-view="config" onclick="showView('config')">⚙️ <span class="txt">Configurações</span></a>
     </nav>
-    <div class="sidebar-rodape">v2.1 · web</div>
+    <div class="sidebar-rodape">v2.3 · web</div>
   </aside>
   <main class="conteudo">
     <div class="barra-conta">
@@ -170,8 +170,9 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
           <div class="campo">Mês<input type="month" id="os-mes" onchange="renderOS()"></div>
           <div class="campo">Nº da OS<input id="os-numero" style="width:150px"></div>
           <button class="btn btn-secundario" onclick="importarServicosDaAgenda()">📥 Puxar da agenda</button>
-          <button class="btn btn-primario" onclick="imprimirOS()">🖨️ Imprimir OS</button>
+          <button class="btn btn-primario" onclick="imprimirOS()">🖨️ Imprimir todas</button>
         </div>
+        <p class="dim" style="margin-top:8px">Use <b>🖨️ Imprimir todas</b> para sair uma OS com todos os serviços do mês, ou o botão <b>Imprimir</b> na linha para sair só aquele serviço.</p>
         <h3>Adicionar serviço</h3>
         <div class="os-filtros">
           <div class="campo">Data<input type="date" id="os-data"></div>
@@ -570,7 +571,7 @@ function renderOS(){
   const itens=servicosFiltrados();
   if(!itens.length){box.innerHTML='<p class="vazio">Nenhum serviço neste mês. Adicione acima, ou clique em "Puxar da agenda".</p>';return;}
   let totV=0,totH=0;
-  const rows=itens.map(s=>{totV+=parseFloat(s.valor)||0;totH+=parseFloat(s.horas)||0;return `<tr><td>${brdata(s.data)}</td><td>${esc(s.descricao)}</td><td>${fmtHoras(s.horas)}</td><td>R$ ${(parseFloat(s.valor)||0).toFixed(2)}</td><td class="acoes-cel"><span class="link-acao" onclick="editServico(${s.id})">Editar</span><span class="link-acao perigo" onclick="excluirServico(${s.id})">Excluir</span></td></tr>`;}).join('');
+  const rows=itens.map(s=>{totV+=parseFloat(s.valor)||0;totH+=parseFloat(s.horas)||0;return `<tr><td>${brdata(s.data)}</td><td>${esc(s.descricao)}</td><td>${fmtHoras(s.horas)}</td><td>R$ ${(parseFloat(s.valor)||0).toFixed(2)}</td><td class="acoes-cel"><span class="link-acao" onclick="imprimirOS(${s.id})">🖨️ Imprimir</span><span class="link-acao" onclick="editServico(${s.id})">Editar</span><span class="link-acao perigo" onclick="excluirServico(${s.id})">Excluir</span></td></tr>`;}).join('');
   box.innerHTML=`<table class="tabela"><thead><tr><th>Data</th><th>Serviço realizado</th><th>Tempo</th><th>Valor</th><th></th></tr></thead><tbody>${rows}</tbody></table><div class="os-total">Total de horas: ${String(totH).replace('.',',')}h &nbsp;·&nbsp; Total: R$ ${totV.toFixed(2)}</div>`;
 }
 function addServico(){
@@ -606,13 +607,21 @@ function importarServicosDaAgenda(){
   });
   salvarDB();renderOS();toast('Puxados '+add+' serviço(s) da agenda'+(add===0?' (já estavam na OS)':'')+'.','sucesso');
 }
-function imprimirOS(){
+function numOS(s){return s.os_num||String(brdata(s.data)).replace(/\//g,'');}
+function imprimirOS(servId){
   const cid=document.getElementById('os-cliente').value;
   if(!cid){toast('Escolha um cliente.','erro');return;}
   const c=DB.clientes.find(x=>x.id==cid)||{};
-  const itens=servicosFiltrados();
-  if(!itens.length){toast('Nenhum serviço para imprimir neste mês.','erro');return;}
-  const num=document.getElementById('os-numero').value||'';
+  let itens,num;
+  if(servId){
+    const s=DB.servicos.find(x=>x.id===servId);
+    if(!s){toast('Serviço não encontrado.','erro');return;}
+    itens=[s]; num=numOS(s);
+  }else{
+    itens=servicosFiltrados();
+    if(!itens.length){toast('Nenhum serviço para imprimir neste mês.','erro');return;}
+    num=document.getElementById('os-numero').value||'';
+  }
   let totV=0,totH=0;
   const rows=itens.map(s=>{totV+=parseFloat(s.valor)||0;totH+=parseFloat(s.horas)||0;return `<tr><td>${brdata(s.data)}</td><td>${esc(s.descricao)}</td><td>${fmtHoras(s.horas)}</td><td>R$ ${(parseFloat(s.valor)||0).toFixed(2)}</td></tr>`;}).join('');
   const html=`<!DOCTYPE html><html lang="pt-br"><head><meta charset="utf-8"><title>Ordem de Servico ${esc(num)}</title>
@@ -628,11 +637,13 @@ function imprimirOS(){
     <p class="rod">VR Tecnologia Consultoria · CNPJ 42.612.058/0001-36</p>
     <script>window.onload=function(){setTimeout(function(){window.print();},350);};<\/script>
   </body></html>`;
-  const w=window.open('','_blank');
-  if(!w){toast('Seu navegador bloqueou a janela. Permita pop-ups para imprimir a OS.','erro');return;}
-  w.document.open(); w.document.write(html); w.document.close();
+  abrirImpressao(html);
 }
-
+function abrirImpressao(html){
+  const w=window.open('','_blank');
+  if(!w){toast('Seu navegador bloqueou a janela. Permita pop-ups para imprimir.','erro');return false;}
+  w.document.open(); w.document.write(html); w.document.close(); return true;
+}
 // ================== Backup ==================
 function baixarArquivo(blob,nome){const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download=nome;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1000);}
 function exportarBackup(){baixarArquivo(new Blob([JSON.stringify(DB,null,2)],{type:'application/json'}),'backup-gestor-ti.json');toast('Backup baixado!','sucesso');}
