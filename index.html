@@ -29,7 +29,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
 .btn-primario{background:var(--azul);color:#fff}.btn-primario:hover{background:var(--azul-esc)}
 .btn-secundario{background:#fff;color:var(--txt);border:1px solid var(--borda)}.btn-secundario:hover{background:var(--cinza-cl)}
 .btn-perigo{background:#fef2f2;color:var(--vermelho);border:1px solid #fecaca}.btn-perigo:hover{background:#fee2e2}
-.btn-nfse{background:var(--nfse);color:#fff}.btn-nfse:hover{opacity:.9}
+.btn-nfse{background:var(--nfse);color:#fff}.btn-nfse:hover{opacity:.9}.btn:disabled{opacity:.45;cursor:not-allowed}.chk-cel{width:34px;text-align:center}.chk-os,#chk-os-todos{width:17px;height:17px;cursor:pointer;accent-color:var(--nfse)}
 .btn-outlook{background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe}.btn-outlook:hover{background:#e0e7ff}
 .legenda{display:flex;gap:18px;margin-bottom:14px;font-size:13px;color:var(--cinza);flex-wrap:wrap}
 .legenda i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:middle}
@@ -113,7 +113,82 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
   #os-print{position:absolute;left:0;top:0;width:100%;padding:6px 10px}
   .no-print{display:none!important}
 }
-@media(max-width:640px){.sidebar{width:64px}.logo-text,.sidebar nav a span.txt{display:none}.conteudo{margin-left:64px;width:calc(100% - 64px);padding:0 14px 20px}.sidebar nav a{text-align:center;padding:14px 0;font-size:18px}}
+.tabbar{display:none}
+@media(max-width:820px){
+  .sidebar{display:none}
+  .conteudo{margin-left:0;width:100%;padding:0 12px calc(76px + env(safe-area-inset-bottom))}
+  .tabbar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:40;background:#0f172a;
+    padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -2px 12px rgba(0,0,0,.18)}
+  .tabbar a{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:9px 0 8px;
+    color:#94a3b8;text-decoration:none;font-size:11px;font-weight:600;cursor:pointer;border-top:3px solid transparent}
+  .tabbar a i{font-style:normal;font-size:20px;line-height:1}
+  .tabbar a.ativo{color:#fff;border-top-color:var(--azul);background:#1e293b}
+  .barra-conta{padding:10px 0;margin-bottom:12px}
+  .topo h1{font-size:19px}
+  .card{padding:16px;border-radius:10px}
+
+  /* toque confortavel + sem zoom automatico do iOS ao focar campo */
+  input,select,textarea{font-size:16px!important}
+  .btn{padding:11px 16px;font-size:15px}
+  .busca{width:100%;max-width:none}
+
+  /* formularios em 1 coluna */
+  .form-grid{grid-template-columns:1fr}
+  .form-grid .col2{grid-column:span 1}
+
+  /* filtros da OS empilhados e largos */
+  .os-filtros{gap:10px}
+  .os-filtros .campo{flex:1 1 100%}
+  .os-filtros input,.os-filtros select,.os-filtros .campo input{width:100%}
+  .os-filtros .btn{flex:1 1 calc(50% - 5px)}
+  .os-total{text-align:left;font-size:16px}
+
+  /* TABELAS VIRAM CARTOES */
+  .tabela,.tabela thead,.tabela tbody,.tabela tr,.tabela td{display:block;width:100%}
+  .tabela{box-shadow:none;background:transparent}
+  .tabela thead{display:none}
+  .tabela tr{background:#fff;border-radius:12px;margin-bottom:10px;padding:6px 4px;
+    box-shadow:0 1px 3px rgba(0,0,0,.08);position:relative}
+  .tabela tr:hover td{background:transparent}
+  .tabela td{border-top:none;padding:7px 14px;font-size:14px;display:flex;justify-content:space-between;
+    align-items:center;gap:12px;text-align:right}
+  .tabela td:before{content:attr(data-rot);color:var(--cinza);font-size:12px;font-weight:700;
+    text-transform:uppercase;letter-spacing:.03em;text-align:left;flex:0 0 auto}
+  .tabela td:empty{display:none}
+  .tabela td.cel-desc{flex-direction:column;align-items:flex-start;text-align:left}
+  .tabela td.vazio{display:block;text-align:center;background:#fff;border-radius:12px}
+  .tabela td.vazio:before{content:''}
+  .acoes-cel{justify-content:flex-end;border-top:1px solid var(--borda)!important;margin-top:4px;padding-top:10px!important}
+  .acoes-cel:before{content:''}
+  .link-acao{margin-left:0;margin-right:14px;font-size:14px;padding:11px 4px;display:inline-block}
+  .link-acao:last-child{margin-right:0}
+  /* checkbox da OS vira um item destacado no topo do cartao */
+  .chk-cel{width:auto;text-align:left}
+  td.chk-cel:before{content:'Selecionar p/ NFS-e'}
+  .chk-os,#chk-os-todos{width:24px;height:24px;margin:0}
+  td.chk-cel{padding:12px 14px}
+  .tabela tr:has(.chk-os:checked){outline:2px solid var(--nfse)}
+
+  /* CALENDARIO compacto: bolinhas em vez de textos */
+  .cal-cab{gap:8px}.cal-nav h2{font-size:16px;margin-left:4px}
+  .cal-nav .btn{padding:8px 12px}
+  #calendario{padding:10px;border-radius:10px}
+  .cal-cel{min-height:52px;padding:3px 2px;gap:2px;align-items:center}
+  .cal-num{font-size:12px}
+  .cal-cabdia{font-size:10px;padding:6px 0}
+  .cal-chips{flex-direction:row;flex-wrap:wrap;gap:3px;justify-content:center}
+  .cal-chip{width:7px;height:7px;padding:0;border-radius:50%;font-size:0;overflow:hidden}
+  .cal-chip-h{display:none}
+  .cal-lista-item{padding:14px 6px}
+  .cal-lista-tit{font-size:15px}
+
+  .modal{width:100%;max-width:100%;border-radius:14px 14px 0 0;max-height:94vh;
+    padding:18px 16px calc(18px + env(safe-area-inset-bottom))}
+  .modal-overlay{align-items:flex-end}
+  .modal-rodape .btn{flex:1 1 calc(50% - 5px)}
+  .toast{left:12px;right:12px;bottom:calc(76px + env(safe-area-inset-bottom));max-width:none}
+}
+@media(max-width:400px){.tabbar a{font-size:10px}.tabbar a i{font-size:18px}}
 </style>
 </head>
 <body>
@@ -137,8 +212,15 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
       <a data-view="os" onclick="showView('os')">📄 <span class="txt">OS</span></a>
       <a data-view="config" onclick="showView('config')">⚙️ <span class="txt">Configurações</span></a>
     </nav>
-    <div class="sidebar-rodape">v2.3 · web</div>
+    <div class="sidebar-rodape">v2.5 · web</div>
   </aside>
+  <nav class="tabbar" id="tabbar">
+    <a data-view="agenda" class="ativo" onclick="showView('agenda')"><i>📅</i><span>Agenda</span></a>
+    <a data-view="clientes" onclick="showView('clientes')"><i>👥</i><span>Clientes</span></a>
+    <a data-view="os" onclick="showView('os')"><i>📄</i><span>OS</span></a>
+    <a data-view="notas" onclick="showView('notas')"><i>🧾</i><span>Notas</span></a>
+    <a data-view="config" onclick="showView('config')"><i>⚙️</i><span>Config</span></a>
+  </nav>
   <main class="conteudo">
     <div class="barra-conta">
       <span id="conta-status" class="pill off">Sincronização desligada</span>
@@ -171,8 +253,9 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
           <div class="campo">Nº da OS<input id="os-numero" style="width:150px"></div>
           <button class="btn btn-secundario" onclick="importarServicosDaAgenda()">📥 Puxar da agenda</button>
           <button class="btn btn-primario" onclick="imprimirOS()">🖨️ Imprimir todas</button>
+          <button class="btn btn-nfse" id="btn-nfse-os" onclick="emitirNFSeOS()" disabled>🧾 Emitir NFS-e</button>
         </div>
-        <p class="dim" style="margin-top:8px">Use <b>🖨️ Imprimir todas</b> para sair uma OS com todos os serviços do mês, ou o botão <b>Imprimir</b> na linha para sair só aquele serviço.</p>
+        <p class="dim" style="margin-top:8px">Marque no ✓ as OS que entram na nota e clique em <b>🧾 Emitir NFS-e</b>. Para imprimir: <b>🖨️ Imprimir todas</b> sai tudo do mês numa folha, ou o <b>Imprimir</b> da linha sai só aquela OS.</p>
         <h3>Adicionar serviço</h3>
         <div class="os-filtros">
           <div class="campo">Data<input type="date" id="os-data"></div>
@@ -183,6 +266,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
         </div>
       </div>
       <div id="os-lista"></div>
+      <div id="bloco-nfse-os" class="bloco-nfse oculto"><h3>Nota Fiscal (NFS-e)</h3><div id="nfse-info-os"></div></div>
       <div id="os-print"></div>
     </section>
 
@@ -265,12 +349,12 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
       <p class="dim" style="margin-top:6px">Marque os dias e a data final. O horário e o cliente são os mesmos preenchidos acima. (Deixe desmarcado para um agendamento único.)</p>
     </div>
   </div>
-  <div id="bloco-nfse" class="bloco-nfse oculto"><h3>Nota Fiscal (NFS-e)</h3><div id="nfse-info"></div></div>
+  <div id="bloco-nfse-antigo" class="oculto"></div>
   <div class="modal-rodape">
     <button class="btn btn-perigo" id="btn-excluir-ag" onclick="excluirAgendamento()">Excluir</button>
     <div style="flex:1"></div>
     <button class="btn btn-outlook" id="btn-outlook" onclick="adicionarAoOutlook()">📅 Adicionar ao Outlook</button>
-    <button class="btn btn-nfse" id="btn-emitir-nfse" onclick="emitirNFSe()">🧾 Emitir NFS-e</button>
+    <button class="btn btn-nfse oculto" id="btn-emitir-nfse"></button>
     <button class="btn btn-primario" onclick="salvarAgendamento()">Salvar</button>
   </div>
 </div></div>
@@ -407,10 +491,10 @@ document.addEventListener('click',e=>{if(e.target.classList&&e.target.classList.
 function rerenderTudo(){renderCalendario();renderClientes();renderNotas();carregarClientesSelect();carregarConfigForm();}
 
 // ================== Navegação ==================
-function showView(v){['agenda','clientes','notas','os','config'].forEach(n=>document.getElementById('view-'+n).classList.toggle('oculto',n!==v));document.querySelectorAll('.sidebar nav a').forEach(a=>a.classList.toggle('ativo',a.dataset.view===v));if(v==='agenda')renderCalendario();if(v==='clientes')renderClientes();if(v==='notas')renderNotas();if(v==='os')renderOS();if(v==='config')carregarConfigForm();}
+function showView(v){['agenda','clientes','notas','os','config'].forEach(n=>document.getElementById('view-'+n).classList.toggle('oculto',n!==v));document.querySelectorAll('.sidebar nav a,.tabbar a').forEach(a=>a.classList.toggle('ativo',a.dataset.view===v));if(v==='agenda')renderCalendario();if(v==='clientes')renderClientes();if(v==='notas')renderNotas();if(v==='os')renderOS();if(v==='config')carregarConfigForm();}
 
 // ================== Clientes ==================
-function renderClientes(q){q=(q||'').toLowerCase();const lista=DB.clientes.filter(c=>!q||(c.nome||'').toLowerCase().includes(q)||(c.documento||'').includes(q)).sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));const tb=document.getElementById('lista-clientes');if(!lista.length){tb.innerHTML='<tr><td colspan="6" class="vazio">Nenhum cliente cadastrado.</td></tr>';return;}tb.innerHTML=lista.map(c=>`<tr><td><b>${esc(c.nome)}</b></td><td>${c.tipo_pessoa==='J'?'Jurídica':'Física'}</td><td>${esc(c.documento)||'—'}</td><td>${esc(c.telefone)||'—'}</td><td>${esc(c.municipio)||'—'}</td><td class="acoes-cel"><span class="link-acao" onclick="editarCliente(${c.id})">Editar</span><span class="link-acao perigo" onclick="excluirCliente(${c.id})">Excluir</span></td></tr>`).join('');}
+function renderClientes(q){q=(q||'').toLowerCase();const lista=DB.clientes.filter(c=>!q||(c.nome||'').toLowerCase().includes(q)||(c.documento||'').includes(q)).sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));const tb=document.getElementById('lista-clientes');if(!lista.length){tb.innerHTML='<tr><td colspan="6" class="vazio">Nenhum cliente cadastrado.</td></tr>';return;}tb.innerHTML=lista.map(c=>`<tr><td data-rot="Nome"><b>${esc(c.nome)}</b></td><td data-rot="Tipo">${c.tipo_pessoa==='J'?'Jurídica':'Física'}</td><td data-rot="CPF/CNPJ">${esc(c.documento)||'—'}</td><td data-rot="Telefone">${esc(c.telefone)||'—'}</td><td data-rot="Município">${esc(c.municipio)||'—'}</td><td class="acoes-cel"><span class="link-acao" onclick="editarCliente(${c.id})">Editar</span><span class="link-acao perigo" onclick="excluirCliente(${c.id})">Excluir</span></td></tr>`).join('');}
 function abrirNovoCliente(){document.getElementById('cli-id').value='';CAMPOS_CLI.forEach(c=>{const el=document.getElementById('cli-'+c);if(el)el.value=c==='tipo_pessoa'?'F':'';});document.getElementById('modal-cliente-titulo').textContent='Novo cliente';abrirModal('modal-cliente');}
 function editarCliente(id){const c=DB.clientes.find(x=>x.id===id);if(!c)return;document.getElementById('cli-id').value=c.id;CAMPOS_CLI.forEach(k=>{const el=document.getElementById('cli-'+k);if(el)el.value=c[k]||'';});document.getElementById('modal-cliente-titulo').textContent='Editar cliente';abrirModal('modal-cliente');}
 function salvarCliente(){const nome=document.getElementById('cli-nome').value.trim();if(!nome){toast('Informe o nome.','erro');return;}const id=document.getElementById('cli-id').value;const d={};CAMPOS_CLI.forEach(k=>{const el=document.getElementById('cli-'+k);d[k]=el?el.value:'';});if(id){Object.assign(DB.clientes.find(x=>x.id==id),d);}else{d.id=novoId('cli');DB.clientes.push(d);}salvarDB();toast('Cliente salvo!','sucesso');fecharModal('modal-cliente');renderClientes();carregarClientesSelect();}
@@ -418,7 +502,8 @@ function excluirCliente(id){if(!confirm('Excluir este cliente?'))return;DB.clien
 function carregarClientesSelect(){const sel=document.getElementById('ag-cliente');const at=sel.value;sel.innerHTML='<option value="">— nenhum —</option>'+DB.clientes.slice().sort((a,b)=>(a.nome||'').localeCompare(b.nome||'')).map(c=>`<option value="${c.id}">${esc(c.nome)}</option>`).join('');sel.value=at;}
 
 // ================== Agenda ==================
-const calState={ref:primeiroDiaMes(new Date()),view:'mes'};
+const ehCelular=()=>window.matchMedia('(max-width:820px)').matches;
+const calState={ref:primeiroDiaMes(new Date()),view:ehCelular()?'lista':'mes'};
 function primeiroDiaMes(d){return new Date(d.getFullYear(),d.getMonth(),1);}
 function fmtData(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function mesmaData(a,b){return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate();}
@@ -432,8 +517,8 @@ function nomeCurto(e){const c=DB.clientes.find(x=>x.id==e.cliente_id);return(c?c
 function renderMes(){const ref=calState.ref,primeiro=primeiroDiaMes(ref),ini=new Date(primeiro);ini.setDate(1-primeiro.getDay());const hoje=new Date();let h='<div class="cal-grade">'+DIAS.map(d=>`<div class="cal-cabdia">${d}</div>`).join('');for(let i=0;i<42;i++){const dia=new Date(ini);dia.setDate(ini.getDate()+i);const fora=dia.getMonth()!==ref.getMonth(),eh=mesmaData(dia,hoje);const chips=eventosDoDia(dia).map(e=>`<div class="cal-chip" style="background:${corEvento(e)}" title="${esc(e.titulo)}" onclick="event.stopPropagation();abrirAgendamento(${e.id})"><span class="cal-chip-h">${(e.inicio||'').slice(11,16)}</span> ${esc(nomeCurto(e))}</div>`).join('');h+=`<div class="cal-cel ${fora?'fora':''} ${eh?'hoje':''}" onclick="abrirNovoAgendamento('${fmtData(dia)}')"><div class="cal-num">${dia.getDate()}</div><div class="cal-chips">${chips}</div></div>`;}return h+'</div>';}
 function renderLista(){const hojeStr=fmtData(new Date());const fut=DB.agendamentos.filter(e=>(e.inicio||'').slice(0,10)>=hojeStr).sort((a,b)=>(a.inicio||'').localeCompare(b.inicio||''));if(!fut.length)return'<p class="vazio">Nenhum agendamento futuro.</p>';let h='<div class="cal-lista">',ult='';fut.forEach(e=>{const dia=(e.inicio||'').slice(0,10);if(dia!==ult){const d=new Date(dia+'T12:00');h+=`<div class="cal-lista-dia">${DIAS[d.getDay()]}, ${d.getDate()} de ${MESES[d.getMonth()]}</div>`;ult=dia;}h+=`<div class="cal-lista-item" onclick="abrirAgendamento(${e.id})"><span class="cal-lista-hora">${(e.inicio||'').slice(11,16)}</span><span class="cal-lista-cor" style="background:${corEvento(e)}"></span><span class="cal-lista-tit">${esc(nomeCurto(e))}</span></div>`;});return h+'</div>';}
 function fmtLocal(dt){return dt?dt.slice(0,16):'';}
-function abrirNovoAgendamento(dataStr){carregarClientesSelect();document.getElementById('ag-id').value='';['ag-titulo','ag-valor','ag-local','ag-descricao'].forEach(i=>document.getElementById(i).value='');document.getElementById('ag-cliente').value='';document.getElementById('ag-status').value='agendado';document.getElementById('modal-titulo').textContent='Novo agendamento';document.getElementById('btn-excluir-ag').style.display='none';document.getElementById('btn-emitir-nfse').style.display='none';document.getElementById('btn-outlook').style.display='none';document.getElementById('bloco-nfse').classList.add('oculto');document.getElementById('bloco-recorrencia').style.display='';document.querySelectorAll('.dow').forEach(c=>c.checked=false);document.getElementById('ag-repetir-ate').value=(new Date().getFullYear())+'-12-31';const base=(dataStr||fmtData(new Date()))+'T09:00';document.getElementById('ag-inicio').value=base;document.getElementById('ag-fim').value=base.slice(0,11)+'10:00';abrirModal('modal-agendamento');}
-function abrirAgendamento(id){carregarClientesSelect();const a=DB.agendamentos.find(x=>x.id===id);if(!a)return;document.getElementById('ag-id').value=a.id;document.getElementById('ag-titulo').value=a.titulo||'';document.getElementById('ag-cliente').value=a.cliente_id||'';document.getElementById('ag-inicio').value=fmtLocal(a.inicio);document.getElementById('ag-fim').value=fmtLocal(a.fim);document.getElementById('ag-valor').value=a.valor||'';document.getElementById('ag-status').value=a.status||'agendado';document.getElementById('ag-local').value=a.local||'';document.getElementById('ag-descricao').value=a.descricao||'';document.getElementById('modal-titulo').textContent='Editar agendamento';document.getElementById('btn-excluir-ag').style.display='inline-block';document.getElementById('btn-emitir-nfse').style.display='inline-block';document.getElementById('btn-outlook').style.display='inline-block';document.getElementById('bloco-recorrencia').style.display='none';const nota=DB.notas.filter(n=>n.agendamento_id===a.id).slice(-1)[0];if(nota){renderNota(nota,null);document.getElementById('btn-emitir-nfse').textContent=nota.status==='portal'?'🧾 Reabrir emissor':'🧾 Reemitir NFS-e';}else{document.getElementById('bloco-nfse').classList.add('oculto');document.getElementById('btn-emitir-nfse').textContent='🧾 Emitir NFS-e';}abrirModal('modal-agendamento');}
+function abrirNovoAgendamento(dataStr){carregarClientesSelect();document.getElementById('ag-id').value='';['ag-titulo','ag-valor','ag-local','ag-descricao'].forEach(i=>document.getElementById(i).value='');document.getElementById('ag-cliente').value='';document.getElementById('ag-status').value='agendado';document.getElementById('modal-titulo').textContent='Novo agendamento';document.getElementById('btn-excluir-ag').style.display='none';document.getElementById('btn-outlook').style.display='none';document.getElementById('bloco-recorrencia').style.display='';document.querySelectorAll('.dow').forEach(c=>c.checked=false);document.getElementById('ag-repetir-ate').value=(new Date().getFullYear())+'-12-31';const base=(dataStr||fmtData(new Date()))+'T09:00';document.getElementById('ag-inicio').value=base;document.getElementById('ag-fim').value=base.slice(0,11)+'10:00';abrirModal('modal-agendamento');}
+function abrirAgendamento(id){carregarClientesSelect();const a=DB.agendamentos.find(x=>x.id===id);if(!a)return;document.getElementById('ag-id').value=a.id;document.getElementById('ag-titulo').value=a.titulo||'';document.getElementById('ag-cliente').value=a.cliente_id||'';document.getElementById('ag-inicio').value=fmtLocal(a.inicio);document.getElementById('ag-fim').value=fmtLocal(a.fim);document.getElementById('ag-valor').value=a.valor||'';document.getElementById('ag-status').value=a.status||'agendado';document.getElementById('ag-local').value=a.local||'';document.getElementById('ag-descricao').value=a.descricao||'';document.getElementById('modal-titulo').textContent='Editar agendamento';document.getElementById('btn-excluir-ag').style.display='inline-block';document.getElementById('btn-outlook').style.display='inline-block';document.getElementById('bloco-recorrencia').style.display='none';abrirModal('modal-agendamento');}
 function coletarAg(){const v=id=>document.getElementById(id).value;return{titulo:v('ag-titulo').trim(),cliente_id:v('ag-cliente')||null,inicio:v('ag-inicio'),fim:v('ag-fim'),valor:parseFloat(v('ag-valor'))||0,status:v('ag-status'),local:v('ag-local'),descricao:v('ag-descricao')};}
 function salvarAgendamento(){
   const d=coletarAg();
@@ -500,13 +585,74 @@ function resumoPortal(a){
   l.push(mensagemNota(a));
   return l.join('\n');
 }
-function emitirNFSe(){const id=+document.getElementById('ag-id').value;if(!id){toast('Salve o agendamento primeiro.','erro');return;}const a=DB.agendamentos.find(x=>x.id===id);if(!a.cliente_id){toast('Vincule um cliente para emitir a NFS-e.','erro');return;}if(!confirm('Preparar a NFS-e e abrir o Emissor Nacional?'))return;const nota={id:novoId('nota'),agendamento_id:id,cliente_id:a.cliente_id,numero_nfse:'',valor:parseFloat(a.valor)||0,descricao:DB.config.desc||a.titulo,status:'portal',resumo:resumoPortal(a),emitida_em:fmtData(new Date())};DB.notas.push(nota);salvarDB();window.open('https://www.nfse.gov.br/EmissorNacional/Login','_blank');renderNota(nota,nota.resumo);toast('Emissor Nacional aberto. Emita com seu login gov.br.','sucesso');}
-function renderNota(n,resumo){const bloco=document.getElementById('bloco-nfse');bloco.classList.remove('oculto');const alvo=document.getElementById('nfse-info');if(n.status==='portal'){alvo.innerHTML=`<b>Status:</b> <span class="tag tag-portal">aguardando emissão no portal</span>`+(resumo?`<p style="margin:8px 0 4px">Dados prontos para colar no Emissor Nacional:</p><textarea id="resumo-portal" rows="6" style="width:100%;font-size:12px">${esc(resumo)}</textarea><button class="btn btn-secundario" style="margin-top:6px" onclick="copiarResumo()">📋 Copiar dados</button>`:'')+`<div style="margin-top:12px"><button class="btn btn-secundario" onclick="window.open('https://www.nfse.gov.br/EmissorNacional/Login','_blank')">🌐 Abrir Emissor Nacional</button></div><p style="margin:12px 0 4px">Depois de emitir, registre o número da NFS-e:</p><div style="display:flex;gap:8px"><input id="reg-numero" placeholder="Nº da NFS-e emitida" style="flex:1;padding:8px;border:1px solid #cbd5e1;border-radius:6px"><button class="btn btn-primario" onclick="registrarNumero(${n.id})">Registrar</button></div>`;}else{alvo.innerHTML=`<b>Status:</b> <span class="tag tag-${n.status}">${n.status}</span><br><b>Nº NFS-e:</b> ${esc(n.numero_nfse)||'—'}<br><b>Valor:</b> R$ ${(n.valor||0).toFixed(2)}<br><b>Descrição:</b> ${esc(n.descricao)||''}`;}}
+function servicosSelecionados(){return Array.from(document.querySelectorAll('.chk-os:checked')).map(c=>+c.dataset.id);}
+function atualizarSelecaoOS(){
+  const ids=servicosSelecionados(), btn=document.getElementById('btn-nfse-os');
+  if(!btn)return;
+  const tot=DB.servicos.filter(s=>ids.includes(s.id)).reduce((a,s)=>a+(parseFloat(s.valor)||0),0);
+  btn.disabled=!ids.length;
+  btn.textContent=ids.length?`\u{1F9FE} Emitir NFS-e (${ids.length} \u00b7 R$ ${tot.toFixed(2)})`:'\u{1F9FE} Emitir NFS-e';
+  const todos=document.querySelectorAll('.chk-os').length, m=document.getElementById('chk-os-todos');
+  if(m){m.checked=todos>0&&ids.length===todos;m.indeterminate=ids.length>0&&ids.length<todos;}
+}
+function marcarTodasOS(el){document.querySelectorAll('.chk-os').forEach(c=>c.checked=el.checked);atualizarSelecaoOS();}
+function mensagemNotaOS(c,mes){
+  const p=String(mes||'').split('-'), compet=(p[1]||'')+'/'+(p[0]||'');
+  const venc=c.venc_dia?(String(c.venc_dia).padStart(2,'0')+'/'+compet):'';
+  return [(DB.config.desc||'')+' REF. '+compet,'VENCIMENTO: '+venc,'DADOS PARA PAGAMENTO:',(DB.config.pix||'')].join('\n');
+}
+function resumoPortalOS(c,itens,total,mes){
+  const tipo=c.tipo_pessoa==='J'?'CNPJ':'CPF';
+  const l=[`TOMADOR (${tipo}): ${soNums(c.documento)}`,`NOME: ${c.nome||''}`,`VALOR: R$ ${total.toFixed(2)}`];
+  if(DB.config.ctrib)l.push(`CODIGO DE TRIBUTACAO: ${DB.config.ctrib}`);
+  if(c.email)l.push(`E-MAIL DO TOMADOR: ${c.email}`);
+  l.push('');
+  l.push(`OS INCLUIDAS (${itens.length}):`);
+  itens.forEach(s=>l.push(`  ${brdata(s.data)} - ${s.descricao||''} - R$ ${(parseFloat(s.valor)||0).toFixed(2)}`));
+  l.push('');
+  l.push('DISCRIMINACAO / MENSAGEM (cole no campo de descricao do servico):');
+  l.push(mensagemNotaOS(c,mes));
+  return l.join('\n');
+}
+function emitirNFSeOS(){
+  const ids=servicosSelecionados();
+  if(!ids.length){toast('Marque ao menos uma OS.','erro');return;}
+  const itens=DB.servicos.filter(s=>ids.includes(s.id)).sort((a,b)=>(a.data||'').localeCompare(b.data||''));
+  const cid=itens[0].cliente_id;
+  if(itens.some(s=>String(s.cliente_id)!==String(cid))){toast('Selecione OS de um mesmo cliente.','erro');return;}
+  const c=DB.clientes.find(x=>x.id==cid);
+  if(!c){toast('Cliente n\u00e3o encontrado.','erro');return;}
+  const total=itens.reduce((a,s)=>a+(parseFloat(s.valor)||0),0);
+  const jaFat=itens.filter(s=>s.nota_id);
+  if(jaFat.length&&!confirm(jaFat.length+' das OS marcadas j\u00e1 foram faturadas. Emitir mesmo assim?'))return;
+  if(!confirm(`Emitir NFS-e de ${itens.length} OS para ${c.nome}\nTotal: R$ ${total.toFixed(2)}\n\nO Emissor Nacional abrir\u00e1 numa aba nova.`))return;
+  const mes=document.getElementById('os-mes').value||mesDefaultOS();
+  const nota={id:novoId('nota'),servico_ids:ids.slice(),cliente_id:cid,numero_nfse:'',valor:total,descricao:DB.config.desc||'',status:'portal',resumo:resumoPortalOS(c,itens,total,mes),emitida_em:fmtData(new Date())};
+  DB.notas.push(nota);
+  itens.forEach(s=>{s.nota_id=nota.id;});
+  salvarDB();
+  window.open('https://www.nfse.gov.br/EmissorNacional/Login','_blank');
+  renderOS();
+  renderNotaOS(nota,nota.resumo);
+  toast('Emissor Nacional aberto. Emita com seu login gov.br.','sucesso');
+}
+function renderNotaOS(n,resumo){
+  const bloco=document.getElementById('bloco-nfse-os'); bloco.classList.remove('oculto');
+  const alvo=document.getElementById('nfse-info-os');
+  if(n.status==='portal'){
+    alvo.innerHTML=`<b>Status:</b> <span class="tag tag-portal">aguardando emiss\u00e3o no portal</span> &nbsp;<b>Total:</b> R$ ${(n.valor||0).toFixed(2)}`
+      +(resumo?`<p style="margin:8px 0 4px">Dados prontos para colar no Emissor Nacional:</p><textarea id="resumo-portal" rows="9" style="width:100%;font-size:12px">${esc(resumo)}</textarea><button class="btn btn-secundario" style="margin-top:6px" onclick="copiarResumo()">\u{1F4CB} Copiar dados</button>`:'')
+      +`<div style="margin-top:12px"><button class="btn btn-secundario" onclick="window.open('https://www.nfse.gov.br/EmissorNacional/Login','_blank')">\u{1F310} Abrir Emissor Nacional</button></div>`
+      +`<p style="margin:12px 0 4px">Depois de emitir, registre o n\u00famero da NFS-e:</p><div style="display:flex;gap:8px"><input id="reg-numero" placeholder="N\u00ba da NFS-e emitida" style="flex:1;padding:8px;border:1px solid #cbd5e1;border-radius:6px"><button class="btn btn-primario" onclick="registrarNumero(${n.id})">Registrar</button></div>`;
+  }else{
+    alvo.innerHTML=`<b>Status:</b> <span class="tag tag-${n.status}">${n.status}</span><br><b>N\u00ba NFS-e:</b> ${esc(n.numero_nfse)||'\u2014'}<br><b>Valor:</b> R$ ${(n.valor||0).toFixed(2)}`;
+  }
+}
 function copiarResumo(){const t=document.getElementById('resumo-portal');if(!t)return;t.select();navigator.clipboard.writeText(t.value).then(()=>toast('Dados copiados!','sucesso'),()=>toast('Copie manualmente (Ctrl+C).','erro'));}
-function registrarNumero(notaId){const num=document.getElementById('reg-numero').value.trim();if(!num){toast('Informe o número da NFS-e.','erro');return;}const n=DB.notas.find(x=>x.id===notaId);n.numero_nfse=num;n.status='autorizada';salvarDB();toast('Número registrado!','sucesso');renderNota(n,null);renderNotas();}
+function registrarNumero(notaId){const num=document.getElementById('reg-numero').value.trim();if(!num){toast('Informe o número da NFS-e.','erro');return;}const n=DB.notas.find(x=>x.id===notaId);n.numero_nfse=num;n.status='autorizada';salvarDB();toast('Número registrado!','sucesso');renderNotaOS(n,null);renderOS();renderNotas();}
 
 // ================== Notas ==================
-function renderNotas(){const box=document.getElementById('lista-notas');if(!DB.notas.length){box.innerHTML='<p class="vazio">Nenhuma nota emitida ainda. Emita a partir de um agendamento na Agenda.</p>';return;}const rows=DB.notas.slice().reverse().map(n=>{const c=DB.clientes.find(x=>x.id===n.cliente_id);return`<tr><td>${esc(n.emitida_em)}</td><td>${esc(c?c.nome:'—')}</td><td>${esc(n.numero_nfse)||'—'}</td><td>R$ ${(n.valor||0).toFixed(2)}</td><td><span class="tag tag-${n.status}">${n.status}</span></td></tr>`;}).join('');box.innerHTML=`<table class="tabela"><thead><tr><th>Emitida em</th><th>Cliente</th><th>Nº NFS-e</th><th>Valor</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table>`;}
+function renderNotas(){const box=document.getElementById('lista-notas');if(!DB.notas.length){box.innerHTML='<p class="vazio">Nenhuma nota emitida ainda. Emita pela tela de OS: marque as OS e clique em "Emitir NFS-e".</p>';return;}const rows=DB.notas.slice().reverse().map(n=>{const c=DB.clientes.find(x=>x.id===n.cliente_id);return`<tr><td data-rot="Emitida em">${esc(n.emitida_em)}</td><td data-rot="Cliente">${esc(c?c.nome:'—')}</td><td data-rot="Nº NFS-e">${esc(n.numero_nfse)||'—'}</td><td data-rot="Valor">R$ ${(n.valor||0).toFixed(2)}</td><td data-rot="Status"><span class="tag tag-${n.status}">${n.status}</span></td></tr>`;}).join('');box.innerHTML=`<table class="tabela"><thead><tr><th>Emitida em</th><th>Cliente</th><th>Nº NFS-e</th><th>Valor</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table>`;}
 
 // ================== Config ==================
 function carregarConfigForm(){const c=DB.config;document.getElementById('cfg-desc').value=c.desc||'';document.getElementById('cfg-ctrib').value=c.ctrib||'';document.getElementById('cfg-cnpj').value=c.cnpj||'';document.getElementById('cfg-mun').value=c.mun||'';document.getElementById('cfg-razao').value=c.razao||'';document.getElementById('cfg-pix').value=c.pix||'';document.getElementById('cfg-repo').value=GH_REPO;document.getElementById('cfg-token').value=GH_TOKEN;}
@@ -567,12 +713,17 @@ function renderOS(){
   if(!document.getElementById('os-mes').value)document.getElementById('os-mes').value=mesDefaultOS();
   if(!document.getElementById('os-numero').value){const d=new Date();document.getElementById('os-numero').value=String(d.getDate()).padStart(2,'0')+String(d.getMonth()+1).padStart(2,'0')+d.getFullYear();}
   const box=document.getElementById('os-lista'); const cid=document.getElementById('os-cliente').value;
-  if(!cid){box.innerHTML='<p class="vazio">Escolha um cliente e o mês para montar a OS.</p>';return;}
+  document.getElementById('bloco-nfse-os').classList.add('oculto');
+  if(!cid){box.innerHTML='<p class="vazio">Escolha um cliente e o mês para montar a OS.</p>';atualizarSelecaoOS();return;}
   const itens=servicosFiltrados();
-  if(!itens.length){box.innerHTML='<p class="vazio">Nenhum serviço neste mês. Adicione acima, ou clique em "Puxar da agenda".</p>';return;}
+  if(!itens.length){box.innerHTML='<p class="vazio">Nenhum serviço neste mês. Adicione acima, ou clique em "Puxar da agenda".</p>';atualizarSelecaoOS();return;}
   let totV=0,totH=0;
-  const rows=itens.map(s=>{totV+=parseFloat(s.valor)||0;totH+=parseFloat(s.horas)||0;return `<tr><td>${brdata(s.data)}</td><td>${esc(s.descricao)}</td><td>${fmtHoras(s.horas)}</td><td>R$ ${(parseFloat(s.valor)||0).toFixed(2)}</td><td class="acoes-cel"><span class="link-acao" onclick="imprimirOS(${s.id})">🖨️ Imprimir</span><span class="link-acao" onclick="editServico(${s.id})">Editar</span><span class="link-acao perigo" onclick="excluirServico(${s.id})">Excluir</span></td></tr>`;}).join('');
-  box.innerHTML=`<table class="tabela"><thead><tr><th>Data</th><th>Serviço realizado</th><th>Tempo</th><th>Valor</th><th></th></tr></thead><tbody>${rows}</tbody></table><div class="os-total">Total de horas: ${String(totH).replace('.',',')}h &nbsp;·&nbsp; Total: R$ ${totV.toFixed(2)}</div>`;
+  const rows=itens.map(s=>{totV+=parseFloat(s.valor)||0;totH+=parseFloat(s.horas)||0;
+    const nota=s.nota_id?DB.notas.find(n=>n.id===s.nota_id):null;
+    const selo=nota?(nota.numero_nfse?`<span class="tag tag-autorizada">NF ${esc(nota.numero_nfse)}</span>`:'<span class="tag tag-portal">no portal</span>'):'';
+    return `<tr><td class="chk-cel"><input type="checkbox" class="chk-os" data-id="${s.id}" onchange="atualizarSelecaoOS()"></td><td data-rot="Data">${brdata(s.data)}</td><td data-rot="Serviço" class="cel-desc">${esc(s.descricao)}</td><td data-rot="Tempo">${fmtHoras(s.horas)}</td><td data-rot="Valor">R$ ${(parseFloat(s.valor)||0).toFixed(2)}</td><td data-rot="NFS-e">${selo}</td><td class="acoes-cel"><span class="link-acao" onclick="imprimirOS(${s.id})">🖨️ Imprimir</span><span class="link-acao" onclick="editServico(${s.id})">Editar</span><span class="link-acao perigo" onclick="excluirServico(${s.id})">Excluir</span></td></tr>`;}).join('');
+  box.innerHTML=`<table class="tabela"><thead><tr><th class="chk-cel"><input type="checkbox" id="chk-os-todos" onchange="marcarTodasOS(this)" title="Marcar todas"></th><th>Data</th><th>Serviço realizado</th><th>Tempo</th><th>Valor</th><th>NFS-e</th><th></th></tr></thead><tbody>${rows}</tbody></table><div class="os-total">Total de horas: ${String(totH).replace('.',',')}h &nbsp;·&nbsp; Total: R$ ${totV.toFixed(2)}</div>`;
+  atualizarSelecaoOS();
 }
 function addServico(){
   const cid=document.getElementById('os-cliente').value;
