@@ -219,7 +219,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
       <a data-view="recibos" onclick="showView('recibos')">🧾 <span class="txt">Recibos</span></a>
       <a data-view="config" onclick="showView('config')">⚙️ <span class="txt">Configurações</span></a>
     </nav>
-    <div class="sidebar-rodape">v3.0 · web</div>
+    <div class="sidebar-rodape">v3.1 · web</div>
   </aside>
   <nav class="tabbar" id="tabbar">
     <a data-view="agenda" class="ativo" onclick="showView('agenda')"><i>📅</i><span>Agenda</span></a>
@@ -1136,7 +1136,7 @@ function imprimirRecibo(id){
   .decl{font-size:12px;margin-top:26px;line-height:1.7}
   </style></head><body>
     <img src="${LOGO_URL}" alt="VR Tecnologia">
-    <h2><b>${R.tit}</b></h2>
+    <h2><b>${R.tit} N&ordm; ${esc(numRecibo(r))}</b></h2>
     <table><colgroup><col class="c1"><col><col class="c3"><col class="c4"></colgroup>
       <thead><tr><th>${R.cab[0]}</th><th>${R.cab[1]}</th><th>${R.cab[2]}</th><th>${R.cab[3]}</th></tr></thead>
       <tbody>${linhas}${rodape}</tbody></table>
