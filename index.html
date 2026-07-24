@@ -219,7 +219,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
       <a data-view="recibos" onclick="showView('recibos')">🧾 <span class="txt">Recibos</span></a>
       <a data-view="config" onclick="showView('config')">⚙️ <span class="txt">Configurações</span></a>
     </nav>
-    <div class="sidebar-rodape">v2.9 · web</div>
+    <div class="sidebar-rodape">v3.0 · web</div>
   </aside>
   <nav class="tabbar" id="tabbar">
     <a data-view="agenda" class="ativo" onclick="showView('agenda')"><i>📅</i><span>Agenda</span></a>
@@ -415,7 +415,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
   <button class="btn btn-secundario" onclick="addItemRecibo()">+ Adicionar linha</button>
   <div class="os-total" id="rc-total">Total: R$ 0,00</div>
   <div class="form-grid" style="margin-top:6px">
-    <label class="col2"><span style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="rc-pix" style="width:18px;height:18px" onchange="montarDeclaracao()"> Mostrar a linha do PIX (CPF) no recibo</span></label>
+    <label class="col2"><span style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="rc-pix" style="width:18px;height:18px" onchange="montarDeclaracao()"> Mostrar a linha do PIX (CPF) no recibo</span><span id="rc-pix-aviso" class="dim"></span></label>
     <label class="col2">Texto de recebimento <span class="dim">(gerado automaticamente &mdash; pode editar &agrave; vontade)</span><textarea id="rc-decl" rows="3"></textarea></label>
   </div>
   <div class="modal-rodape">
@@ -907,6 +907,7 @@ function gerarComunicados(){
   const ids=contratosSelecionados();
   const sel=DB.contratos.filter(c=>ids.includes(c.id)&&c.tipo==='comunicado');
   if(!sel.length){toast('Marque ao menos um contrato de comunicado.','erro');return;}
+  if(!pixPessoal())toast('Dica: preencha o "PIX do CPF" em Configura\u00e7\u00f5es para ele entrar no comunicado.','erro');
   if(!(DB.config.banco||'').trim()&&!confirm('Voc\u00ea ainda n\u00e3o preencheu os dados banc\u00e1rios em Configura\u00e7\u00f5es.\nGerar mesmo assim (s\u00f3 com valor e vencimento)?'))return;
   const mes=document.getElementById('ct-mes').value||mesAtualStr();
   sel.forEach(ct=>{
@@ -1012,7 +1013,7 @@ function totalRecibos(){
   montarDeclaracao();
 }
 function ehCNPJ(doc){return soNums(doc).length>11;}
-function pixPessoal(){return (DB.config.pix_cpf||'').trim()||(DB.config.pix||'').trim();}
+function pixPessoal(){return (DB.config.pix_cpf||'').trim();}
 function montarDeclaracao(){
   const dec=document.getElementById('rc-decl');if(!dec)return;
   if(dec.dataset.editado==='1')return;
@@ -1068,6 +1069,9 @@ function abrirModalRecibo(r,titulo){
   dec.oninput=function(){this.dataset.editado='1';};
   document.getElementById('modal-recibo-titulo').textContent=titulo;
   document.getElementById('btn-excluir-rc').style.display=r.id?'inline-block':'none';
+  const av=document.getElementById('rc-pix-aviso');
+  av.innerHTML=pixPessoal()?('Vai sair: <b>'+esc(pixPessoal())+'</b>')
+    :'\u26a0\ufe0f <b>PIX do CPF</b> ainda n\u00e3o preenchido em <a href="#" onclick="fecharModal(\'modal-recibo\');showView(\'config\');return false">Configura\u00e7\u00f5es</a>.';
   totalRecibos();
   autoNumeroRecibo();
   if(!r.decl){dec.dataset.editado='';montarDeclaracao();}
@@ -1114,6 +1118,7 @@ function imprimirRecibo(id){
   const r=DB.recibos.find(x=>x.id===id);if(!r){toast('Recibo n\u00e3o encontrado.','erro');return;}
   const R=ROT[r.tipo]||ROT.servico;
   const total=totalRecibo(r);
+  if(r.pix&&!pixPessoal()){toast('Preencha o "PIX do CPF" em Configura\u00e7\u00f5es \u2014 o recibo vai sair sem a linha do PIX.','erro');}
   const linhas=(r.itens||[]).map(i=>`<tr><td class="cen">${i.data?brdata(i.data):''}</td><td class="desc">${esc(i.desc||'')}</td><td class="cen">${esc(i.qtd||'')}</td><td>R$${(parseFloat(i.valor)||0).toFixed(2).replace('.',',')}</td></tr>`).join('');
   const rodape=r.pix
     ? `<tr><td></td><td class="cen">${esc(pixPessoal())}</td><td class="cen"><b>TOTAL</b></td><td><b>R$${total.toFixed(2).replace('.',',')}</b></td></tr>`
