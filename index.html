@@ -30,7 +30,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
 .btn-secundario{background:#fff;color:var(--txt);border:1px solid var(--borda)}.btn-secundario:hover{background:var(--cinza-cl)}
 .btn-perigo{background:#fef2f2;color:var(--vermelho);border:1px solid #fecaca}.btn-perigo:hover{background:#fee2e2}
 .btn-nfse{background:var(--nfse);color:#fff}.btn-nfse:hover{opacity:.9}.btn:disabled{opacity:.45;cursor:not-allowed}.chk-cel{width:34px;text-align:center}.chk-os,#chk-os-todos{width:17px;height:17px;cursor:pointer;accent-color:var(--nfse)}
-.btn-outlook{background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe}.btn-outlook:hover{background:#e0e7ff}
+.subabas{display:flex;gap:8px;margin-bottom:16px;border-bottom:2px solid var(--borda)}.subaba{background:none;border:none;padding:10px 16px;font-size:14px;font-weight:600;color:var(--cinza);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px}.subaba.ativa{color:var(--azul);border-bottom-color:var(--azul)}.rc-item{display:grid;grid-template-columns:130px 1fr 110px 120px 34px;gap:8px;align-items:start;margin-bottom:8px}.rc-item input,.rc-item textarea{padding:8px 10px;border:1px solid var(--borda);border-radius:8px;font-size:14px;font-family:inherit;width:100%}.rc-item .rm{background:#fef2f2;color:var(--vermelho);border:1px solid #fecaca;border-radius:8px;cursor:pointer;font-weight:700;height:38px}.rc-cab{display:grid;grid-template-columns:130px 1fr 110px 120px 34px;gap:8px;font-size:11px;font-weight:700;color:var(--cinza);text-transform:uppercase;margin-bottom:6px}.btn-outlook{background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe}.btn-outlook:hover{background:#e0e7ff}
 .legenda{display:flex;gap:18px;margin-bottom:14px;font-size:13px;color:var(--cinza);flex-wrap:wrap}
 .legenda i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:middle}
 #calendario{background:#fff;border-radius:12px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
@@ -142,6 +142,11 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
   .os-filtros input,.os-filtros select,.os-filtros .campo input{width:100%}
   .os-filtros .btn{flex:1 1 calc(50% - 5px)}
   .os-total{text-align:left;font-size:16px}
+  .rc-cab{display:none}
+  .rc-item{grid-template-columns:1fr 1fr;gap:6px;padding:10px;background:var(--cinza-cl);border-radius:10px;margin-bottom:10px}
+  .rc-item textarea{grid-column:span 2}
+  .rc-item .rm{grid-column:span 2;height:40px}
+  .subaba{flex:1;padding:12px 6px;font-size:13px}
 
   /* TABELAS VIRAM CARTOES */
   .tabela,.tabela thead,.tabela tbody,.tabela tr,.tabela td{display:block;width:100%}
@@ -210,14 +215,18 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
       <a data-view="clientes" onclick="showView('clientes')">👥 <span class="txt">Clientes</span></a>
       <a data-view="notas" onclick="showView('notas')">🧾 <span class="txt">Notas Fiscais</span></a>
       <a data-view="os" onclick="showView('os')">📄 <span class="txt">OS</span></a>
+      <a data-view="contratos" onclick="showView('contratos')">📋 <span class="txt">Contratos</span></a>
+      <a data-view="recibos" onclick="showView('recibos')">🧾 <span class="txt">Recibos</span></a>
       <a data-view="config" onclick="showView('config')">⚙️ <span class="txt">Configurações</span></a>
     </nav>
-    <div class="sidebar-rodape">v2.5 · web</div>
+    <div class="sidebar-rodape">v2.9 · web</div>
   </aside>
   <nav class="tabbar" id="tabbar">
     <a data-view="agenda" class="ativo" onclick="showView('agenda')"><i>📅</i><span>Agenda</span></a>
     <a data-view="clientes" onclick="showView('clientes')"><i>👥</i><span>Clientes</span></a>
     <a data-view="os" onclick="showView('os')"><i>📄</i><span>OS</span></a>
+    <a data-view="contratos" onclick="showView('contratos')"><i>📋</i><span>Contratos</span></a>
+    <a data-view="recibos" onclick="showView('recibos')"><i>🧾</i><span>Recibos</span></a>
     <a data-view="notas" onclick="showView('notas')"><i>🧾</i><span>Notas</span></a>
     <a data-view="config" onclick="showView('config')"><i>⚙️</i><span>Config</span></a>
   </nav>
@@ -270,6 +279,33 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
       <div id="os-print"></div>
     </section>
 
+    <section id="view-contratos" class="oculto">
+      <div class="topo"><h1>Contratos mensais</h1><div class="topo-acoes">
+        <button class="btn btn-primario" onclick="abrirNovoContrato()">+ Novo contrato</button>
+      </div></div>
+      <div class="card no-print">
+        <div class="os-filtros">
+          <div class="campo">Compet&ecirc;ncia (m&ecirc;s a cobrar)<input type="month" id="ct-mes" onchange="renderContratos()"></div>
+          <button class="btn btn-nfse" id="btn-nfse-ct" onclick="emitirNFSeContratos()" disabled>&#129534; Emitir NFS-e</button>
+          <button class="btn btn-outlook" id="btn-com-ct" onclick="gerarComunicados()" disabled>&#9993;&#65039; Gerar comunicado</button>
+        </div>
+        <p class="dim" style="margin-top:8px">Marque os contratos que vai cobrar neste m&ecirc;s. Os de <b>NFS-e</b> preparam a nota e abrem o Emissor Nacional; os de <b>comunicado</b> geram o texto do e-mail com seus dados de pagamento.</p>
+      </div>
+      <div id="lista-contratos"></div>
+      <div id="bloco-ct" class="bloco-nfse oculto"><h3 id="bloco-ct-tit">Resultado</h3><div id="bloco-ct-info"></div></div>
+    </section>
+
+    <section id="view-recibos" class="oculto">
+      <div class="topo"><h1>Recibos</h1><div class="topo-acoes">
+        <button class="btn btn-primario" onclick="abrirNovoRecibo()">+ Novo recibo</button>
+      </div></div>
+      <div class="subabas">
+        <button class="subaba ativa" data-tipo="servico" onclick="trocarTipoRecibo('servico')">&#128295; Servi&ccedil;os</button>
+        <button class="subaba" data-tipo="venda" onclick="trocarTipoRecibo('venda')">&#128230; Vendas</button>
+      </div>
+      <div id="lista-recibos"></div>
+    </section>
+
     <section id="view-config" class="oculto">
       <div class="topo"><h1>Configurações</h1></div>
 
@@ -299,7 +335,11 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
           <label>CNPJ (seu)<input id="cfg-cnpj" placeholder="Somente números"></label>
           <label>Código IBGE do seu município<input id="cfg-mun" placeholder="7 dígitos"></label>
           <label>Razão social<input id="cfg-razao" placeholder="Nome da sua empresa"></label>
-          <label class="col2">Dados para pagamento (PIX) — vai na mensagem da nota<input id="cfg-pix" placeholder="PIX CNPJ 42.612.058/0001-36"></label>
+          <label class="col2">PIX do <b>CNPJ</b> &mdash; usado na <b>NFS-e</b><input id="cfg-pix" placeholder="PIX CNPJ 42.612.058/0001-36"></label>
+          <label class="col2">PIX do <b>CPF</b> &mdash; usado nos <b>recibos</b> e nos <b>contratos sem nota</b><input id="cfg-pix-cpf" placeholder="PIX CPF 000.000.000-00"></label>
+          <label>Seu nome (emitente dos recibos)<input id="cfg-emit-nome" placeholder="NOME COMPLETO"></label>
+          <label>Seu CPF (emitente dos recibos)<input id="cfg-emit-cpf" placeholder="000.000.000-00"></label>
+          <label class="col2">Dados banc&aacute;rios — usados no <b>comunicado por e-mail</b> dos contratos<textarea id="cfg-banco" rows="6" placeholder="Banco:&#10;AG 0000&#10;Conta 00000-0&#10;Nome do titular&#10;Pix CPF/CNPJ ..."></textarea></label>
         </div>
         <div class="acoes-linha">
           <button class="btn btn-primario" onclick="salvarConfig()">Salvar configurações</button>
@@ -359,6 +399,52 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
   </div>
 </div></div>
 
+<div id="modal-recibo" class="modal-overlay oculto"><div class="modal modal-largo">
+  <div class="modal-topo"><h2 id="modal-recibo-titulo">Novo recibo</h2><button class="fechar" onclick="fecharModal('modal-recibo')">&#10005;</button></div>
+  <input type="hidden" id="rc-id"><input type="hidden" id="rc-tipo">
+  <div class="form-grid">
+    <label>Data do recibo<input type="date" id="rc-data" onchange="autoNumeroRecibo();montarDeclaracao()"></label>
+    <label>N&ordm; do recibo <span class="dim" id="rc-num-dica">(autom&aacute;tico)</span><input id="rc-numero" oninput="this.dataset.editado='1';document.getElementById('rc-num-dica').textContent='(manual)'"></label>
+    <label class="col2">Pagador &mdash; puxar de um cliente<select id="rc-cliente" onchange="preencherPagador()"><option value="">&mdash; digitar manualmente &mdash;</option></select></label>
+    <label>Nome do pagador<span style="display:flex;gap:6px"><select id="rc-prep" style="width:74px;padding:9px 6px;border:1px solid var(--borda);border-radius:8px" onchange="montarDeclaracao()"><option>DO</option><option>DA</option><option>DE</option></select><input id="rc-pag-nome" oninput="montarDeclaracao()" placeholder="DR FULANO DE TAL" style="flex:1"></span></label>
+    <label>CPF / CNPJ do pagador<input id="rc-pag-doc" oninput="montarDeclaracao()" placeholder="000.000.000-00"></label>
+    <label class="col2">Endere&ccedil;o do pagador <span class="dim">(opcional &mdash; usado no texto de empresas)</span><input id="rc-pag-end" oninput="montarDeclaracao()" placeholder="ESTRADA X, 50"></label>
+  </div>
+  <h3 id="rc-tit-itens">Itens do recibo</h3>
+  <div id="rc-itens"></div>
+  <button class="btn btn-secundario" onclick="addItemRecibo()">+ Adicionar linha</button>
+  <div class="os-total" id="rc-total">Total: R$ 0,00</div>
+  <div class="form-grid" style="margin-top:6px">
+    <label class="col2"><span style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="rc-pix" style="width:18px;height:18px" onchange="montarDeclaracao()"> Mostrar a linha do PIX (CPF) no recibo</span></label>
+    <label class="col2">Texto de recebimento <span class="dim">(gerado automaticamente &mdash; pode editar &agrave; vontade)</span><textarea id="rc-decl" rows="3"></textarea></label>
+  </div>
+  <div class="modal-rodape">
+    <button class="btn btn-perigo" id="btn-excluir-rc" onclick="excluirRecibo()">Excluir</button>
+    <div style="flex:1"></div>
+    <button class="btn btn-secundario" onclick="fecharModal('modal-recibo')">Cancelar</button>
+    <button class="btn btn-primario" onclick="salvarRecibo()">Salvar</button>
+    <button class="btn btn-nfse" onclick="salvarRecibo(true)">&#128424;&#65039; Salvar e imprimir</button>
+  </div>
+</div></div>
+<div id="modal-contrato" class="modal-overlay oculto"><div class="modal">
+  <div class="modal-topo"><h2 id="modal-contrato-titulo">Novo contrato</h2><button class="fechar" onclick="fecharModal('modal-contrato')">&#10005;</button></div>
+  <input type="hidden" id="ct-id">
+  <div class="form-grid">
+    <label class="col2">Cliente<select id="ct-cliente"></select></label>
+    <label>Valor mensal (R$)<input type="number" step="0.01" id="ct-valor" placeholder="400,00"></label>
+    <label>Dia de vencimento<input type="number" min="1" max="31" id="ct-venc" placeholder="10"></label>
+    <label>Como cobrar<select id="ct-tipo"><option value="nfse">NFS-e (nota fiscal)</option><option value="comunicado">Comunicado por e-mail</option></select></label>
+    <label>Situa&ccedil;&atilde;o<select id="ct-ativo"><option value="1">Ativo</option><option value="0">Inativo</option></select></label>
+    <label class="col2">Descri&ccedil;&atilde;o do servi&ccedil;o (vai na nota / no e-mail)<input id="ct-desc" placeholder="vazio = usa a descri&ccedil;&atilde;o padr&atilde;o das Configura&ccedil;&otilde;es"></label>
+    <label class="col2">Observa&ccedil;&otilde;es<textarea id="ct-obs" rows="2"></textarea></label>
+  </div>
+  <div class="modal-rodape">
+    <button class="btn btn-perigo" id="btn-excluir-ct" onclick="excluirContrato()">Excluir</button>
+    <div style="flex:1"></div>
+    <button class="btn btn-secundario" onclick="fecharModal('modal-contrato')">Cancelar</button>
+    <button class="btn btn-primario" onclick="salvarContrato()">Salvar</button>
+  </div>
+</div></div>
 <div id="modal-cliente" class="modal-overlay oculto"><div class="modal modal-largo">
   <div class="modal-topo"><h2 id="modal-cliente-titulo">Novo cliente</h2><button class="fechar" onclick="fecharModal('modal-cliente')">✕</button></div>
   <div class="form-grid">
@@ -447,7 +533,7 @@ async function nuvemCarregar(avisar){
   if(!conectado||carregando)return; carregando=true;
   try{
     const r=await fetch(GH+'/repos/'+GH_REPO+'/contents/dados.json',{headers:ghHeaders(),cache:'no-store'});
-    if(r.status===200){const j=await r.json();ghSha=j.sha;const dados=JSON.parse(b64dec(j.content));DB=Object.assign(dbPadrao(),dados);salvarLocal();rerenderTudo();if(avisar)toast('Dados atualizados da nuvem.','sucesso');}
+    if(r.status===200){const j=await r.json();ghSha=j.sha;const dados=JSON.parse(b64dec(j.content));DB=migrar(dados);salvarLocal();rerenderTudo();if(avisar)toast('Dados atualizados da nuvem.','sucesso');}
     else if(r.status===404){ghSha=null;await nuvemSalvarAgora();if(avisar)toast('Nuvem iniciada com os dados deste aparelho.','sucesso');}
     else if(avisar)toast('Não consegui baixar (erro '+r.status+').','erro');
   }catch(e){if(avisar)toast('Erro ao baixar: '+e.message,'erro');}
@@ -475,8 +561,18 @@ const CAMPOS_CLI=['nome','tipo_pessoa','documento','email','telefone','inscricao
 const MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 const DIAS=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
 let DB=carregarLocal();
-function dbPadrao(){return{clientes:[],agendamentos:[],notas:[],servicos:[],config:{desc:'REPARAÇÃO E MANUTENÇÃO DE COMPUTADORES',ctrib:'140101',cnpj:'42612058000136',mun:'3304557',razao:'',pix:'PIX CNPJ 42.612.058/0001-36'},seq:{cli:1,ag:1,nota:1,serv:1}};}
-function carregarLocal(){try{const r=localStorage.getItem(CHAVE);if(r){const d=Object.assign(dbPadrao(),JSON.parse(r));const def=dbPadrao().config;['desc','ctrib','cnpj','mun','pix'].forEach(k=>{if(!d.config[k])d.config[k]=def[k];});if(!d.servicos)d.servicos=[];if(!d.seq.serv)d.seq.serv=1;return d;}}catch(e){}return dbPadrao();}
+function dbPadrao(){return{clientes:[],agendamentos:[],notas:[],servicos:[],contratos:[],cobrancas:[],recibos:[],config:{desc:'REPARAÇÃO E MANUTENÇÃO DE COMPUTADORES',ctrib:'140101',cnpj:'42612058000136',mun:'3304557',razao:'',pix:'PIX CNPJ 42.612.058/0001-36',pix_cpf:'',banco:'',emit_nome:'',emit_cpf:''},seq:{cli:1,ag:1,nota:1,serv:1,ct:1,cob:1,rec:1}};}
+function migrar(d){
+  const pad=dbPadrao();
+  d=Object.assign({},pad,d||{});
+  ['clientes','agendamentos','notas','servicos','contratos','cobrancas','recibos'].forEach(k=>{if(!Array.isArray(d[k]))d[k]=[];});
+  d.config=Object.assign({},pad.config,d.config||{});
+  ['desc','ctrib','cnpj','mun','pix'].forEach(k=>{if(!d.config[k])d.config[k]=pad.config[k];});
+  d.seq=Object.assign({},pad.seq,d.seq||{});
+  Object.keys(pad.seq).forEach(k=>{if(!d.seq[k]||isNaN(d.seq[k]))d.seq[k]=1;});
+  return d;
+}
+function carregarLocal(){try{const r=localStorage.getItem(CHAVE);if(r)return migrar(JSON.parse(r));}catch(e){}return dbPadrao();}
 function salvarLocal(){try{localStorage.setItem(CHAVE,JSON.stringify(DB));}catch(e){}}
 function salvarDB(){salvarLocal();agendarSalvarNuvem();}
 function novoId(t){const id=DB.seq[t]++;salvarDB();return id;}
@@ -488,10 +584,10 @@ function fecharModal(id){document.getElementById(id).classList.add('oculto');}
 function soNums(t){return(t||'').replace(/\D/g,'');}
 function esc(t){return(t==null?'':String(t)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 document.addEventListener('click',e=>{if(e.target.classList&&e.target.classList.contains('modal-overlay'))e.target.classList.add('oculto');});
-function rerenderTudo(){renderCalendario();renderClientes();renderNotas();carregarClientesSelect();carregarConfigForm();}
+function rerenderTudo(){renderCalendario();renderClientes();renderNotas();renderContratos();renderRecibos();carregarClientesSelect();carregarConfigForm();}
 
 // ================== Navegação ==================
-function showView(v){['agenda','clientes','notas','os','config'].forEach(n=>document.getElementById('view-'+n).classList.toggle('oculto',n!==v));document.querySelectorAll('.sidebar nav a,.tabbar a').forEach(a=>a.classList.toggle('ativo',a.dataset.view===v));if(v==='agenda')renderCalendario();if(v==='clientes')renderClientes();if(v==='notas')renderNotas();if(v==='os')renderOS();if(v==='config')carregarConfigForm();}
+function showView(v){['agenda','clientes','notas','os','contratos','recibos','config'].forEach(n=>document.getElementById('view-'+n).classList.toggle('oculto',n!==v));document.querySelectorAll('.sidebar nav a,.tabbar a').forEach(a=>a.classList.toggle('ativo',a.dataset.view===v));if(v==='agenda')renderCalendario();if(v==='clientes')renderClientes();if(v==='notas')renderNotas();if(v==='os')renderOS();if(v==='contratos')renderContratos();if(v==='recibos')renderRecibos();if(v==='config')carregarConfigForm();}
 
 // ================== Clientes ==================
 function renderClientes(q){q=(q||'').toLowerCase();const lista=DB.clientes.filter(c=>!q||(c.nome||'').toLowerCase().includes(q)||(c.documento||'').includes(q)).sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));const tb=document.getElementById('lista-clientes');if(!lista.length){tb.innerHTML='<tr><td colspan="6" class="vazio">Nenhum cliente cadastrado.</td></tr>';return;}tb.innerHTML=lista.map(c=>`<tr><td data-rot="Nome"><b>${esc(c.nome)}</b></td><td data-rot="Tipo">${c.tipo_pessoa==='J'?'Jurídica':'Física'}</td><td data-rot="CPF/CNPJ">${esc(c.documento)||'—'}</td><td data-rot="Telefone">${esc(c.telefone)||'—'}</td><td data-rot="Município">${esc(c.municipio)||'—'}</td><td class="acoes-cel"><span class="link-acao" onclick="editarCliente(${c.id})">Editar</span><span class="link-acao perigo" onclick="excluirCliente(${c.id})">Excluir</span></td></tr>`).join('');}
@@ -651,12 +747,406 @@ function renderNotaOS(n,resumo){
 function copiarResumo(){const t=document.getElementById('resumo-portal');if(!t)return;t.select();navigator.clipboard.writeText(t.value).then(()=>toast('Dados copiados!','sucesso'),()=>toast('Copie manualmente (Ctrl+C).','erro'));}
 function registrarNumero(notaId){const num=document.getElementById('reg-numero').value.trim();if(!num){toast('Informe o número da NFS-e.','erro');return;}const n=DB.notas.find(x=>x.id===notaId);n.numero_nfse=num;n.status='autorizada';salvarDB();toast('Número registrado!','sucesso');renderNotaOS(n,null);renderOS();renderNotas();}
 
+// ================== Contratos mensais ==================
+function mesAtualStr(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');}
+function nomeMesCompet(m){const p=String(m||'').split('-');return p.length>=2?(MESES[(+p[1])-1]||'')+'/'+p[0]:'';}
+function vencContrato(ct,mes){
+  const p=String(mes||'').split('-');if(p.length<2)return'';
+  const ano=+p[0],m=+p[1],ultimo=new Date(ano,m,0).getDate();
+  const dia=Math.min(parseInt(ct.venc_dia)||10,ultimo);
+  return String(dia).padStart(2,'0')+'/'+String(m).padStart(2,'0')+'/'+ano;
+}
+function cobrancaDe(ctId,mes){return DB.cobrancas.find(c=>c.contrato_id===ctId&&c.competencia===mes);}
+function contratosSelecionados(){return Array.from(document.querySelectorAll('.chk-ct:checked')).map(c=>+c.dataset.id);}
+function atualizarSelecaoCT(){
+  const ids=contratosSelecionados();
+  const sel=DB.contratos.filter(c=>ids.includes(c.id));
+  const nf=sel.filter(c=>c.tipo!=='comunicado'),co=sel.filter(c=>c.tipo==='comunicado');
+  const bn=document.getElementById('btn-nfse-ct'),bc=document.getElementById('btn-com-ct');
+  if(!bn||!bc)return;
+  const somaN=nf.reduce((a,c)=>a+(parseFloat(c.valor)||0),0);
+  bn.disabled=!nf.length; bn.textContent=nf.length?`\u{1F9FE} Emitir NFS-e (${nf.length} \u00b7 R$ ${somaN.toFixed(2)})`:'\u{1F9FE} Emitir NFS-e';
+  bc.disabled=!co.length; bc.textContent=co.length?`\u2709\uFE0F Gerar comunicado (${co.length})`:'\u2709\uFE0F Gerar comunicado';
+  const todos=document.querySelectorAll('.chk-ct').length,m=document.getElementById('chk-ct-todos');
+  if(m){m.checked=todos>0&&ids.length===todos;m.indeterminate=ids.length>0&&ids.length<todos;}
+}
+function marcarTodosCT(el){document.querySelectorAll('.chk-ct').forEach(c=>c.checked=el.checked);atualizarSelecaoCT();}
+function renderContratos(){
+  const box=document.getElementById('lista-contratos');if(!box)return;
+  const inp=document.getElementById('ct-mes');if(!inp.value)inp.value=mesAtualStr();
+  const mes=inp.value;
+  document.getElementById('bloco-ct').classList.add('oculto');
+  const lista=DB.contratos.slice().sort((a,b)=>{
+    const na=(DB.clientes.find(x=>x.id==a.cliente_id)||{}).nome||'',nb=(DB.clientes.find(x=>x.id==b.cliente_id)||{}).nome||'';
+    return (b.ativo?1:0)-(a.ativo?1:0)||na.localeCompare(nb);});
+  if(!lista.length){box.innerHTML='<p class="vazio">Nenhum contrato mensal cadastrado. Clique em "+ Novo contrato".</p>';atualizarSelecaoCT();return;}
+  let tot=0;
+  const rows=lista.map(ct=>{
+    const c=DB.clientes.find(x=>x.id==ct.cliente_id)||{};
+    const cob=cobrancaDe(ct.id,mes);
+    if(ct.ativo)tot+=parseFloat(ct.valor)||0;
+    let selo='<span class="tag tag-pendente">pendente</span>';
+    if(cob&&cob.status==='autorizada')selo=`<span class="tag tag-autorizada">NF ${esc(cob.numero_nfse)}</span>`;
+    else if(cob&&cob.status==='portal')selo='<span class="tag tag-portal">no portal</span>';
+    else if(cob&&cob.status==='enviado')selo='<span class="tag tag-autorizada">comunicado gerado</span>';
+    const tipo=ct.tipo==='comunicado'?'\u2709\uFE0F E-mail':'\u{1F9FE} NFS-e';
+    return `<tr${ct.ativo?'':' style="opacity:.5"'}><td class="chk-cel"><input type="checkbox" class="chk-ct" data-id="${ct.id}" onchange="atualizarSelecaoCT()"${ct.ativo?'':' disabled'}></td>`
+      +`<td data-rot="Cliente"><b>${esc(c.nome||'(sem cliente)')}</b></td>`
+      +`<td data-rot="Valor mensal">R$ ${(parseFloat(ct.valor)||0).toFixed(2)}</td>`
+      +`<td data-rot="Vencimento">${vencContrato(ct,mes)}</td>`
+      +`<td data-rot="Cobran\u00e7a">${tipo}</td>`
+      +`<td data-rot="${esc(nomeMesCompet(mes))}">${selo}</td>`
+      +`<td class="acoes-cel"><span class="link-acao" onclick="editarContrato(${ct.id})">Editar</span></td></tr>`;
+  }).join('');
+  box.innerHTML=`<table class="tabela"><thead><tr><th class="chk-cel"><input type="checkbox" id="chk-ct-todos" onchange="marcarTodosCT(this)" title="Marcar todos"></th><th>Cliente</th><th>Valor mensal</th><th>Vencimento</th><th>Cobran\u00e7a</th><th>${esc(nomeMesCompet(mes))}</th><th></th></tr></thead><tbody>${rows}</tbody></table>`
+    +`<div class="os-total">Total mensal ativo: R$ ${tot.toFixed(2)}</div>`;
+  atualizarSelecaoCT();
+}
+function selectClientes(elId,val){
+  const sel=document.getElementById(elId);
+  sel.innerHTML='<option value="">\u2014 selecione \u2014</option>'+DB.clientes.slice().sort((a,b)=>(a.nome||'').localeCompare(b.nome||'')).map(c=>`<option value="${c.id}">${esc(c.nome)}</option>`).join('');
+  sel.value=val||'';
+}
+function abrirNovoContrato(){
+  if(!DB.clientes.length){toast('Cadastre um cliente primeiro.','erro');return;}
+  document.getElementById('ct-id').value='';selectClientes('ct-cliente','');
+  document.getElementById('ct-valor').value='';document.getElementById('ct-venc').value='10';
+  document.getElementById('ct-tipo').value='nfse';document.getElementById('ct-ativo').value='1';
+  document.getElementById('ct-desc').value='';document.getElementById('ct-obs').value='';
+  document.getElementById('modal-contrato-titulo').textContent='Novo contrato';
+  document.getElementById('btn-excluir-ct').style.display='none';
+  abrirModal('modal-contrato');
+}
+function editarContrato(id){
+  const ct=DB.contratos.find(x=>x.id===id);if(!ct)return;
+  document.getElementById('ct-id').value=ct.id;selectClientes('ct-cliente',ct.cliente_id);
+  document.getElementById('ct-valor').value=ct.valor||'';document.getElementById('ct-venc').value=ct.venc_dia||'';
+  document.getElementById('ct-tipo').value=ct.tipo||'nfse';document.getElementById('ct-ativo').value=ct.ativo?'1':'0';
+  document.getElementById('ct-desc').value=ct.descricao||'';document.getElementById('ct-obs').value=ct.obs||'';
+  document.getElementById('modal-contrato-titulo').textContent='Editar contrato';
+  document.getElementById('btn-excluir-ct').style.display='inline-block';
+  abrirModal('modal-contrato');
+}
+function salvarContrato(){
+  const cid=document.getElementById('ct-cliente').value;
+  if(!cid){toast('Escolha o cliente.','erro');return;}
+  const valor=parseFloat(document.getElementById('ct-valor').value)||0;
+  if(valor<=0){toast('Informe o valor mensal.','erro');return;}
+  const d={cliente_id:cid,valor:valor,venc_dia:parseInt(document.getElementById('ct-venc').value)||10,
+    tipo:document.getElementById('ct-tipo').value,ativo:document.getElementById('ct-ativo').value==='1',
+    descricao:document.getElementById('ct-desc').value.trim(),obs:document.getElementById('ct-obs').value.trim()};
+  const id=document.getElementById('ct-id').value;
+  if(id){Object.assign(DB.contratos.find(x=>x.id==id),d);}else{d.id=novoId('ct');DB.contratos.push(d);}
+  salvarDB();fecharModal('modal-contrato');renderContratos();toast('Contrato salvo!','sucesso');
+}
+function excluirContrato(){
+  const id=+document.getElementById('ct-id').value;if(!id)return;
+  if(!confirm('Excluir este contrato? O hist\u00f3rico de cobran\u00e7as dele tamb\u00e9m sai.'))return;
+  DB.contratos=DB.contratos.filter(c=>c.id!==id);DB.cobrancas=DB.cobrancas.filter(c=>c.contrato_id!==id);
+  salvarDB();fecharModal('modal-contrato');renderContratos();toast('Contrato exclu\u00eddo.','sucesso');
+}
+function descContrato(ct){return ct.descricao||DB.config.desc||'';}
+function mensagemContrato(ct,mes){
+  const p=String(mes||'').split('-'),compet=(p[1]||'')+'/'+(p[0]||'');
+  return [descContrato(ct)+' REF. '+compet,'VENCIMENTO: '+vencContrato(ct,mes),'DADOS PARA PAGAMENTO:',(DB.config.pix||'')].join('\n');
+}
+function emitirNFSeContratos(){
+  const ids=contratosSelecionados();
+  const sel=DB.contratos.filter(c=>ids.includes(c.id)&&c.tipo!=='comunicado');
+  if(!sel.length){toast('Marque ao menos um contrato de NFS-e.','erro');return;}
+  const mes=document.getElementById('ct-mes').value||mesAtualStr();
+  const jaFeitos=sel.filter(ct=>cobrancaDe(ct.id,mes));
+  if(jaFeitos.length&&!confirm(jaFeitos.length+' contrato(s) j\u00e1 t\u00eam nota nesta compet\u00eancia. Continuar?'))return;
+  const total=sel.reduce((a,c)=>a+(parseFloat(c.valor)||0),0);
+  if(!confirm(`Preparar ${sel.length} NFS-e de ${nomeMesCompet(mes)} \u2014 total R$ ${total.toFixed(2)}?\n\nUma nota por cliente. O Emissor Nacional abrir\u00e1 numa aba.`))return;
+  const blocos=sel.map(ct=>{
+    const c=DB.clientes.find(x=>x.id==ct.cliente_id)||{};
+    const tipoDoc=c.tipo_pessoa==='J'?'CNPJ':'CPF';
+    const l=[`TOMADOR (${tipoDoc}): ${soNums(c.documento)}`,`NOME: ${c.nome||''}`,`VALOR: R$ ${(parseFloat(ct.valor)||0).toFixed(2)}`];
+    if(DB.config.ctrib)l.push(`CODIGO DE TRIBUTACAO: ${DB.config.ctrib}`);
+    if(c.email)l.push(`E-MAIL DO TOMADOR: ${c.email}`);
+    l.push('');l.push('DISCRIMINACAO / MENSAGEM:');l.push(mensagemContrato(ct,mes));
+    const nota={id:novoId('nota'),contrato_id:ct.id,competencia:mes,cliente_id:ct.cliente_id,numero_nfse:'',
+      valor:parseFloat(ct.valor)||0,descricao:descContrato(ct),status:'portal',resumo:l.join('\n'),emitida_em:fmtData(new Date())};
+    DB.notas.push(nota);
+    const ant=cobrancaDe(ct.id,mes);
+    if(ant){ant.status='portal';ant.nota_id=nota.id;ant.numero_nfse='';}
+    else DB.cobrancas.push({id:novoId('cob'),contrato_id:ct.id,competencia:mes,tipo:'nfse',status:'portal',nota_id:nota.id,numero_nfse:'',valor:nota.valor,gerado_em:fmtData(new Date())});
+    return{ct:ct,cliente:c,nota:nota};
+  });
+  salvarDB();
+  window.open('https://www.nfse.gov.br/EmissorNacional/Login','_blank');
+  renderContratos();
+  const bloco=document.getElementById('bloco-ct');bloco.classList.remove('oculto');
+  document.getElementById('bloco-ct-tit').textContent='NFS-e de '+nomeMesCompet(mes);
+  document.getElementById('bloco-ct-info').innerHTML=
+    `<p class="dim">Emita uma nota por cliente no Emissor Nacional e registre o n&uacute;mero de cada uma.</p>`
+    +blocos.map((b,i)=>`<div style="border-top:1px solid #a5f3fc;padding-top:10px;margin-top:10px">
+        <b>${esc(b.cliente.nome||'')}</b> \u2014 R$ ${(b.nota.valor||0).toFixed(2)}
+        <textarea id="res-ct-${i}" rows="8" style="width:100%;font-size:12px;margin-top:6px">${esc(b.nota.resumo)}</textarea>
+        <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap">
+          <button class="btn btn-secundario" onclick="copiarCampo('res-ct-${i}')">\u{1F4CB} Copiar</button>
+          <input id="num-ct-${i}" placeholder="N\u00ba da NFS-e emitida" style="flex:1;min-width:150px;padding:8px;border:1px solid #cbd5e1;border-radius:6px">
+          <button class="btn btn-primario" onclick="registrarNumCobranca(${b.nota.id},'num-ct-${i}')">Registrar</button>
+        </div></div>`).join('')
+    +`<div style="margin-top:12px"><button class="btn btn-secundario" onclick="window.open('https://www.nfse.gov.br/EmissorNacional/Login','_blank')">\u{1F310} Abrir Emissor Nacional</button></div>`;
+  toast('Dados prontos. Emita no Emissor Nacional.','sucesso');
+}
+function corpoComunicado(ct,mes){
+  const banco=(DB.config.banco||'').trim();
+  const venc=vencContrato(ct,mes).replace(/\//g,'-');
+  const l=[];
+  if(banco)l.push(banco);
+  const px=pixPessoal();
+  if(px&&!banco.split('\n').some(ln=>soNums(ln)&&soNums(ln)===soNums(px)))l.push(px);
+  l.push('Valor Mensal: R$'+(parseFloat(ct.valor)||0).toFixed(2).replace('.',','));
+  l.push('DATA DE PAGAMENTO '+venc);
+  return l.join('\n');
+}
+function gerarComunicados(){
+  const ids=contratosSelecionados();
+  const sel=DB.contratos.filter(c=>ids.includes(c.id)&&c.tipo==='comunicado');
+  if(!sel.length){toast('Marque ao menos um contrato de comunicado.','erro');return;}
+  if(!(DB.config.banco||'').trim()&&!confirm('Voc\u00ea ainda n\u00e3o preencheu os dados banc\u00e1rios em Configura\u00e7\u00f5es.\nGerar mesmo assim (s\u00f3 com valor e vencimento)?'))return;
+  const mes=document.getElementById('ct-mes').value||mesAtualStr();
+  sel.forEach(ct=>{
+    const ant=cobrancaDe(ct.id,mes);
+    if(ant){ant.status='enviado';ant.gerado_em=fmtData(new Date());}
+    else DB.cobrancas.push({id:novoId('cob'),contrato_id:ct.id,competencia:mes,tipo:'comunicado',status:'enviado',valor:parseFloat(ct.valor)||0,gerado_em:fmtData(new Date())});
+  });
+  salvarDB();renderContratos();
+  const bloco=document.getElementById('bloco-ct');bloco.classList.remove('oculto');
+  document.getElementById('bloco-ct-tit').textContent='Comunicados de '+nomeMesCompet(mes);
+  document.getElementById('bloco-ct-info').innerHTML=sel.map((ct,i)=>{
+    const c=DB.clientes.find(x=>x.id==ct.cliente_id)||{};
+    const corpo=corpoComunicado(ct,mes);
+    const assunto=descContrato(ct)+' - REF. '+nomeMesCompet(mes);
+    const mailto='mailto:'+encodeURIComponent(c.email||'')+'?subject='+encodeURIComponent(assunto)+'&body='+encodeURIComponent(corpo);
+    return `<div style="border-top:1px solid #a5f3fc;padding-top:10px;margin-top:10px">
+      <b>${esc(c.nome||'')}</b>${c.email?` \u2014 <span class="dim">${esc(c.email)}</span>`:' \u2014 <span class="dim">(sem e-mail cadastrado)</span>'}
+      <p class="dim" style="margin:6px 0 2px">Assunto: ${esc(assunto)}</p>
+      <textarea id="com-${i}" rows="8" style="width:100%;font-size:12px">${esc(corpo)}</textarea>
+      <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap">
+        <button class="btn btn-secundario" onclick="copiarCampo('com-${i}')">\u{1F4CB} Copiar texto</button>
+        ${c.email?`<a class="btn btn-outlook" href="${mailto}">\u2709\uFE0F Abrir no e-mail</a>`:''}
+      </div></div>`;}).join('');
+  toast('Comunicados gerados.','sucesso');
+}
+function copiarCampo(id){const t=document.getElementById(id);if(!t)return;t.select();navigator.clipboard.writeText(t.value).then(()=>toast('Copiado!','sucesso'),()=>toast('Copie manualmente (Ctrl+C).','erro'));}
+function registrarNumCobranca(notaId,campoId){
+  const num=(document.getElementById(campoId).value||'').trim();
+  if(!num){toast('Informe o n\u00famero da NFS-e.','erro');return;}
+  const n=DB.notas.find(x=>x.id===notaId);if(!n)return;
+  n.numero_nfse=num;n.status='autorizada';
+  const cob=DB.cobrancas.find(c=>c.nota_id===notaId);
+  if(cob){cob.status='autorizada';cob.numero_nfse=num;}
+  salvarDB();renderContratos();renderNotas();toast('N\u00famero registrado!','sucesso');
+}
+
+// ================== Recibos ==================
+let tipoRecibo='servico';
+const ROT={servico:{tit:'RECIBO',cab:['DATA DO SERVI\u00c7O','SERVI\u00c7O REALIZADO','TEMPO DE SERVI\u00c7O','VALOR DO SERVI\u00c7O'],
+  ph:'- SERVI\u00c7O DE INFORMATICA PRESTADO\n  - descreva aqui',ph3:'1 HORA',itens:'Servi\u00e7os prestados'},
+ venda:{tit:'RECIBO',cab:['DATA','ITEM VENDIDO','QUANTIDADE','VALOR'],
+  ph:'SSD DE 240GB',ph3:'1',itens:'Itens vendidos'}};
+function trocarTipoRecibo(t){tipoRecibo=t;document.querySelectorAll('.subaba').forEach(b=>b.classList.toggle('ativa',b.dataset.tipo===t));renderRecibos();}
+function numRecibo(r){return r.numero||String(brdata(r.data)).replace(/\//g,'');}
+function proximoNumeroRecibo(data,idAtual){
+  const base=String(brdata(data||fmtData(new Date()))).replace(/\//g,'');
+  const usados=DB.recibos.filter(r=>String(r.id)!==String(idAtual)).map(r=>String(r.numero||''));
+  if(!usados.includes(base))return base;
+  let n=2;while(usados.includes(base+'-'+n))n++;
+  return base+'-'+n;
+}
+function autoNumeroRecibo(){
+  const campo=document.getElementById('rc-numero');
+  if(!campo||campo.dataset.editado==='1')return;
+  campo.value=proximoNumeroRecibo(document.getElementById('rc-data').value,document.getElementById('rc-id').value);
+}
+function totalRecibo(r){return (r.itens||[]).reduce((a,i)=>a+(parseFloat(i.valor)||0),0);}
+function renderRecibos(){
+  const box=document.getElementById('lista-recibos');if(!box)return;
+  const lista=DB.recibos.filter(r=>r.tipo===tipoRecibo).sort((a,b)=>(b.data||'').localeCompare(a.data||''));
+  if(!lista.length){box.innerHTML=`<p class="vazio">Nenhum recibo de ${tipoRecibo==='venda'?'venda':'servi\u00e7o'} ainda. Clique em "+ Novo recibo".</p>`;return;}
+  let tot=0;
+  const rows=lista.map(r=>{const v=totalRecibo(r);tot+=v;
+    return `<tr><td data-rot="Data">${brdata(r.data)}</td><td data-rot="N\u00ba">${esc(numRecibo(r))}</td>`
+     +`<td data-rot="Pagador"><b>${esc(r.pag_nome||'\u2014')}</b></td>`
+     +`<td data-rot="Itens">${(r.itens||[]).length}</td>`
+     +`<td data-rot="Valor">R$ ${v.toFixed(2)}</td>`
+     +`<td class="acoes-cel"><span class="link-acao" onclick="imprimirRecibo(${r.id})">\u{1F5A8}\uFE0F Imprimir</span>`
+     +`<span class="link-acao" onclick="editarRecibo(${r.id})">Editar</span>`
+     +`<span class="link-acao" onclick="duplicarRecibo(${r.id})">Duplicar</span></td></tr>`;}).join('');
+  box.innerHTML=`<table class="tabela"><thead><tr><th>Data</th><th>N\u00ba</th><th>Pagador</th><th>Itens</th><th>Valor</th><th></th></tr></thead><tbody>${rows}</tbody></table>`
+   +`<div class="os-total">${lista.length} recibo(s) \u00b7 Total: R$ ${tot.toFixed(2)}</div>`;
+}
+function linhaItemRecibo(it){
+  it=it||{};
+  const R=ROT[document.getElementById('rc-tipo').value||'servico'];
+  return `<div class="rc-item">
+    <input type="date" class="it-data" value="${esc(it.data||'')}">
+    <textarea class="it-desc" rows="3" placeholder="${esc(R.ph)}">${esc(it.desc||'')}</textarea>
+    <input class="it-qtd" value="${esc(it.qtd||'')}" placeholder="${esc(R.ph3)}">
+    <input type="number" step="0.01" class="it-valor" value="${it.valor!==undefined?it.valor:''}" placeholder="0,00" oninput="totalRecibos()">
+    <button class="rm" onclick="this.parentNode.remove();totalRecibos()" title="Remover linha">\u00d7</button>
+  </div>`;
+}
+function cabItens(){const R=ROT[document.getElementById('rc-tipo').value||'servico'];
+  return `<div class="rc-cab"><div>${R.cab[0]}</div><div>${R.cab[1]}</div><div>${R.cab[2]}</div><div>${R.cab[3]}</div><div></div></div>`;}
+function addItemRecibo(){
+  const box=document.getElementById('rc-itens');
+  const d=document.getElementById('rc-data').value;
+  box.insertAdjacentHTML('beforeend',linhaItemRecibo({data:d}));
+}
+function lerItensRecibo(){
+  return Array.from(document.querySelectorAll('#rc-itens .rc-item')).map(el=>({
+    data:el.querySelector('.it-data').value,
+    desc:el.querySelector('.it-desc').value,
+    qtd:el.querySelector('.it-qtd').value.trim(),
+    valor:parseFloat(el.querySelector('.it-valor').value)||0
+  })).filter(i=>i.desc.trim()||i.valor);
+}
+function totalRecibos(){
+  const t=lerItensRecibo().reduce((a,i)=>a+(parseFloat(i.valor)||0),0);
+  document.getElementById('rc-total').textContent='Total: R$ '+t.toFixed(2);
+  montarDeclaracao();
+}
+function ehCNPJ(doc){return soNums(doc).length>11;}
+function pixPessoal(){return (DB.config.pix_cpf||'').trim()||(DB.config.pix||'').trim();}
+function montarDeclaracao(){
+  const dec=document.getElementById('rc-decl');if(!dec)return;
+  if(dec.dataset.editado==='1')return;
+  const nome=(document.getElementById('rc-pag-nome').value||'').trim();
+  const doc=(document.getElementById('rc-pag-doc').value||'').trim();
+  const end=(document.getElementById('rc-pag-end').value||'').trim();
+  const dt=document.getElementById('rc-data').value;
+  const emit=(DB.config.emit_nome||'').trim(),ecpf=(DB.config.emit_cpf||'').trim();
+  let t;
+  if(ehCNPJ(doc)){
+    const pr2=(document.getElementById('rc-prep')||{}).value||'DO';
+    t='RECEBI A IMPORTANCIA ACIMA '+(nome?pr2+' '+nome.toUpperCase():'')+(doc?' DE CNPJ '+doc:'')+(end?' SITUADO NA '+end.toUpperCase():'');
+  }else{
+    const pr=(document.getElementById('rc-prep')||{}).value||'DO';
+    t=(emit?'EU '+emit.toUpperCase()+(ecpf?' DE CPF '+ecpf:'')+' ':'')+'RECEBI ESSA IMPORTANCIA ACIMA '
+      +(nome?pr+' '+nome.toUpperCase():'')+(doc?' DE CPF '+doc:'')+(dt?' NO DIA '+brdata(dt):'');
+  }
+  dec.value=t.replace(/\s+/g,' ').trim();
+}
+function preencherPagador(){
+  const id=document.getElementById('rc-cliente').value;
+  if(!id)return;
+  const c=DB.clientes.find(x=>x.id==id);if(!c)return;
+  document.getElementById('rc-pag-nome').value=c.nome||'';
+  document.getElementById('rc-pag-doc').value=c.documento||'';
+  const end=[c.logradouro,c.numero].filter(Boolean).join(', ');
+  if(end)document.getElementById('rc-pag-end').value=end;
+  document.getElementById('rc-decl').dataset.editado='';
+  montarDeclaracao();
+}
+function abrirModalRecibo(r,titulo){
+  document.getElementById('rc-tipo').value=r.tipo;
+  document.getElementById('rc-id').value=r.id||'';
+  document.getElementById('rc-data').value=r.data||fmtData(new Date());
+  const cn=document.getElementById('rc-numero');
+  cn.value=r.numero||'';
+  cn.dataset.editado=r.numero?'1':'';
+  document.getElementById('rc-num-dica').textContent=r.numero?'(manual)':'(autom\u00e1tico)';
+  selectClientes('rc-cliente',r.cliente_id||'');
+  document.getElementById('rc-cliente').insertAdjacentHTML('afterbegin','<option value="">\u2014 digitar manualmente \u2014</option>');
+  document.getElementById('rc-cliente').value=r.cliente_id||'';
+  document.getElementById('rc-pag-nome').value=r.pag_nome||'';
+  document.getElementById('rc-pag-doc').value=r.pag_doc||'';
+  document.getElementById('rc-pag-end').value=r.pag_end||'';
+  document.getElementById('rc-prep').value=r.prep||'DO';
+  document.getElementById('rc-pix').checked=!!r.pix;
+  document.getElementById('rc-tit-itens').textContent=ROT[r.tipo].itens;
+  const itens=(r.itens&&r.itens.length)?r.itens:[{data:r.data||fmtData(new Date())}];
+  document.getElementById('rc-itens').innerHTML=cabItens()+itens.map(linhaItemRecibo).join('');
+  const dec=document.getElementById('rc-decl');
+  dec.dataset.editado=r.decl?'1':'';
+  dec.value=r.decl||'';
+  dec.oninput=function(){this.dataset.editado='1';};
+  document.getElementById('modal-recibo-titulo').textContent=titulo;
+  document.getElementById('btn-excluir-rc').style.display=r.id?'inline-block':'none';
+  totalRecibos();
+  autoNumeroRecibo();
+  if(!r.decl){dec.dataset.editado='';montarDeclaracao();}
+  abrirModal('modal-recibo');
+}
+function abrirNovoRecibo(){abrirModalRecibo({tipo:tipoRecibo,pix:tipoRecibo==='servico'},'Novo recibo de '+(tipoRecibo==='venda'?'venda':'servi\u00e7o'));}
+function editarRecibo(id){const r=DB.recibos.find(x=>x.id===id);if(r)abrirModalRecibo(r,'Editar recibo');}
+function duplicarRecibo(id){
+  const r=DB.recibos.find(x=>x.id===id);if(!r)return;
+  const c=JSON.parse(JSON.stringify(r));c.id=null;c.numero='';c.data=fmtData(new Date());
+  (c.itens||[]).forEach(i=>i.data=c.data);
+  abrirModalRecibo(c,'Novo recibo (c\u00f3pia)');
+}
+function salvarRecibo(imprimir){
+  const itens=lerItensRecibo();
+  if(!itens.length){toast('Adicione ao menos uma linha.','erro');return;}
+  if(!document.getElementById('rc-pag-nome').value.trim()){toast('Informe o nome do pagador.','erro');return;}
+  const d={tipo:document.getElementById('rc-tipo').value,
+    data:document.getElementById('rc-data').value||fmtData(new Date()),
+    numero:document.getElementById('rc-numero').value.trim()||proximoNumeroRecibo(document.getElementById('rc-data').value,document.getElementById('rc-id').value),
+    cliente_id:document.getElementById('rc-cliente').value,
+    pag_nome:document.getElementById('rc-pag-nome').value.trim(),
+    pag_doc:document.getElementById('rc-pag-doc').value.trim(),
+    pag_end:document.getElementById('rc-pag-end').value.trim(),
+    prep:document.getElementById('rc-prep').value,
+    pix:document.getElementById('rc-pix').checked,
+    decl:document.getElementById('rc-decl').value.trim(),
+    itens:itens};
+  const id=document.getElementById('rc-id').value;
+  let alvo;
+  if(id){alvo=DB.recibos.find(x=>x.id==id);Object.assign(alvo,d);}
+  else{d.id=novoId('rec');DB.recibos.push(d);alvo=d;}
+  salvarDB();fecharModal('modal-recibo');tipoRecibo=d.tipo;
+  document.querySelectorAll('.subaba').forEach(b=>b.classList.toggle('ativa',b.dataset.tipo===d.tipo));
+  renderRecibos();toast('Recibo salvo!','sucesso');
+  if(imprimir)imprimirRecibo(alvo.id);
+}
+function excluirRecibo(){
+  const id=+document.getElementById('rc-id').value;if(!id)return;
+  if(!confirm('Excluir este recibo?'))return;
+  DB.recibos=DB.recibos.filter(r=>r.id!==id);salvarDB();fecharModal('modal-recibo');renderRecibos();toast('Recibo exclu\u00eddo.','sucesso');
+}
+function imprimirRecibo(id){
+  const r=DB.recibos.find(x=>x.id===id);if(!r){toast('Recibo n\u00e3o encontrado.','erro');return;}
+  const R=ROT[r.tipo]||ROT.servico;
+  const total=totalRecibo(r);
+  const linhas=(r.itens||[]).map(i=>`<tr><td class="cen">${i.data?brdata(i.data):''}</td><td class="desc">${esc(i.desc||'')}</td><td class="cen">${esc(i.qtd||'')}</td><td>R$${(parseFloat(i.valor)||0).toFixed(2).replace('.',',')}</td></tr>`).join('');
+  const rodape=r.pix
+    ? `<tr><td></td><td class="cen">${esc(pixPessoal())}</td><td class="cen"><b>TOTAL</b></td><td><b>R$${total.toFixed(2).replace('.',',')}</b></td></tr>`
+    : `<tr><td></td><td></td><td class="cen"><b>TOTAL</b></td><td><b>R$${total.toFixed(2).replace('.',',')}</b></td></tr>`;
+  const html=`<!DOCTYPE html><html lang="pt-br"><head><meta charset="utf-8"><title>Recibo ${esc(numRecibo(r))}</title>
+  <style>@page{size:A4;margin:14mm}body{font-family:Calibri,Arial,sans-serif;color:#000;margin:0}
+  img{height:58px;margin-bottom:10px}
+  h2{text-align:center;font-size:15px;margin:14px 0 18px;letter-spacing:.02em}
+  table{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed}
+  th,td{border:1px solid #000;padding:5px 7px;text-align:left;vertical-align:top;word-wrap:break-word}
+  th{font-weight:400;font-size:12px}
+  td.desc{white-space:pre-line}
+  .cen{text-align:center}
+  col.c1{width:14%}col.c3{width:13%}col.c4{width:13%}
+  .decl{font-size:12px;margin-top:26px;line-height:1.7}
+  </style></head><body>
+    <img src="${LOGO_URL}" alt="VR Tecnologia">
+    <h2><b>${R.tit}</b></h2>
+    <table><colgroup><col class="c1"><col><col class="c3"><col class="c4"></colgroup>
+      <thead><tr><th>${R.cab[0]}</th><th>${R.cab[1]}</th><th>${R.cab[2]}</th><th>${R.cab[3]}</th></tr></thead>
+      <tbody>${linhas}${rodape}</tbody></table>
+    <p class="decl">${esc(r.decl||'')}</p>
+    <script>window.onload=function(){setTimeout(function(){window.print();},350);};<\/script>
+  </body></html>`;
+  abrirImpressao(html);
+}
+
 // ================== Notas ==================
 function renderNotas(){const box=document.getElementById('lista-notas');if(!DB.notas.length){box.innerHTML='<p class="vazio">Nenhuma nota emitida ainda. Emita pela tela de OS: marque as OS e clique em "Emitir NFS-e".</p>';return;}const rows=DB.notas.slice().reverse().map(n=>{const c=DB.clientes.find(x=>x.id===n.cliente_id);return`<tr><td data-rot="Emitida em">${esc(n.emitida_em)}</td><td data-rot="Cliente">${esc(c?c.nome:'—')}</td><td data-rot="Nº NFS-e">${esc(n.numero_nfse)||'—'}</td><td data-rot="Valor">R$ ${(n.valor||0).toFixed(2)}</td><td data-rot="Status"><span class="tag tag-${n.status}">${n.status}</span></td></tr>`;}).join('');box.innerHTML=`<table class="tabela"><thead><tr><th>Emitida em</th><th>Cliente</th><th>Nº NFS-e</th><th>Valor</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table>`;}
 
 // ================== Config ==================
-function carregarConfigForm(){const c=DB.config;document.getElementById('cfg-desc').value=c.desc||'';document.getElementById('cfg-ctrib').value=c.ctrib||'';document.getElementById('cfg-cnpj').value=c.cnpj||'';document.getElementById('cfg-mun').value=c.mun||'';document.getElementById('cfg-razao').value=c.razao||'';document.getElementById('cfg-pix').value=c.pix||'';document.getElementById('cfg-repo').value=GH_REPO;document.getElementById('cfg-token').value=GH_TOKEN;}
-function salvarConfig(){DB.config={desc:document.getElementById('cfg-desc').value,ctrib:document.getElementById('cfg-ctrib').value,cnpj:document.getElementById('cfg-cnpj').value,mun:document.getElementById('cfg-mun').value,razao:document.getElementById('cfg-razao').value,pix:document.getElementById('cfg-pix').value};salvarDB();toast('Configurações salvas.','sucesso');}
+function carregarConfigForm(){const c=DB.config;document.getElementById('cfg-banco').value=c.banco||'';document.getElementById('cfg-pix-cpf').value=c.pix_cpf||'';document.getElementById('cfg-emit-nome').value=c.emit_nome||'';document.getElementById('cfg-emit-cpf').value=c.emit_cpf||'';document.getElementById('cfg-desc').value=c.desc||'';document.getElementById('cfg-ctrib').value=c.ctrib||'';document.getElementById('cfg-cnpj').value=c.cnpj||'';document.getElementById('cfg-mun').value=c.mun||'';document.getElementById('cfg-razao').value=c.razao||'';document.getElementById('cfg-pix').value=c.pix||'';document.getElementById('cfg-repo').value=GH_REPO;document.getElementById('cfg-token').value=GH_TOKEN;}
+function salvarConfig(){DB.config={banco:document.getElementById('cfg-banco').value,pix_cpf:document.getElementById('cfg-pix-cpf').value,emit_nome:document.getElementById('cfg-emit-nome').value,emit_cpf:document.getElementById('cfg-emit-cpf').value,desc:document.getElementById('cfg-desc').value,ctrib:document.getElementById('cfg-ctrib').value,cnpj:document.getElementById('cfg-cnpj').value,mun:document.getElementById('cfg-mun').value,razao:document.getElementById('cfg-razao').value,pix:document.getElementById('cfg-pix').value};salvarDB();toast('Configurações salvas.','sucesso');}
 
 // ================== Importar agenda do Outlook (.ics) ==================
 function parseICSDate(v){
