@@ -219,7 +219,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
       <a data-view="recibos" onclick="showView('recibos')">🧾 <span class="txt">Recibos</span></a>
       <a data-view="config" onclick="showView('config')">⚙️ <span class="txt">Configurações</span></a>
     </nav>
-    <div class="sidebar-rodape">v3.3 · web</div>
+    <div class="sidebar-rodape">v3.4 · web</div>
   </aside>
   <nav class="tabbar" id="tabbar">
     <a data-view="agenda" class="ativo" onclick="showView('agenda')"><i>📅</i><span>Agenda</span></a>
@@ -264,6 +264,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
           <label class="btn btn-secundario" style="display:inline-block;margin:0">&#128196; Importar OS (arquivo)<input type="file" accept="application/json" style="display:none" onchange="importarOSArquivo(this)"></label>
           <button class="btn btn-primario" onclick="imprimirOS()">🖨️ Imprimir todas</button>
           <button class="btn btn-nfse" id="btn-nfse-os" onclick="emitirNFSeOS()" disabled>🧾 Emitir NFS-e</button>
+          <button class="btn btn-secundario" id="btn-recibo-os" onclick="puxarReciboDaOS()" disabled>&#129534; Gerar recibo</button>
         </div>
         <p class="dim" style="margin-top:8px">Marque no ✓ as OS que entram na nota e clique em <b>🧾 Emitir NFS-e</b>. Para imprimir: <b>🖨️ Imprimir todas</b> sai tudo do mês numa folha, ou o <b>Imprimir</b> da linha sai só aquela OS.</p>
         <h3>Adicionar serviço</h3>
@@ -640,11 +641,43 @@ function fmtLocal(dt){return dt?dt.slice(0,16):'';}
 function abrirNovoAgendamento(dataStr){carregarClientesSelect();document.getElementById('ag-id').value='';['ag-titulo','ag-valor','ag-local','ag-descricao'].forEach(i=>document.getElementById(i).value='');document.getElementById('ag-cliente').value='';document.getElementById('ag-status').value='agendado';document.getElementById('modal-titulo').textContent='Novo agendamento';document.getElementById('btn-excluir-ag').style.display='none';document.getElementById('btn-outlook').style.display='none';document.getElementById('bloco-recorrencia').style.display='';document.querySelectorAll('.dow').forEach(c=>c.checked=false);document.getElementById('ag-repetir-ate').value=(new Date().getFullYear())+'-12-31';const base=(dataStr||fmtData(new Date()))+'T09:00';document.getElementById('ag-inicio').value=base;document.getElementById('ag-fim').value=base.slice(0,11)+'10:00';abrirModal('modal-agendamento');}
 function abrirAgendamento(id){carregarClientesSelect();const a=DB.agendamentos.find(x=>x.id===id);if(!a)return;document.getElementById('ag-id').value=a.id;document.getElementById('ag-titulo').value=a.titulo||'';document.getElementById('ag-cliente').value=a.cliente_id||'';document.getElementById('ag-inicio').value=fmtLocal(a.inicio);document.getElementById('ag-fim').value=fmtLocal(a.fim);document.getElementById('ag-valor').value=a.valor||'';document.getElementById('ag-status').value=a.status||'agendado';document.getElementById('ag-local').value=a.local||'';document.getElementById('ag-descricao').value=a.descricao||'';document.getElementById('modal-titulo').textContent='Editar agendamento';document.getElementById('btn-excluir-ag').style.display='inline-block';document.getElementById('btn-outlook').style.display='inline-block';document.getElementById('bloco-recorrencia').style.display='none';abrirModal('modal-agendamento');}
 function coletarAg(){const v=id=>document.getElementById(id).value;return{titulo:v('ag-titulo').trim(),cliente_id:v('ag-cliente')||null,inicio:v('ag-inicio'),fim:v('ag-fim'),valor:parseFloat(v('ag-valor'))||0,status:v('ag-status'),local:v('ag-local'),descricao:v('ag-descricao')};}
+function irmaosAgendamento(a){
+  if(a.recorrencia){
+    return DB.agendamentos.filter(x=>x.recorrencia===a.recorrencia);
+  }
+  const hora=(a.inicio||'').slice(11,16);
+  const chave=(x)=>String(x.cliente_id||'')+'|'+(x.titulo||'').trim().toLowerCase()+'|'+(x.inicio||'').slice(11,16);
+  const alvo=chave(a);
+  return DB.agendamentos.filter(x=>chave(x)===alvo);
+}
+
 function salvarAgendamento(){
   const d=coletarAg();
   if(!d.titulo||!d.inicio||!d.fim){toast('Preencha título, início e fim.','erro');return;}
   const id=document.getElementById('ag-id').value;
-  if(id){Object.assign(DB.agendamentos.find(x=>x.id==id),d);salvarDB();fecharModal('modal-agendamento');renderCalendario();toast('Agendamento salvo!','sucesso');return;}
+  if(id){
+    const orig=DB.agendamentos.find(x=>x.id==id);
+    const irmaos=irmaosAgendamento(orig).filter(x=>x.id!==orig.id);
+    Object.assign(orig,d);
+    if(irmaos.length){
+      const cli=DB.clientes.find(c=>String(c.id)===String(orig.cliente_id));
+      const quem=(cli?cli.nome+' - ':'')+(orig.titulo||'');
+      const msg=orig.recorrencia
+        ?`Este agendamento faz parte de uma série com mais ${irmaos.length} repetição(ões).\n\nOK = aplicar as alterações a TODA a série.\nCancelar = alterar só este.`
+        :`Existem mais ${irmaos.length} agendamento(s) iguais em outras datas.\n\nOK = aplicar as alterações a TODOS.\nCancelar = alterar só este.`;
+      if(confirm(msg)){
+        irmaos.forEach(x=>{
+          const hora=d.inicio.slice(11,16), durMs=new Date(d.fim)-new Date(d.inicio);
+          const ini=x.inicio.slice(0,10)+'T'+hora;
+          const f=new Date(new Date(ini).getTime()+durMs);
+          const fimStr=fmtData(f)+'T'+String(f.getHours()).padStart(2,'0')+':'+String(f.getMinutes()).padStart(2,'0');
+          x.titulo=d.titulo;x.cliente_id=d.cliente_id;x.local=d.local;x.descricao=d.descricao;x.valor=d.valor;x.status=d.status;x.inicio=ini;x.fim=fimStr;
+        });
+        toast('Alterações aplicadas a '+(irmaos.length+1)+' agendamentos.','sucesso');
+      }else{toast('Agendamento salvo (só este).','sucesso');}
+    }else{toast('Agendamento salvo!','sucesso');}
+    salvarDB();fecharModal('modal-agendamento');renderCalendario();return;
+  }
   // Novo: verifica repetição semanal
   const dows=[...document.querySelectorAll('.dow:checked')].map(c=>+c.value);
   const ate=document.getElementById('ag-repetir-ate').value;
@@ -670,16 +703,32 @@ function salvarAgendamento(){
   }
   d.id=novoId('ag');d.origem='app';DB.agendamentos.push(d);salvarDB();fecharModal('modal-agendamento');renderCalendario();toast('Agendamento salvo!','sucesso');
 }
-function excluirAgendamento(){const id=+document.getElementById('ag-id').value;if(!id)return;const a=DB.agendamentos.find(x=>x.id===id);if(!a)return;
-  if(a.recorrencia){
-    const serie=confirm('Este agendamento se repete (série).\n\nOK = excluir TODA a série.\nCancelar = excluir só este.');
-    if(serie)DB.agendamentos=DB.agendamentos.filter(x=>x.recorrencia!==a.recorrencia);
-    else DB.agendamentos=DB.agendamentos.filter(x=>x.id!==id);
+function excluirAgendamento(){
+  const id=+document.getElementById('ag-id').value;if(!id)return;
+  const a=DB.agendamentos.find(x=>x.id===id);if(!a)return;
+  const irmaos=irmaosAgendamento(a).filter(x=>x.id!==id);
+  if(irmaos.length){
+    const outros=irmaos.length;
+    const cli=DB.clientes.find(c=>String(c.id)===String(a.cliente_id));
+    const quem=(cli?cli.nome+' - ':'')+(a.titulo||'');
+    const msg=a.recorrencia
+      ?`Este agendamento faz parte de uma série ("${quem}") com mais ${outros} repetição(ões).\n\nOK = excluir TODA a série (${outros+1}).\nCancelar = excluir só este.`
+      :`Existem mais ${outros} agendamento(s) iguais ("${quem}", mesmo horário) em outras datas.\n\nOK = excluir TODOS os ${outros+1}.\nCancelar = excluir só este.`;
+    if(confirm(msg)){
+      const ids=new Set(irmaosAgendamento(a).map(x=>x.id));
+      DB.agendamentos=DB.agendamentos.filter(x=>!ids.has(x.id));
+      toast('Excluídos '+(outros+1)+' agendamentos.','sucesso');
+    }else{
+      DB.agendamentos=DB.agendamentos.filter(x=>x.id!==id);
+      toast('Excluído (só este).','sucesso');
+    }
   }else{
     if(!confirm('Excluir este agendamento?'))return;
     DB.agendamentos=DB.agendamentos.filter(x=>x.id!==id);
+    toast('Excluído.','sucesso');
   }
-  salvarDB();fecharModal('modal-agendamento');renderCalendario();toast('Excluído.','sucesso');}
+  salvarDB();fecharModal('modal-agendamento');renderCalendario();
+}
 
 // ================== Outlook via .ics ==================
 function icsData(dtLocal){return(dtLocal||'').replace(/[-:]/g,'').slice(0,15).padEnd(15,'0');}
@@ -712,6 +761,8 @@ function atualizarSelecaoOS(){
   const tot=DB.servicos.filter(s=>ids.includes(s.id)).reduce((a,s)=>a+(parseFloat(s.valor)||0),0);
   btn.disabled=!ids.length;
   btn.textContent=ids.length?`\u{1F9FE} Emitir NFS-e (${ids.length} \u00b7 R$ ${tot.toFixed(2)})`:'\u{1F9FE} Emitir NFS-e';
+  const br=document.getElementById('btn-recibo-os');
+  if(br){br.disabled=!ids.length;br.textContent=ids.length?`\u{1F9FE} Gerar recibo (${ids.length})`:'\u{1F9FE} Gerar recibo';}
   const todos=document.querySelectorAll('.chk-os').length, m=document.getElementById('chk-os-todos');
   if(m){m.checked=todos>0&&ids.length===todos;m.indeterminate=ids.length>0&&ids.length<todos;}
 }
@@ -733,6 +784,23 @@ function resumoPortalOS(c,itens,total,mes){
   l.push('DISCRIMINACAO / MENSAGEM (cole no campo de descricao do servico):');
   l.push(mensagemNotaOS(c,mes));
   return l.join('\n');
+}
+function puxarReciboDaOS(){
+  const ids=servicosSelecionados();
+  if(!ids.length){toast('Marque ao menos uma OS.','erro');return;}
+  const itens=DB.servicos.filter(s=>ids.includes(s.id)).sort((a,b)=>(a.data||'').localeCompare(b.data||''));
+  const cid=itens[0].cliente_id;
+  if(itens.some(s=>String(s.cliente_id)!==String(cid))){toast('Selecione OS de um mesmo cliente para o recibo.','erro');return;}
+  const c=DB.clientes.find(x=>String(x.id)===String(cid))||{};
+  const end=[c.logradouro,c.numero].filter(Boolean).join(', ');
+  const r={tipo:'servico',data:itens[itens.length-1].data||fmtData(new Date()),numero:'',
+    cliente_id:String(cid),pag_nome:c.nome||'',pag_doc:c.documento||'',pag_end:end,
+    prep:(c.tipo_pessoa==='J'?'DO':'DO'),pix:true,decl:'',
+    itens:itens.map(s=>({data:s.data,desc:s.descricao||'',qtd:fmtHoras(s.horas),valor:parseFloat(s.valor)||0}))};
+  tipoRecibo='servico';
+  document.querySelectorAll('.subaba').forEach(x=>x.classList.toggle('ativa',x.dataset.tipo==='servico'));
+  abrirModalRecibo(r,'Recibo a partir de '+itens.length+' OS');
+  toast('Recibo montado com as OS marcadas. Confira e salve.','sucesso');
 }
 function emitirNFSeOS(){
   const ids=servicosSelecionados();
