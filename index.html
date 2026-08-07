@@ -503,7 +503,7 @@ const LOGO_URL='data:image/jpeg;base64,/9j/7gAOQWRvYmUAZAAAAAAB/9sAxQAMCAgICAgMC
 // ================== Tela de acesso (tranca leve) ==================
 const LOCK_USER='vrtecnologia';
 const REPO_PADRAO='vrtecnologia/gestor-dados';
-const ENC={"salt": "Md83p/sp8wA8/EzWUAGJ1Q==", "iv": "jexkgXHPoCe9OGll", "ct": "zp+D0l+gZmhS+sqiEgZLtZwhQh2IkRtcY0t4TkxLFlAT+h1lpTspdvbI4NI5gh7dN5489D26gZmHZx/HPZSLNcBnLy9C3galN6BAOnYOw+AkwZL/6om3T4WcOBxdYdPAamF6QnLSEEgv7e5HyQ==", "iter": 210000};
+const ENC={"salt":"HAXCy7zk9TkhAoxoSL7nOQ==","iv":"YvCuzJYjB5Ix61Ae","ct":"TtlD4n51Ld27WoHl608cK+LlnA4b+QfGokCshMiDo3KbK1ave0uQt2qYExXJqPt0Y4lD2jiIqst4N8MfrpmP71ppR+USzi6emPEVD6ck3alNfF49kvGg/1u3b42aXnLlImPlUODYd9kPFFlz8g==","iter":210000};
 function b64ToBytes(b){return Uint8Array.from(atob(b),c=>c.charCodeAt(0));}
 async function derivarChave(pass){const km=await crypto.subtle.importKey('raw',new TextEncoder().encode(pass),'PBKDF2',false,['deriveKey']);return crypto.subtle.deriveKey({name:'PBKDF2',salt:b64ToBytes(ENC.salt),iterations:ENC.iter,hash:'SHA-256'},km,{name:'AES-GCM',length:256},false,['decrypt']);}
 async function desbloquear(){
