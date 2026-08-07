@@ -30,7 +30,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
 .btn-secundario{background:#fff;color:var(--txt);border:1px solid var(--borda)}.btn-secundario:hover{background:var(--cinza-cl)}
 .btn-perigo{background:#fef2f2;color:var(--vermelho);border:1px solid #fecaca}.btn-perigo:hover{background:#fee2e2}
 .btn-nfse{background:var(--nfse);color:#fff}.btn-nfse:hover{opacity:.9}.btn:disabled{opacity:.45;cursor:not-allowed}.chk-cel{width:34px;text-align:center}.chk-os,#chk-os-todos{width:17px;height:17px;cursor:pointer;accent-color:var(--nfse)}
-.subabas{display:flex;gap:8px;margin-bottom:16px;border-bottom:2px solid var(--borda)}.subaba{background:none;border:none;padding:10px 16px;font-size:14px;font-weight:600;color:var(--cinza);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px}.subaba.ativa{color:var(--azul);border-bottom-color:var(--azul)}.rc-item{display:grid;grid-template-columns:130px 1fr 110px 120px 34px;gap:8px;align-items:start;margin-bottom:8px}.rc-item input,.rc-item textarea{padding:8px 10px;border:1px solid var(--borda);border-radius:8px;font-size:14px;font-family:inherit;width:100%}.rc-item .rm{background:#fef2f2;color:var(--vermelho);border:1px solid #fecaca;border-radius:8px;cursor:pointer;font-weight:700;height:38px}.rc-cab{display:grid;grid-template-columns:130px 1fr 110px 120px 34px;gap:8px;font-size:11px;font-weight:700;color:var(--cinza);text-transform:uppercase;margin-bottom:6px}.btn-outlook{background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe}.btn-outlook:hover{background:#e0e7ff}
+.subabas{display:flex;gap:8px;margin-bottom:16px;border-bottom:2px solid var(--borda)}.subaba{background:none;border:none;padding:10px 16px;font-size:14px;font-weight:600;color:var(--cinza);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px}.subaba.ativa{color:var(--azul);border-bottom-color:var(--azul)}.rc-item{display:grid;grid-template-columns:130px 1fr 110px 120px 34px;gap:8px;align-items:start;margin-bottom:8px}.rc-item input,.rc-item textarea{padding:8px 10px;border:1px solid var(--borda);border-radius:8px;font-size:14px;font-family:inherit;width:100%}.rc-item .rm{background:#fef2f2;color:var(--vermelho);border:1px solid #fecaca;border-radius:8px;cursor:pointer;font-weight:700;height:38px}.rc-cab{display:grid;grid-template-columns:130px 1fr 110px 120px 34px;gap:8px;font-size:11px;font-weight:700;color:var(--cinza);text-transform:uppercase;margin-bottom:6px}.btn-outlook{background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe}.btn-outlook:hover{background:#e0e7ff}.eq-grupo{margin:18px 0 8px;font-size:15px;font-weight:700;color:var(--tinta);display:flex;align-items:center;gap:8px}.eq-grupo .cont{font-size:12px;font-weight:600;color:var(--cinza);background:var(--cinza-cl);padding:2px 8px;border-radius:10px}.eq-card{background:#fff;border-radius:12px;padding:14px 16px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.08);display:flex;gap:12px;align-items:flex-start;cursor:pointer;border-left:4px solid transparent}.eq-card:hover{box-shadow:0 2px 8px rgba(0,0,0,.12)}.eq-card.mp-ok{border-left-color:#10b981}.eq-card.mp-pend{border-left-color:#f59e0b}.eq-cod{font-family:ui-monospace,monospace;font-size:12px;font-weight:700;color:var(--azul);background:#eff6ff;padding:3px 8px;border-radius:6px;white-space:nowrap}.eq-main{flex:1;min-width:0}.eq-equip{font-weight:600;font-size:14px;margin-bottom:2px}.eq-meta{font-size:12px;color:var(--cinza);display:flex;flex-wrap:wrap;gap:4px 12px}.eq-mp{font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;white-space:nowrap}.eq-mp.ok{background:#d1fae5;color:#065f46}.eq-mp.pend{background:#fef3c7;color:#92400e}
 .legenda{display:flex;gap:18px;margin-bottom:14px;font-size:13px;color:var(--cinza);flex-wrap:wrap}
 .legenda i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:middle}
 #calendario{background:#fff;border-radius:12px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
@@ -147,6 +147,8 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
   .rc-item textarea{grid-column:span 2}
   .rc-item .rm{grid-column:span 2;height:40px}
   .subaba{flex:1;padding:12px 6px;font-size:13px}
+  .eq-card{flex-direction:column;gap:8px}
+  .eq-cod{align-self:flex-start}
 
   /* TABELAS VIRAM CARTOES */
   .tabela,.tabela thead,.tabela tbody,.tabela tr,.tabela td{display:block;width:100%}
@@ -217,9 +219,10 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
       <a data-view="os" onclick="showView('os')">📄 <span class="txt">OS</span></a>
       <a data-view="contratos" onclick="showView('contratos')">📋 <span class="txt">Contratos</span></a>
       <a data-view="recibos" onclick="showView('recibos')">🧾 <span class="txt">Recibos</span></a>
+      <a data-view="equip" onclick="showView('equip')">💻 <span class="txt">Equipamentos</span></a>
       <a data-view="config" onclick="showView('config')">⚙️ <span class="txt">Configurações</span></a>
     </nav>
-    <div class="sidebar-rodape">v3.4 · web</div>
+    <div class="sidebar-rodape">v3.5 · web</div>
   </aside>
   <nav class="tabbar" id="tabbar">
     <a data-view="agenda" class="ativo" onclick="showView('agenda')"><i>📅</i><span>Agenda</span></a>
@@ -227,6 +230,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
     <a data-view="os" onclick="showView('os')"><i>📄</i><span>OS</span></a>
     <a data-view="contratos" onclick="showView('contratos')"><i>📋</i><span>Contratos</span></a>
     <a data-view="recibos" onclick="showView('recibos')"><i>🧾</i><span>Recibos</span></a>
+    <a data-view="equip" onclick="showView('equip')"><i>💻</i><span>Equip.</span></a>
     <a data-view="notas" onclick="showView('notas')"><i>🧾</i><span>Notas</span></a>
     <a data-view="config" onclick="showView('config')"><i>⚙️</i><span>Config</span></a>
   </nav>
@@ -306,6 +310,21 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
         <button class="subaba" data-tipo="venda" onclick="trocarTipoRecibo('venda')">&#128230; Vendas</button>
       </div>
       <div id="lista-recibos"></div>
+    </section>
+
+    <section id="view-equip" class="oculto">
+      <div class="topo"><h1>Equipamentos</h1><div class="topo-acoes">
+        <button class="btn btn-primario" onclick="abrirNovoEquip()">+ Novo equipamento</button>
+        <label class="btn btn-secundario" style="display:inline-block;margin:0">&#128196; Importar planilha<input type="file" accept=".xlsx,.xls" style="display:none" onchange="importarEquipXlsx(this)"></label>
+      </div></div>
+      <div class="card no-print">
+        <div class="os-filtros">
+          <div class="campo">Cliente<select id="eq-filtro-cli" onchange="renderEquip()"><option value="">Todos os clientes</option></select></div>
+          <div class="campo">Buscar<input id="eq-busca" placeholder="código, usuário, equipamento..." oninput="renderEquip()"></div>
+          <div class="campo">Manutenção<select id="eq-filtro-mp" onchange="renderEquip()"><option value="">Todas</option><option value="ok">Em dia</option><option value="pend">Pendente</option></select></div>
+        </div>
+      </div>
+      <div id="lista-equip"></div>
     </section>
 
     <section id="view-config" class="oculto">
@@ -422,6 +441,25 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
     <div style="flex:1"></div>
     <button class="btn btn-secundario" onclick="fecharModal('modal-nota')">Fechar</button>
     <button class="btn btn-primario" id="btn-salvar-nota" onclick="salvarNota()">Salvar altera&ccedil;&otilde;es</button>
+  </div>
+</div></div>
+<div id="modal-equip" class="modal-overlay oculto"><div class="modal modal-largo">
+  <div class="modal-topo"><h2 id="modal-equip-titulo">Novo equipamento</h2><button class="fechar" onclick="fecharModal('modal-equip')">&#10005;</button></div>
+  <input type="hidden" id="eq-id">
+  <div class="form-grid">
+    <label class="col2">Cliente<select id="eq-cliente"></select></label>
+    <label>Código / patrimônio<input id="eq-codigo" placeholder="REMMKT001"></label>
+    <label>Usuário (quem usa)<input id="eq-usuario" placeholder="Nome da pessoa"></label>
+    <label class="col2">Equipamento (marca, modelo, specs)<textarea id="eq-desc" rows="2" placeholder="NOTEBOOK ACER ASPIRE 5 I7 16GB 512 SSD"></textarea></label>
+    <label>Sistema operacional<input id="eq-so" placeholder="WINDOWS 11 PRO"></label>
+    <label>Manutenção preventiva<select id="eq-mp"><option value="0">Pendente</option><option value="1">Em dia</option></select></label>
+    <label class="col2">Diagnóstico / observações<textarea id="eq-obs" rows="2" placeholder="ADQUIRIDA EM JUNHO/2025, etc"></textarea></label>
+  </div>
+  <div class="modal-rodape">
+    <button class="btn btn-perigo" id="btn-excluir-eq" onclick="excluirEquip()">Excluir</button>
+    <div style="flex:1"></div>
+    <button class="btn btn-secundario" onclick="fecharModal('modal-equip')">Cancelar</button>
+    <button class="btn btn-primario" onclick="salvarEquip()">Salvar</button>
   </div>
 </div></div>
 <div id="modal-recibo" class="modal-overlay oculto"><div class="modal modal-largo">
@@ -586,11 +624,11 @@ const CAMPOS_CLI=['nome','tipo_pessoa','documento','email','telefone','inscricao
 const MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 const DIAS=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
 let DB=carregarLocal();
-function dbPadrao(){return{clientes:[],agendamentos:[],notas:[],servicos:[],contratos:[],cobrancas:[],recibos:[],config:{desc:'REPARAÇÃO E MANUTENÇÃO DE COMPUTADORES',ctrib:'140101',cnpj:'42612058000136',mun:'3304557',razao:'',pix:'PIX CNPJ 42.612.058/0001-36',pix_cpf:'',banco:'',emit_nome:'',emit_cpf:''},seq:{cli:1,ag:1,nota:1,serv:1,ct:1,cob:1,rec:1}};}
+function dbPadrao(){return{clientes:[],agendamentos:[],notas:[],servicos:[],contratos:[],cobrancas:[],recibos:[],equipamentos:[],config:{desc:'REPARAÇÃO E MANUTENÇÃO DE COMPUTADORES',ctrib:'140101',cnpj:'42612058000136',mun:'3304557',razao:'',pix:'PIX CNPJ 42.612.058/0001-36',pix_cpf:'',banco:'',emit_nome:'',emit_cpf:''},seq:{cli:1,ag:1,nota:1,serv:1,ct:1,cob:1,rec:1,eq:1}};}
 function migrar(d){
   const pad=dbPadrao();
   d=Object.assign({},pad,d||{});
-  ['clientes','agendamentos','notas','servicos','contratos','cobrancas','recibos'].forEach(k=>{if(!Array.isArray(d[k]))d[k]=[];});
+  ['clientes','agendamentos','notas','servicos','contratos','cobrancas','recibos','equipamentos'].forEach(k=>{if(!Array.isArray(d[k]))d[k]=[];});
   d.config=Object.assign({},pad.config,d.config||{});
   ['desc','ctrib','cnpj','mun','pix'].forEach(k=>{if(!d.config[k])d.config[k]=pad.config[k];});
   d.seq=Object.assign({},pad.seq,d.seq||{});
@@ -609,10 +647,10 @@ function fecharModal(id){document.getElementById(id).classList.add('oculto');}
 function soNums(t){return(t||'').replace(/\D/g,'');}
 function esc(t){return(t==null?'':String(t)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 document.addEventListener('click',e=>{if(e.target.classList&&e.target.classList.contains('modal-overlay'))e.target.classList.add('oculto');});
-function rerenderTudo(){renderCalendario();renderClientes();renderNotas();renderContratos();renderRecibos();carregarClientesSelect();carregarConfigForm();}
+function rerenderTudo(){renderCalendario();renderClientes();renderNotas();renderContratos();renderRecibos();renderEquip();carregarClientesSelect();carregarConfigForm();}
 
 // ================== Navegação ==================
-function showView(v){['agenda','clientes','notas','os','contratos','recibos','config'].forEach(n=>document.getElementById('view-'+n).classList.toggle('oculto',n!==v));document.querySelectorAll('.sidebar nav a,.tabbar a').forEach(a=>a.classList.toggle('ativo',a.dataset.view===v));if(v==='agenda')renderCalendario();if(v==='clientes')renderClientes();if(v==='notas')renderNotas();if(v==='os')renderOS();if(v==='contratos')renderContratos();if(v==='recibos')renderRecibos();if(v==='config')carregarConfigForm();}
+function showView(v){['agenda','clientes','notas','os','contratos','recibos','equip','config'].forEach(n=>document.getElementById('view-'+n).classList.toggle('oculto',n!==v));document.querySelectorAll('.sidebar nav a,.tabbar a').forEach(a=>a.classList.toggle('ativo',a.dataset.view===v));if(v==='agenda')renderCalendario();if(v==='clientes')renderClientes();if(v==='notas')renderNotas();if(v==='os')renderOS();if(v==='contratos')renderContratos();if(v==='recibos')renderRecibos();if(v==='equip')renderEquip();if(v==='config')carregarConfigForm();}
 
 // ================== Clientes ==================
 function renderClientes(q){q=(q||'').toLowerCase();const lista=DB.clientes.filter(c=>!q||(c.nome||'').toLowerCase().includes(q)||(c.documento||'').includes(q)).sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));const tb=document.getElementById('lista-clientes');if(!lista.length){tb.innerHTML='<tr><td colspan="6" class="vazio">Nenhum cliente cadastrado.</td></tr>';return;}tb.innerHTML=lista.map(c=>`<tr><td data-rot="Nome"><b>${esc(c.nome)}</b></td><td data-rot="Tipo">${c.tipo_pessoa==='J'?'Jurídica':'Física'}</td><td data-rot="CPF/CNPJ">${esc(c.documento)||'—'}</td><td data-rot="Telefone">${esc(c.telefone)||'—'}</td><td data-rot="Município">${esc(c.municipio)||'—'}</td><td class="acoes-cel"><span class="link-acao" onclick="editarCliente(${c.id})">Editar</span><span class="link-acao perigo" onclick="excluirCliente(${c.id})">Excluir</span></td></tr>`).join('');}
@@ -1476,6 +1514,249 @@ function importarOSArquivo(input){
   r.readAsText(f);
 }
 
+// ---- Leitor XLSX minimo (offline, sem bibliotecas) ----
+async function lerXlsx(buf){
+  const arquivos=await descompactarZip(new Uint8Array(buf));
+  const dec=new TextDecoder('utf-8');
+  const nome=Object.keys(arquivos).find(n=>/sheet1\.xml$/i.test(n))||Object.keys(arquivos).find(n=>/sheet.*\.xml$/i.test(n));
+  if(!nome)throw new Error('planilha n\u00e3o encontrada no arquivo');
+  const sheetXml=dec.decode(arquivos[nome]);
+  let shared=[];
+  const ssName=Object.keys(arquivos).find(n=>/sharedStrings\.xml$/i.test(n));
+  if(ssName)shared=lerSharedStrings(dec.decode(arquivos[ssName]));
+  return lerSheet(sheetXml,shared);
+}
+function lerSharedStrings(xml){
+  const out=[];
+  const re=/<si>([\s\S]*?)<\/si>/g;let m;
+  while(m=re.exec(xml)){
+    // junta todos os <t>...</t> do item
+    let txt='';const tre=/<t[^>]*>([\s\S]*?)<\/t>/g;let tm;
+    while(tm=tre.exec(m[1]))txt+=decodeXmlEntidades(tm[1]);
+    out.push(txt);
+  }
+  return out;
+}
+function colParaIndice(ref){ // "B12" -> 1 (0-based da coluna)
+  const letras=(ref.match(/^[A-Z]+/)||['A'])[0];
+  let n=0;for(let i=0;i<letras.length;i++)n=n*26+(letras.charCodeAt(i)-64);
+  return n-1;
+}
+function lerSheet(xml,shared){
+  const linhas=[];
+  const reRow=/<row[^>]*>([\s\S]*?)<\/row>/g;let mr;
+  while(mr=reRow.exec(xml)){
+    const cels=[];
+    const reC=/<c\s+([^>]*?)(?:\/>|>([\s\S]*?)<\/c>)/g;let mc;
+    while(mc=reC.exec(mr[1])){
+      const attrs=mc[1]||'', inner=mc[2]||'';
+      const refM=attrs.match(/r="([A-Z]+\d+)"/);
+      const idx=refM?colParaIndice(refM[1]):cels.length;
+      const tM=attrs.match(/t="([^"]+)"/);
+      const tipo=tM?tM[1]:'';
+      let val='';
+      const vM=inner.match(/<v>([\s\S]*?)<\/v>/);
+      const isM=inner.match(/<t[^>]*>([\s\S]*?)<\/t>/); // inline string
+      if(tipo==='s'&&vM){val=shared[parseInt(vM[1])]||'';}
+      else if(tipo==='inlineStr'&&isM){val=decodeXmlEntidades(isM[1]);}
+      else if(vM){val=decodeXmlEntidades(vM[1]);}
+      cels[idx]=val;
+    }
+    for(let i=0;i<cels.length;i++)if(cels[i]===undefined)cels[i]='';
+    linhas.push(cels);
+  }
+  return linhas;
+}
+function decodeXmlEntidades(s){
+  return s.replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&apos;/g,"'").replace(/&#(\d+);/g,(_,n)=>String.fromCharCode(+n)).replace(/&amp;/g,'&');
+}
+// descompacta um zip (deflate) usando DecompressionStream nativo
+async function descompactarZip(bytes){
+  const arquivos={};
+  const dv=new DataView(bytes.buffer);
+  let i=0;
+  while(i+4<=bytes.length){
+    const sig=dv.getUint32(i,true);
+    if(sig!==0x04034b50)break; // fim das entradas locais
+    const metodo=dv.getUint16(i+8,true);
+    const compSize=dv.getUint32(i+18,true);
+    const nameLen=dv.getUint16(i+26,true);
+    const extraLen=dv.getUint16(i+28,true);
+    const nome=new TextDecoder().decode(bytes.slice(i+30,i+30+nameLen));
+    const dataIni=i+30+nameLen+extraLen;
+    const comp=bytes.slice(dataIni,dataIni+compSize);
+    let conteudo;
+    if(metodo===0){conteudo=comp;}
+    else if(metodo===8){conteudo=await inflateRaw(comp);}
+    else{conteudo=new Uint8Array(0);}
+    if(/\.xml$/i.test(nome))arquivos[nome]=conteudo;
+    i=dataIni+compSize;
+  }
+  return arquivos;
+}
+async function inflateRaw(comp){
+  const ds=new DecompressionStream('deflate-raw');
+  const stream=new Response(comp).body.pipeThrough(ds);
+  return new Uint8Array(await new Response(stream).arrayBuffer());
+}
+
+// ================== Equipamentos ==================
+let eqFiltroInit=false;
+function renderEquip(){
+  const box=document.getElementById('lista-equip');if(!box)return;
+  const selCli=document.getElementById('eq-filtro-cli');
+  if(!eqFiltroInit){
+    selCli.innerHTML='<option value="">Todos os clientes</option>'+DB.clientes.slice().sort((a,b)=>(a.nome||'').localeCompare(b.nome||'')).map(c=>`<option value="${c.id}">${esc(c.nome)}</option>`).join('');
+    eqFiltroInit=true;
+  }
+  const fc=selCli.value, fmp=document.getElementById('eq-filtro-mp').value, q=(document.getElementById('eq-busca').value||'').toLowerCase();
+  let lista=DB.equipamentos.filter(e=>{
+    if(fc&&String(e.cliente_id)!==String(fc))return false;
+    if(fmp==='ok'&&!e.mp)return false;
+    if(fmp==='pend'&&e.mp)return false;
+    if(q){const t=(e.codigo+' '+e.usuario+' '+e.equipamento+' '+e.so+' '+e.obs).toLowerCase();if(!t.includes(q))return false;}
+    return true;
+  });
+  if(!DB.equipamentos.length){box.innerHTML='<p class="vazio">Nenhum equipamento cadastrado. Clique em "+ Novo equipamento" ou importe sua planilha.</p>';return;}
+  if(!lista.length){box.innerHTML='<p class="vazio">Nenhum equipamento com esse filtro.</p>';return;}
+  // agrupa por cliente
+  const grupos={};
+  lista.forEach(e=>{(grupos[e.cliente_id]=grupos[e.cliente_id]||[]).push(e);});
+  const ordem=Object.keys(grupos).sort((a,b)=>{
+    const na=(DB.clientes.find(c=>String(c.id)===String(a))||{}).nome||'zzz';
+    const nb=(DB.clientes.find(c=>String(c.id)===String(b))||{}).nome||'zzz';
+    return na.localeCompare(nb);
+  });
+  box.innerHTML=ordem.map(cid=>{
+    const c=DB.clientes.find(x=>String(x.id)===String(cid));
+    const its=grupos[cid].sort((a,b)=>(a.codigo||'').localeCompare(b.codigo||''));
+    const emdia=its.filter(e=>e.mp).length;
+    const cards=its.map(e=>`
+      <div class="eq-card ${e.mp?'mp-ok':'mp-pend'}" onclick="editarEquip(${e.id})">
+        ${e.codigo?`<span class="eq-cod">${esc(e.codigo)}</span>`:''}
+        <div class="eq-main">
+          <div class="eq-equip">${esc(e.equipamento||'(sem descri\u00e7\u00e3o)')}</div>
+          <div class="eq-meta">
+            ${e.usuario?`<span>\u{1F464} ${esc(e.usuario)}</span>`:''}
+            ${e.so?`<span>\u{1F4BF} ${esc(e.so)}</span>`:''}
+            ${e.obs?`<span>\u{1F4DD} ${esc(e.obs)}</span>`:''}
+          </div>
+        </div>
+        <span class="eq-mp ${e.mp?'ok':'pend'}">${e.mp?'MP em dia':'MP pendente'}</span>
+      </div>`).join('');
+    return `<div class="eq-grupo">${esc(c?c.nome:'(sem cliente)')} <span class="cont">${its.length} equip. \u00b7 ${emdia} em dia</span></div>${cards}`;
+  }).join('');
+}
+function abrirNovoEquip(){
+  if(!DB.clientes.length){toast('Cadastre um cliente primeiro.','erro');return;}
+  document.getElementById('eq-id').value='';
+  selectClientes('eq-cliente', document.getElementById('eq-filtro-cli').value||'');
+  ['eq-codigo','eq-usuario','eq-desc','eq-so','eq-obs'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('eq-mp').value='0';
+  document.getElementById('modal-equip-titulo').textContent='Novo equipamento';
+  document.getElementById('btn-excluir-eq').style.display='none';
+  abrirModal('modal-equip');
+}
+function editarEquip(id){
+  const e=DB.equipamentos.find(x=>x.id===id);if(!e)return;
+  document.getElementById('eq-id').value=e.id;
+  selectClientes('eq-cliente',e.cliente_id);
+  document.getElementById('eq-codigo').value=e.codigo||'';
+  document.getElementById('eq-usuario').value=e.usuario||'';
+  document.getElementById('eq-desc').value=e.equipamento||'';
+  document.getElementById('eq-so').value=e.so||'';
+  document.getElementById('eq-obs').value=e.obs||'';
+  document.getElementById('eq-mp').value=e.mp?'1':'0';
+  document.getElementById('modal-equip-titulo').textContent='Editar equipamento';
+  document.getElementById('btn-excluir-eq').style.display='inline-block';
+  abrirModal('modal-equip');
+}
+function salvarEquip(){
+  const cid=document.getElementById('eq-cliente').value;
+  if(!cid){toast('Escolha o cliente.','erro');return;}
+  const d={cliente_id:cid,
+    codigo:document.getElementById('eq-codigo').value.trim(),
+    usuario:document.getElementById('eq-usuario').value.trim(),
+    equipamento:document.getElementById('eq-desc').value.trim(),
+    so:document.getElementById('eq-so').value.trim(),
+    obs:document.getElementById('eq-obs').value.trim(),
+    mp:document.getElementById('eq-mp').value==='1'};
+  if(!d.equipamento&&!d.codigo){toast('Informe ao menos o c\u00f3digo ou o equipamento.','erro');return;}
+  const id=document.getElementById('eq-id').value;
+  if(id){Object.assign(DB.equipamentos.find(x=>x.id==id),d);}else{d.id=novoId('eq');DB.equipamentos.push(d);}
+  salvarDB();fecharModal('modal-equip');renderEquip();toast('Equipamento salvo!','sucesso');
+}
+function excluirEquip(){
+  const id=+document.getElementById('eq-id').value;if(!id)return;
+  if(!confirm('Excluir este equipamento?'))return;
+  DB.equipamentos=DB.equipamentos.filter(e=>e.id!==id);
+  salvarDB();fecharModal('modal-equip');renderEquip();toast('Equipamento exclu\u00eddo.','sucesso');
+}
+
+// ---- Importar planilha (.xlsx) no formato dele: blocos por grupo ----
+function importarEquipXlsx(input){
+  const f=input.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=async()=>{
+    try{
+      const linhas=await lerXlsx(r.result);
+      processarLinhasEquip(linhas);
+    }catch(e){toast('N\u00e3o consegui ler a planilha: '+e.message,'erro');}
+    input.value='';
+  };
+  r.readAsArrayBuffer(f);
+}
+function processarLinhasEquip(linhas){
+  // detecta blocos: linha "PCS XYZ" ou nome de grupo isolado inicia um cliente; linha com NOME/EQUIPAMENTO e' cabecalho (ignora)
+  let clienteAtual=null, add=0, dup=0, grupos=0;
+  const ehCabecalho=(c)=>{const j=(c[0]||'').toString().trim().toUpperCase();return j==='NOME'&&(c[1]||'').toString().trim().toUpperCase().startsWith('EQUIP');};
+  const ehTituloGrupo=(c)=>{
+    const a=(c[0]||'').toString().trim();
+    const resto=c.slice(1).some(x=>(x||'').toString().trim());
+    return a && !resto && a.length>2 && !/^REM|^RED|^TACA|^MAC/i.test(a)===false ? false : (a && !resto);
+  };
+  for(const c of linhas){
+    const col0=(c[0]||'').toString().trim();
+    if(!col0 && !c.slice(1).some(x=>(x||'').toString().trim()))continue; // linha vazia
+    if(ehCabecalho(c)){clienteAtual='__aguardando__';continue;} // cabecalho sem titulo -> proximo codigo define o grupo
+    // titulo de grupo: primeira celula preenchida, demais vazias
+    const soPrimeira=col0 && !c.slice(1).some(x=>(x||'').toString().trim());
+    if(soPrimeira && !/^#/.test(col0)){
+      const nome=limparNomeGrupo(col0);
+      clienteAtual=acharOuCriarCliente(nome,'');
+      grupos++;
+      continue;
+    }
+    // linha de equipamento: precisa de codigo (col0) ou equipamento (col1)
+    const codigo=col0, equip=(c[1]||'').toString().trim();
+    if(!codigo && !equip)continue;
+    if(/^#/.test(codigo))continue;
+    if(!clienteAtual||clienteAtual==='__aguardando__'){ // grupo indefinido -> deduz pelo prefixo do codigo
+      const pref=(codigo.match(/^[A-Za-z]+/)||['GRUPO'])[0].toUpperCase();
+      const mapa={RED:'RED-SALES',REMMKT:'REM MARKETING',REMMKTMAC:'REM MARKETING',TACA:'CLUBEDATACA',IAM:'IAM (FARMERSGROUP)'};
+      clienteAtual=acharOuCriarCliente(mapa[pref]||pref,'');
+      grupos++;
+    }
+    const so=(c[2]||'').toString().trim();
+    const usuario=(c[3]||'').toString().trim();
+    const obs=(c[4]||'').toString().trim();
+    const mp=(c[5]||'').toString().trim().toUpperCase()==='X';
+    const jaTem=DB.equipamentos.find(e=>String(e.cliente_id)===String(clienteAtual.id)&&(e.codigo||'').trim().toUpperCase()===codigo.toUpperCase()&&codigo);
+    if(jaTem){ // atualiza o existente (reimportacao)
+      Object.assign(jaTem,{equipamento:equip,so,usuario,obs,mp});dup++;continue;
+    }
+    DB.equipamentos.push({id:novoId('eq'),cliente_id:String(clienteAtual.id),codigo,equipamento:equip,so,usuario,obs,mp});
+    add++;
+  }
+  salvarDB();eqFiltroInit=false;renderEquip();renderClientes();
+  toast(add+' equipamento(s) importado(s)'+(dup?', '+dup+' atualizado(s)':'')+(grupos?' \u00b7 '+grupos+' cliente(s)':'')+'.','sucesso');
+}
+function limparNomeGrupo(s){
+  // "PCS REM MARKETING" -> "REM MARKETING"; "PCS IAM(FARMERSGROUP)" -> "IAM (FARMERSGROUP)"
+  let n=s.replace(/^PCS\s+/i,'').trim();
+  n=n.replace(/([A-Z])\(/,'$1 (');
+  return n||s;
+}
 // ================== Backup ==================
 function baixarArquivo(blob,nome){const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download=nome;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1000);}
 function exportarBackup(){baixarArquivo(new Blob([JSON.stringify(DB,null,2)],{type:'application/json'}),'backup-gestor-ti.json');toast('Backup baixado!','sucesso');}
