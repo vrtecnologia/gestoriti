@@ -230,7 +230,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
       <a data-view="equip" onclick="showView('equip')">💻 <span class="txt">Equipamentos</span></a>
       <a data-view="config" onclick="showView('config')">⚙️ <span class="txt">Configurações</span></a>
     </nav>
-    <div class="sidebar-rodape">v3.7 · web</div>
+    <div class="sidebar-rodape">v3.9 · web</div>
   </aside>
   <nav class="tabbar" id="tabbar">
     <a data-view="agenda" class="ativo" onclick="showView('agenda')"><i>📅</i><span>Agenda</span></a>
@@ -324,12 +324,17 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
       <div class="topo"><h1>Equipamentos</h1><div class="topo-acoes">
         <button class="btn btn-primario" onclick="abrirNovoEquip()">+ Novo equipamento</button>
         <label class="btn btn-secundario" style="display:inline-block;margin:0">&#128196; Importar planilha<input type="file" accept=".xlsx,.xls" style="display:none" onchange="importarEquipXlsx(this)"></label>
+        <button class="btn btn-secundario" onclick="imprimirRelatorioEquip()">🖨️ Imprimir relatório</button>
       </div></div>
       <div class="card no-print">
         <div class="os-filtros">
           <div class="campo">Cliente<select id="eq-filtro-cli" onchange="renderEquip()"><option value="">Todos os clientes</option></select></div>
           <div class="campo">Buscar<input id="eq-busca" placeholder="código, usuário, equipamento..." oninput="renderEquip()"></div>
           <div class="campo">Manutenção<select id="eq-filtro-mp" onchange="renderEquip()"><option value="">Todas</option><option value="ok">Em dia</option><option value="pend">Pendente</option></select></div>
+        </div>
+        <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+          <span class="dim" id="eq-contador" style="font-size:13px"></span>
+          <button class="btn btn-perigo" id="btn-excluir-filtro" onclick="excluirEquipFiltrados()" style="display:none">🗑️ Excluir os filtrados</button>
         </div>
       </div>
       <div id="lista-equip"></div>
@@ -395,8 +400,10 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
     <input type="hidden" id="ag-id">
     <label class="col2">Título / Serviço *<input id="ag-titulo" placeholder="Ex.: Suporte técnico - Cliente ACME"></label>
     <label class="col2">Cliente<select id="ag-cliente"><option value="">— nenhum —</option></select></label>
-    <label>Início *<input type="datetime-local" id="ag-inicio"></label>
-    <label>Fim *<input type="datetime-local" id="ag-fim"></label>
+    <label>Início *<input type="datetime-local" id="ag-inicio" onchange="recalcFim()"></label>
+    <label>Quantas horas leva? *<input type="number" id="ag-horas" min="0.5" step="0.5" value="1" oninput="recalcFim()"></label>
+    <input type="hidden" id="ag-fim">
+    <label class="col2" style="margin-top:-4px"><span class="dim" id="ag-fim-txt" style="font-size:12px"></span></label>
     <label>Valor (R$)<input type="number" step="0.01" id="ag-valor" placeholder="0,00"></label>
     <label>Status<select id="ag-status"><option value="agendado">Agendado</option><option value="concluido">Concluído</option><option value="cancelado">Cancelado</option></select></label>
     <label class="col2">Local<input id="ag-local" placeholder="Endereço, online..."></label>
@@ -449,6 +456,15 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
     <div style="flex:1"></div>
     <button class="btn btn-secundario" onclick="fecharModal('modal-nota')">Fechar</button>
     <button class="btn btn-primario" id="btn-salvar-nota" onclick="salvarNota()">Salvar altera&ccedil;&otilde;es</button>
+  </div>
+</div></div>
+<div id="modal-vinculo" class="modal-overlay oculto"><div class="modal modal-largo">
+  <div class="modal-topo"><h2>Vincular grupos a clientes</h2><button class="fechar" onclick="fecharModal('modal-vinculo')">&#10005;</button></div>
+  <div id="vinc-corpo"></div>
+  <div class="modal-rodape">
+    <div style="flex:1"></div>
+    <button class="btn btn-secundario" onclick="fecharModal('modal-vinculo')">Cancelar</button>
+    <button class="btn btn-primario" onclick="confirmarVinculoEquip()">Importar</button>
   </div>
 </div></div>
 <div id="modal-equip" class="modal-overlay oculto"><div class="modal modal-largo">
@@ -665,7 +681,29 @@ function renderClientes(q){q=(q||'').toLowerCase();const lista=DB.clientes.filte
 function abrirNovoCliente(){document.getElementById('cli-id').value='';CAMPOS_CLI.forEach(c=>{const el=document.getElementById('cli-'+c);if(el)el.value=c==='tipo_pessoa'?'F':'';});document.getElementById('modal-cliente-titulo').textContent='Novo cliente';abrirModal('modal-cliente');}
 function editarCliente(id){const c=DB.clientes.find(x=>x.id===id);if(!c)return;document.getElementById('cli-id').value=c.id;CAMPOS_CLI.forEach(k=>{const el=document.getElementById('cli-'+k);if(el)el.value=c[k]||'';});document.getElementById('modal-cliente-titulo').textContent='Editar cliente';abrirModal('modal-cliente');}
 function salvarCliente(){const nome=document.getElementById('cli-nome').value.trim();if(!nome){toast('Informe o nome.','erro');return;}const id=document.getElementById('cli-id').value;const d={};CAMPOS_CLI.forEach(k=>{const el=document.getElementById('cli-'+k);d[k]=el?el.value:'';});if(id){Object.assign(DB.clientes.find(x=>x.id==id),d);}else{d.id=novoId('cli');DB.clientes.push(d);}salvarDB();toast('Cliente salvo!','sucesso');fecharModal('modal-cliente');renderClientes();carregarClientesSelect();}
-function excluirCliente(id){if(!confirm('Excluir este cliente?'))return;DB.clientes=DB.clientes.filter(c=>c.id!==id);salvarDB();renderClientes();carregarClientesSelect();toast('Cliente excluído.','sucesso');}
+function excluirCliente(id){
+  const c=DB.clientes.find(x=>x.id===id);if(!c)return;
+  const eqs=DB.equipamentos.filter(e=>String(e.cliente_id)===String(id)).length;
+  const oss=DB.servicos.filter(s=>String(s.cliente_id)===String(id)).length;
+  const cts=DB.contratos.filter(t=>String(t.cliente_id)===String(id)).length;
+  let aviso='Excluir o cliente "'+(c.nome||'')+'"?';
+  const partes=[];
+  if(eqs)partes.push(eqs+' equipamento(s)');
+  if(cts)partes.push(cts+' contrato(s)');
+  if(partes.length)aviso+='\n\nIsto também vai remover: '+partes.join(' e ')+' vinculado(s) a ele.';
+  if(oss)aviso+='\n\nAs '+oss+' OS/serviço(s) do histórico serão mantidas.';
+  if(!confirm(aviso))return;
+  DB.clientes=DB.clientes.filter(x=>x.id!==id);
+  DB.equipamentos=DB.equipamentos.filter(e=>String(e.cliente_id)!==String(id));
+  const ctIds=DB.contratos.filter(t=>String(t.cliente_id)===String(id)).map(t=>t.id);
+  DB.contratos=DB.contratos.filter(t=>String(t.cliente_id)!==String(id));
+  if(DB.cobrancas)DB.cobrancas=DB.cobrancas.filter(cb=>!ctIds.includes(cb.contrato_id));
+  salvarDB();renderClientes();carregarClientesSelect();eqFiltroInit=false;
+  if(typeof renderEquip==='function')renderEquip();
+  if(typeof renderContratos==='function')renderContratos();
+  const extras=[];if(eqs)extras.push(eqs+' equip.');if(cts)extras.push(cts+' contrato(s)');
+  toast('Cliente excluído'+(extras.length?' e '+extras.join(' + '):'')+'.','sucesso');
+}
 function carregarClientesSelect(){const sel=document.getElementById('ag-cliente');const at=sel.value;sel.innerHTML='<option value="">— nenhum —</option>'+DB.clientes.slice().sort((a,b)=>(a.nome||'').localeCompare(b.nome||'')).map(c=>`<option value="${c.id}">${esc(c.nome)}</option>`).join('');sel.value=at;}
 
 // ================== Agenda ==================
@@ -680,12 +718,33 @@ function irHoje(){calState.ref=primeiroDiaMes(new Date());renderCalendario();}
 function trocarView(v){calState.view=v;renderCalendario();}
 function renderCalendario(){const el=document.getElementById('calendario');const ref=calState.ref;const cab=`<div class="cal-cab"><div class="cal-nav"><button class="btn btn-secundario" onclick="mudarMes(-1)">‹</button><button class="btn btn-secundario" onclick="irHoje()">Hoje</button><button class="btn btn-secundario" onclick="mudarMes(1)">›</button><h2>${MESES[ref.getMonth()]} de ${ref.getFullYear()}</h2></div><div class="cal-views"><button class="btn ${calState.view==='mes'?'btn-primario':'btn-secundario'}" onclick="trocarView('mes')">Mês</button><button class="btn ${calState.view==='lista'?'btn-primario':'btn-secundario'}" onclick="trocarView('lista')">Lista</button></div></div>`;el.innerHTML=cab+(calState.view==='mes'?renderMes():renderLista());}
 function eventosDoDia(d){const s=fmtData(d);return DB.agendamentos.filter(e=>(e.inicio||'').slice(0,10)===s).sort((a,b)=>(a.inicio||'').localeCompare(b.inicio||''));}
+function periodoEvento(e){var hh=parseInt((e.inicio||'').slice(11,13))||0;return hh<13?'M':'T';}
+function iconePeriodo(e){return periodoEvento(e)==='M'?'\u{1F305}':'\u{1F306}';}
+function duracaoHoras(e){if(!e.inicio||!e.fim)return 0;var h=(new Date(e.fim)-new Date(e.inicio))/3600000;return h>0?Math.round(h*2)/2:0;}
+function durTxt(e){var d=duracaoHoras(e);return d?(String(d).replace('.',',')+'h'):'';}
 function nomeCurto(e){const c=DB.clientes.find(x=>x.id==e.cliente_id);return(c?c.nome+' - ':'')+e.titulo;}
-function renderMes(){const ref=calState.ref,primeiro=primeiroDiaMes(ref),ini=new Date(primeiro);ini.setDate(1-primeiro.getDay());const hoje=new Date();let h='<div class="cal-grade">'+DIAS.map(d=>`<div class="cal-cabdia">${d}</div>`).join('');for(let i=0;i<42;i++){const dia=new Date(ini);dia.setDate(ini.getDate()+i);const fora=dia.getMonth()!==ref.getMonth(),eh=mesmaData(dia,hoje);const chips=eventosDoDia(dia).map(e=>`<div class="cal-chip" style="background:${corEvento(e)}" title="${esc(e.titulo)}" onclick="event.stopPropagation();abrirAgendamento(${e.id})"><span class="cal-chip-h">${(e.inicio||'').slice(11,16)}</span> ${esc(nomeCurto(e))}</div>`).join('');h+=`<div class="cal-cel ${fora?'fora':''} ${eh?'hoje':''}" onclick="abrirNovoAgendamento('${fmtData(dia)}')"><div class="cal-num">${dia.getDate()}</div><div class="cal-chips">${chips}</div></div>`;}return h+'</div>';}
-function renderLista(){const hojeStr=fmtData(new Date());const fut=DB.agendamentos.filter(e=>(e.inicio||'').slice(0,10)>=hojeStr).sort((a,b)=>(a.inicio||'').localeCompare(b.inicio||''));if(!fut.length)return'<p class="vazio">Nenhum agendamento futuro.</p>';let h='<div class="cal-lista">',ult='';fut.forEach(e=>{const dia=(e.inicio||'').slice(0,10);if(dia!==ult){const d=new Date(dia+'T12:00');h+=`<div class="cal-lista-dia">${DIAS[d.getDay()]}, ${d.getDate()} de ${MESES[d.getMonth()]}</div>`;ult=dia;}h+=`<div class="cal-lista-item" onclick="abrirAgendamento(${e.id})"><span class="cal-lista-hora">${(e.inicio||'').slice(11,16)}</span><span class="cal-lista-cor" style="background:${corEvento(e)}"></span><span class="cal-lista-tit">${esc(nomeCurto(e))}</span></div>`;});return h+'</div>';}
+function renderMes(){const ref=calState.ref,primeiro=primeiroDiaMes(ref),ini=new Date(primeiro);ini.setDate(1-primeiro.getDay());const hoje=new Date();let h='<div class="cal-grade">'+DIAS.map(d=>`<div class="cal-cabdia">${d}</div>`).join('');for(let i=0;i<42;i++){const dia=new Date(ini);dia.setDate(ini.getDate()+i);const fora=dia.getMonth()!==ref.getMonth(),eh=mesmaData(dia,hoje);const chips=eventosDoDia(dia).map(e=>`<div class="cal-chip" style="background:${corEvento(e)}" title="${esc(nomeCurto(e))}" onclick="event.stopPropagation();abrirAgendamento(${e.id})"><span class="cal-chip-h">${iconePeriodo(e)} ${(e.inicio||'').slice(11,16)}${durTxt(e)?' '+durTxt(e):''}</span> ${esc(nomeCurto(e))}</div>`).join('');h+=`<div class="cal-cel ${fora?'fora':''} ${eh?'hoje':''}" onclick="abrirNovoAgendamento('${fmtData(dia)}')"><div class="cal-num">${dia.getDate()}</div><div class="cal-chips">${chips}</div></div>`;}return h+'</div>';}
+function renderLista(){const hojeStr=fmtData(new Date());const fut=DB.agendamentos.filter(e=>(e.inicio||'').slice(0,10)>=hojeStr).sort((a,b)=>(a.inicio||'').localeCompare(b.inicio||''));if(!fut.length)return'<p class="vazio">Nenhum agendamento futuro.</p>';let h='<div class="cal-lista">',ult='';fut.forEach(e=>{const dia=(e.inicio||'').slice(0,10);if(dia!==ult){const d=new Date(dia+'T12:00');h+=`<div class="cal-lista-dia">${DIAS[d.getDay()]}, ${d.getDate()} de ${MESES[d.getMonth()]}</div>`;ult=dia;}h+=`<div class="cal-lista-item" onclick="abrirAgendamento(${e.id})"><span class="cal-lista-hora">${iconePeriodo(e)} ${(e.inicio||'').slice(11,16)}${durTxt(e)?' \u00b7 '+durTxt(e):''}</span><span class="cal-lista-cor" style="background:${corEvento(e)}"></span><span class="cal-lista-tit">${esc(nomeCurto(e))}</span></div>`;});return h+'</div>';}
 function fmtLocal(dt){return dt?dt.slice(0,16):'';}
-function abrirNovoAgendamento(dataStr){carregarClientesSelect();document.getElementById('ag-id').value='';['ag-titulo','ag-valor','ag-local','ag-descricao'].forEach(i=>document.getElementById(i).value='');document.getElementById('ag-cliente').value='';document.getElementById('ag-status').value='agendado';document.getElementById('modal-titulo').textContent='Novo agendamento';document.getElementById('btn-excluir-ag').style.display='none';document.getElementById('btn-outlook').style.display='none';document.getElementById('bloco-recorrencia').style.display='';document.querySelectorAll('.dow').forEach(c=>c.checked=false);document.getElementById('ag-repetir-ate').value=(new Date().getFullYear())+'-12-31';const base=(dataStr||fmtData(new Date()))+'T09:00';document.getElementById('ag-inicio').value=base;document.getElementById('ag-fim').value=base.slice(0,11)+'10:00';abrirModal('modal-agendamento');}
-function abrirAgendamento(id){carregarClientesSelect();const a=DB.agendamentos.find(x=>x.id===id);if(!a)return;document.getElementById('ag-id').value=a.id;document.getElementById('ag-titulo').value=a.titulo||'';document.getElementById('ag-cliente').value=a.cliente_id||'';document.getElementById('ag-inicio').value=fmtLocal(a.inicio);document.getElementById('ag-fim').value=fmtLocal(a.fim);document.getElementById('ag-valor').value=a.valor||'';document.getElementById('ag-status').value=a.status||'agendado';document.getElementById('ag-local').value=a.local||'';document.getElementById('ag-descricao').value=a.descricao||'';document.getElementById('modal-titulo').textContent='Editar agendamento';document.getElementById('btn-excluir-ag').style.display='inline-block';document.getElementById('btn-outlook').style.display='inline-block';document.getElementById('bloco-recorrencia').style.display='none';abrirModal('modal-agendamento');}
+function abrirNovoAgendamento(dataStr){carregarClientesSelect();document.getElementById('ag-id').value='';['ag-titulo','ag-valor','ag-local','ag-descricao'].forEach(i=>document.getElementById(i).value='');document.getElementById('ag-cliente').value='';document.getElementById('ag-status').value='agendado';document.getElementById('modal-titulo').textContent='Novo agendamento';document.getElementById('btn-excluir-ag').style.display='none';document.getElementById('btn-outlook').style.display='none';document.getElementById('bloco-recorrencia').style.display='';document.querySelectorAll('.dow').forEach(c=>c.checked=false);document.getElementById('ag-repetir-ate').value=(new Date().getFullYear())+'-12-31';const base=(dataStr||fmtData(new Date()))+'T09:00';document.getElementById('ag-inicio').value=base;document.getElementById('ag-horas').value='1';recalcFim();abrirModal('modal-agendamento');}
+function abrirAgendamento(id){carregarClientesSelect();const a=DB.agendamentos.find(x=>x.id===id);if(!a)return;document.getElementById('ag-id').value=a.id;document.getElementById('ag-titulo').value=a.titulo||'';document.getElementById('ag-cliente').value=a.cliente_id||'';document.getElementById('ag-inicio').value=fmtLocal(a.inicio);document.getElementById('ag-fim').value=fmtLocal(a.fim);(function(){const hi=new Date(a.inicio),hf=new Date(a.fim);let hh=(hf-hi)/3600000;if(!(hh>0))hh=1;document.getElementById('ag-horas').value=(Math.round(hh*2)/2);})();recalcFim();document.getElementById('ag-valor').value=a.valor||'';document.getElementById('ag-status').value=a.status||'agendado';document.getElementById('ag-local').value=a.local||'';document.getElementById('ag-descricao').value=a.descricao||'';document.getElementById('modal-titulo').textContent='Editar agendamento';document.getElementById('btn-excluir-ag').style.display='inline-block';document.getElementById('btn-outlook').style.display='inline-block';document.getElementById('bloco-recorrencia').style.display='none';abrirModal('modal-agendamento');}
+function recalcFim(){
+  const ini=document.getElementById('ag-inicio').value;
+  const horas=parseFloat(document.getElementById('ag-horas').value)||0;
+  const txt=document.getElementById('ag-fim-txt');
+  if(!ini||horas<=0){document.getElementById('ag-fim').value='';if(txt)txt.textContent='';return;}
+  const d=new Date(ini);
+  const fim=new Date(d.getTime()+horas*3600000);
+  const fimStr=fmtData(fim)+'T'+String(fim.getHours()).padStart(2,'0')+':'+String(fim.getMinutes()).padStart(2,'0');
+  document.getElementById('ag-fim').value=fimStr;
+  if(txt){
+    const hi=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+    const hf=String(fim.getHours()).padStart(2,'0')+':'+String(fim.getMinutes()).padStart(2,'0');
+    const mesmodia=fmtData(d)===fmtData(fim);
+    const periodo=d.getHours()<13?'manhã':'tarde';
+    txt.innerHTML='Termina '+(mesmodia?'às '+hf:'em '+brdata(fmtData(fim))+' '+hf)+' \u00b7 '+hi+'\u2013'+hf+' ('+periodo+')';
+  }
+}
 function coletarAg(){const v=id=>document.getElementById(id).value;return{titulo:v('ag-titulo').trim(),cliente_id:v('ag-cliente')||null,inicio:v('ag-inicio'),fim:v('ag-fim'),valor:parseFloat(v('ag-valor'))||0,status:v('ag-status'),local:v('ag-local'),descricao:v('ag-descricao')};}
 function irmaosAgendamento(a){
   if(a.recorrencia){
@@ -1617,6 +1676,30 @@ async function inflateRaw(comp){
 
 // ================== Equipamentos ==================
 let eqFiltroInit=false;
+function equipFiltrados(){
+  const fc=document.getElementById('eq-filtro-cli').value;
+  const fmp=document.getElementById('eq-filtro-mp').value;
+  const q=(document.getElementById('eq-busca').value||'').toLowerCase();
+  return DB.equipamentos.filter(e=>{
+    if(fc&&String(e.cliente_id)!==String(fc))return false;
+    if(fmp==='ok'&&!e.mp)return false;
+    if(fmp==='pend'&&e.mp)return false;
+    if(q){const t=((e.codigo||'')+' '+(e.usuario||'')+' '+(e.equipamento||'')+' '+(e.so||'')+' '+(e.obs||'')).toLowerCase();if(!t.includes(q))return false;}
+    return true;
+  });
+}
+function excluirEquipFiltrados(){
+  const lista=equipFiltrados();
+  if(!lista.length){toast('Nenhum equipamento no filtro.','erro');return;}
+  const fc=document.getElementById('eq-filtro-cli').value;
+  const cli=fc?(DB.clientes.find(c=>String(c.id)===String(fc))||{}).nome:null;
+  const alvo=cli?('de "'+cli+'"'):'que estão aparecendo neste filtro';
+  if(!confirm('Excluir os '+lista.length+' equipamento(s) '+alvo+'?\n\nIsto não afeta o cadastro do cliente, só os equipamentos listados.'))return;
+  const ids=new Set(lista.map(e=>e.id));
+  DB.equipamentos=DB.equipamentos.filter(e=>!ids.has(e.id));
+  salvarDB();renderEquip();
+  toast(lista.length+' equipamento(s) excluído(s).','sucesso');
+}
 function renderEquip(){
   const box=document.getElementById('lista-equip');if(!box)return;
   const selCli=document.getElementById('eq-filtro-cli');
@@ -1624,14 +1707,12 @@ function renderEquip(){
     selCli.innerHTML='<option value="">Todos os clientes</option>'+DB.clientes.slice().sort((a,b)=>(a.nome||'').localeCompare(b.nome||'')).map(c=>`<option value="${c.id}">${esc(c.nome)}</option>`).join('');
     eqFiltroInit=true;
   }
-  const fc=selCli.value, fmp=document.getElementById('eq-filtro-mp').value, q=(document.getElementById('eq-busca').value||'').toLowerCase();
-  let lista=DB.equipamentos.filter(e=>{
-    if(fc&&String(e.cliente_id)!==String(fc))return false;
-    if(fmp==='ok'&&!e.mp)return false;
-    if(fmp==='pend'&&e.mp)return false;
-    if(q){const t=(e.codigo+' '+e.usuario+' '+e.equipamento+' '+e.so+' '+e.obs).toLowerCase();if(!t.includes(q))return false;}
-    return true;
-  });
+  const lista=equipFiltrados();
+  const fc=selCli.value, fmp=document.getElementById('eq-filtro-mp').value, q=(document.getElementById('eq-busca').value||'').trim();
+  const temFiltro=!!(fc||fmp||q);
+  const btnDel=document.getElementById('btn-excluir-filtro'), cont=document.getElementById('eq-contador');
+  if(btnDel)btnDel.style.display=(temFiltro&&lista.length)?'inline-block':'none';
+  if(cont)cont.textContent=temFiltro?(lista.length+' equipamento(s) neste filtro'):'';
   if(!DB.equipamentos.length){box.innerHTML='<p class="vazio">Nenhum equipamento cadastrado. Clique em "+ Novo equipamento" ou importe sua planilha.</p>';return;}
   if(!lista.length){box.innerHTML='<p class="vazio">Nenhum equipamento com esse filtro.</p>';return;}
   // agrupa por cliente
@@ -1661,6 +1742,64 @@ function renderEquip(){
       </div>`).join('');
     return `<div class="eq-grupo">${esc(c?c.nome:'(sem cliente)')} <span class="cont">${its.length} equip. \u00b7 ${emdia} em dia</span></div>${cards}`;
   }).join('');
+}
+function imprimirRelatorioEquip(){
+  const fc=document.getElementById('eq-filtro-cli').value;
+  const fmp=document.getElementById('eq-filtro-mp').value;
+  const q=(document.getElementById('eq-busca').value||'').toLowerCase();
+  let lista=DB.equipamentos.filter(e=>{
+    if(fc&&String(e.cliente_id)!==String(fc))return false;
+    if(fmp==='ok'&&!e.mp)return false;
+    if(fmp==='pend'&&e.mp)return false;
+    if(q){const t=(e.codigo+' '+e.usuario+' '+e.equipamento+' '+e.so+' '+e.obs).toLowerCase();if(!t.includes(q))return false;}
+    return true;
+  });
+  if(!lista.length){toast('Nenhum equipamento para o relatório (confira os filtros).','erro');return;}
+  const grupos={};
+  lista.forEach(e=>{(grupos[e.cliente_id]=grupos[e.cliente_id]||[]).push(e);});
+  const ordem=Object.keys(grupos).sort((a,b)=>{
+    const na=(DB.clientes.find(c=>String(c.id)===String(a))||{}).nome||'zzz';
+    const nb=(DB.clientes.find(c=>String(c.id)===String(b))||{}).nome||'zzz';
+    return na.localeCompare(nb);
+  });
+  let corpo='';
+  ordem.forEach(cid=>{
+    const c=DB.clientes.find(x=>String(x.id)===String(cid));
+    const its=grupos[cid].sort((a,b)=>(a.codigo||'').localeCompare(b.codigo||''));
+    const emdia=its.filter(e=>e.mp).length;
+    const rows=its.map(e=>`<tr>
+      <td class="cod">${esc(e.codigo||'')}</td>
+      <td>${esc(e.equipamento||'')}</td>
+      <td>${esc(e.so||'')}</td>
+      <td>${esc(e.usuario||'')}</td>
+      <td class="cen">${e.mp?'\u2714':'\u2014'}</td>
+      <td>${esc(e.obs||'')}</td></tr>`).join('');
+    corpo+=`<h3>${esc(c?c.nome:'(sem cliente)')} <span class="cont">${its.length} equip. \u00b7 ${emdia} com MP em dia</span></h3>
+      <table><thead><tr><th>C\u00f3digo</th><th>Equipamento</th><th>Sistema</th><th>Usu\u00e1rio</th><th class="cen">MP</th><th>Observa\u00e7\u00f5es</th></tr></thead><tbody>${rows}</tbody></table>`;
+  });
+  const total=lista.length, totMP=lista.filter(e=>e.mp).length;
+  const html=`<!DOCTYPE html><html lang="pt-br"><head><meta charset="utf-8"><title>Relatorio de Equipamentos</title>
+  <style>@page{size:A4 landscape;margin:12mm}body{font-family:Arial,sans-serif;color:#111;margin:0;font-size:12px}
+  img{height:46px;margin-bottom:6px}
+  h2{margin:6px 0 2px;font-size:16px}
+  .sub{color:#555;font-size:12px;margin-bottom:14px}
+  h3{margin:16px 0 4px;font-size:13px;border-bottom:2px solid #333;padding-bottom:3px}
+  h3 .cont{font-size:11px;font-weight:400;color:#666}
+  table{width:100%;border-collapse:collapse;margin-bottom:6px}
+  th,td{border:1px solid #999;padding:4px 6px;text-align:left;vertical-align:top}
+  th{background:#f0f0f0;font-size:11px}
+  td.cod{font-family:monospace;font-weight:700;white-space:nowrap}
+  .cen{text-align:center}
+  .rod{margin-top:14px;font-size:10px;color:#666}
+  </style></head><body>
+    <img src="${LOGO_URL}" alt="VR Tecnologia">
+    <h2>Relat\u00f3rio de Equipamentos</h2>
+    <div class="sub">${total} equipamento(s) \u00b7 ${totMP} com manuten\u00e7\u00e3o preventiva em dia \u00b7 Emitido em ${brdata(fmtData(new Date()))}</div>
+    ${corpo}
+    <p class="rod">VR Tecnologia Consultoria \u00b7 CNPJ 42.612.058/0001-36</p>
+    <script>window.onload=function(){setTimeout(function(){window.print();},400);};<\/script>
+  </body></html>`;
+  abrirImpressao(html);
 }
 function abrirNovoEquip(){
   if(!DB.clientes.length){toast('Cadastre um cliente primeiro.','erro');return;}
@@ -1722,49 +1861,92 @@ function importarEquipXlsx(input){
   r.readAsArrayBuffer(f);
 }
 function processarLinhasEquip(linhas){
-  // detecta blocos: linha "PCS XYZ" ou nome de grupo isolado inicia um cliente; linha com NOME/EQUIPAMENTO e' cabecalho (ignora)
-  let clienteAtual=null, add=0, dup=0, grupos=0;
+  // Fase 1: separa em blocos {nomeGrupo, itens[]} sem criar cliente ainda
+  let blocoAtual=null; const blocos=[];
   const ehCabecalho=(c)=>{const j=(c[0]||'').toString().trim().toUpperCase();return j==='NOME'&&(c[1]||'').toString().trim().toUpperCase().startsWith('EQUIP');};
-  const ehTituloGrupo=(c)=>{
-    const a=(c[0]||'').toString().trim();
-    const resto=c.slice(1).some(x=>(x||'').toString().trim());
-    return a && !resto && a.length>2 && !/^REM|^RED|^TACA|^MAC/i.test(a)===false ? false : (a && !resto);
-  };
+  const novoBloco=(nome)=>{blocoAtual={nome:nome||'',itens:[]};blocos.push(blocoAtual);};
   for(const c of linhas){
     const col0=(c[0]||'').toString().trim();
-    if(!col0 && !c.slice(1).some(x=>(x||'').toString().trim()))continue; // linha vazia
-    if(ehCabecalho(c)){clienteAtual='__aguardando__';continue;} // cabecalho sem titulo -> proximo codigo define o grupo
-    // titulo de grupo: primeira celula preenchida, demais vazias
+    if(!col0 && !c.slice(1).some(x=>(x||'').toString().trim()))continue;
+    if(ehCabecalho(c)){if(!blocoAtual||blocoAtual.itens.length)novoBloco('');continue;}
     const soPrimeira=col0 && !c.slice(1).some(x=>(x||'').toString().trim());
-    if(soPrimeira && !/^#/.test(col0)){
-      const nome=limparNomeGrupo(col0);
-      clienteAtual=acharOuCriarCliente(nome,'');
-      grupos++;
-      continue;
-    }
-    // linha de equipamento: precisa de codigo (col0) ou equipamento (col1)
+    if(soPrimeira && !/^#/.test(col0)){novoBloco(limparNomeGrupo(col0));continue;}
     const codigo=col0, equip=(c[1]||'').toString().trim();
     if(!codigo && !equip)continue;
     if(/^#/.test(codigo))continue;
-    if(!clienteAtual||clienteAtual==='__aguardando__'){ // grupo indefinido -> deduz pelo prefixo do codigo
-      const pref=(codigo.match(/^[A-Za-z]+/)||['GRUPO'])[0].toUpperCase();
-      const mapa={RED:'RED-SALES',REMMKT:'REM MARKETING',REMMKTMAC:'REM MARKETING',TACA:'CLUBEDATACA',IAM:'IAM (FARMERSGROUP)'};
-      clienteAtual=acharOuCriarCliente(mapa[pref]||pref,'');
-      grupos++;
+    if(!blocoAtual)novoBloco('');
+    // se o bloco nao tem nome, tenta deduzir pelo prefixo do 1o codigo
+    if(!blocoAtual.nome && codigo){
+      const pref=(codigo.match(/^[A-Za-z]+/)||[''])[0].toUpperCase();
+      const mapa={RED:'RED-SALES',REMMKTMAC:'REM MARKETING',REMMKT:'REM MARKETING',TACA:'CLUBEDATACA',IAM:'IAM (FARMERSGROUP)'};
+      blocoAtual.nome=mapa[pref]||pref||'Sem grupo';
     }
-    const so=(c[2]||'').toString().trim();
-    const usuario=(c[3]||'').toString().trim();
-    const obs=(c[4]||'').toString().trim();
-    const mp=(c[5]||'').toString().trim().toUpperCase()==='X';
-    const jaTem=DB.equipamentos.find(e=>String(e.cliente_id)===String(clienteAtual.id)&&(e.codigo||'').trim().toUpperCase()===codigo.toUpperCase()&&codigo);
-    if(jaTem){ // atualiza o existente (reimportacao)
-      Object.assign(jaTem,{equipamento:equip,so,usuario,obs,mp});dup++;continue;
-    }
-    DB.equipamentos.push({id:novoId('eq'),cliente_id:String(clienteAtual.id),codigo,equipamento:equip,so,usuario,obs,mp});
-    add++;
+    blocoAtual.itens.push({codigo,equipamento:equip,so:(c[2]||'').toString().trim(),usuario:(c[3]||'').toString().trim(),obs:(c[4]||'').toString().trim(),mp:(c[5]||'').toString().trim().toUpperCase()==='X'});
   }
+  const comItens=blocos.filter(b=>b.itens.length);
+  if(!comItens.length){toast('Nenhum equipamento encontrado na planilha.','erro');return;}
+  // resolve cliente de cada bloco: acha por nome; os que nao acham vao pra tela de vinculo
+  comItens.forEach(b=>{
+    const achado=DB.clientes.find(c=>(c.nome||'').trim().toLowerCase()===b.nome.trim().toLowerCase());
+    b.cliente_id=achado?achado.id:null;
+  });
+  const pendentes=comItens.filter(b=>!b.cliente_id);
+  if(pendentes.length){
+    abrirVinculoEquip(comItens,pendentes);
+  }else{
+    aplicarImportEquip(comItens);
+  }
+}
+function aplicarImportEquip(blocos){
+  let add=0,dup=0;
+  blocos.forEach(b=>{
+    b.itens.forEach(it=>{
+      const jaTem=DB.equipamentos.find(e=>String(e.cliente_id)===String(b.cliente_id)&&(e.codigo||'').trim().toUpperCase()===it.codigo.toUpperCase()&&it.codigo);
+      if(jaTem){Object.assign(jaTem,{equipamento:it.equipamento,so:it.so,usuario:it.usuario,obs:it.obs,mp:it.mp});dup++;return;}
+      DB.equipamentos.push({id:novoId('eq'),cliente_id:String(b.cliente_id),codigo:it.codigo,equipamento:it.equipamento,so:it.so,usuario:it.usuario,obs:it.obs,mp:it.mp});
+      add++;
+    });
+  });
   salvarDB();eqFiltroInit=false;renderEquip();renderClientes();
-  toast(add+' equipamento(s) importado(s)'+(dup?', '+dup+' atualizado(s)':'')+(grupos?' \u00b7 '+grupos+' cliente(s)':'')+'.','sucesso');
+  toast(add+' equipamento(s) importado(s)'+(dup?', '+dup+' atualizado(s)':'')+'.','sucesso');
+}
+// ---- Item 1: janela para vincular grupos nao reconhecidos a clientes ----
+let _impBlocos=null;
+function abrirVinculoEquip(todos,pendentes){
+  _impBlocos=todos;
+  const opts=DB.clientes.slice().sort((a,b)=>(a.nome||'').localeCompare(b.nome||'')).map(c=>`<option value="${c.id}">${esc(c.nome)}</option>`).join('');
+  const linhas=pendentes.map((b,i)=>{
+    const idx=todos.indexOf(b);
+    return `<div style="border:1px solid var(--borda);border-radius:10px;padding:12px;margin-bottom:10px">
+      <div style="font-weight:600;margin-bottom:2px">${esc(b.nome||'(grupo sem nome)')} <span class="dim" style="font-weight:400">· ${b.itens.length} equip.</span></div>
+      <div class="dim" style="font-size:12px;margin-bottom:8px">Ex.: ${esc((b.itens[0]||{}).codigo||'')} ${esc(((b.itens[0]||{}).equipamento||'').slice(0,40))}</div>
+      <select id="vinc-${idx}" onchange="vincToggle(${idx})" style="width:100%;padding:8px;border:1px solid var(--borda);border-radius:8px">
+        <option value="__novo__">➕ Criar novo cliente "${esc(b.nome)}"</option>
+        ${opts}
+      </select>
+    </div>`;
+  }).join('');
+  document.getElementById('vinc-corpo').innerHTML=
+    `<p class="dim">Estes grupos da planilha não batem com nenhum cliente cadastrado. Escolha, para cada um, criar um novo cliente ou vincular a um existente:</p>`+linhas;
+  abrirModal('modal-vinculo');
+}
+function vincToggle(){}
+function confirmarVinculoEquip(){
+  const todos=_impBlocos;
+  todos.forEach((b,idx)=>{
+    if(b.cliente_id)return;
+    const sel=document.getElementById('vinc-'+idx);
+    if(!sel)return;
+    if(sel.value==='__novo__'){
+      const c=acharOuCriarCliente(b.nome||'Sem grupo','');
+      b.cliente_id=c.id;
+    }else{
+      b.cliente_id=parseInt(sel.value);
+    }
+  });
+  fecharModal('modal-vinculo');
+  aplicarImportEquip(todos);
+  _impBlocos=null;
 }
 function limparNomeGrupo(s){
   // "PCS REM MARKETING" -> "REM MARKETING"; "PCS IAM(FARMERSGROUP)" -> "IAM (FARMERSGROUP)"
