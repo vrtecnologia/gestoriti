@@ -230,7 +230,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
       <a data-view="equip" onclick="showView('equip')">💻 <span class="txt">Equipamentos</span></a>
       <a data-view="config" onclick="showView('config')">⚙️ <span class="txt">Configurações</span></a>
     </nav>
-    <div class="sidebar-rodape">v4.2 · web</div>
+    <div class="sidebar-rodape">v4.3 · web</div>
   </aside>
   <nav class="tabbar" id="tabbar">
     <a data-view="agenda" class="ativo" onclick="showView('agenda')"><i>📅</i><span>Agenda</span></a>
@@ -952,7 +952,10 @@ function mesAtualStr(){const d=new Date();return d.getFullYear()+'-'+String(d.ge
 function nomeMesCompet(m){const p=String(m||'').split('-');return p.length>=2?(MESES[(+p[1])-1]||'')+'/'+p[0]:'';}
 function vencContrato(ct,mes){
   const p=String(mes||'').split('-');if(p.length<2)return'';
-  const ano=+p[0],m=+p[1],ultimo=new Date(ano,m,0).getDate();
+  // vencimento cai no MÊS SEGUINTE ao mês de competência (ex: competência agosto -> vence setembro)
+  let ano=+p[0], m=+p[1]+1;
+  if(m>12){m=1;ano++;}
+  const ultimo=new Date(ano,m,0).getDate();
   const dia=Math.min(parseInt(ct.venc_dia)||10,ultimo);
   return String(dia).padStart(2,'0')+'/'+String(m).padStart(2,'0')+'/'+ano;
 }
