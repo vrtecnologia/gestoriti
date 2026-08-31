@@ -230,7 +230,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
       <a data-view="equip" onclick="showView('equip')">💻 <span class="txt">Equipamentos</span></a>
       <a data-view="config" onclick="showView('config')">⚙️ <span class="txt">Configurações</span></a>
     </nav>
-    <div class="sidebar-rodape">v4.1 · web</div>
+    <div class="sidebar-rodape">v4.2 · web</div>
   </aside>
   <nav class="tabbar" id="tabbar">
     <a data-view="agenda" class="ativo" onclick="showView('agenda')"><i>📅</i><span>Agenda</span></a>
@@ -1737,7 +1737,7 @@ function renderEquip(){
             ${e.usuario?`<span>\u{1F464} ${esc(e.usuario)}</span>`:''}
             ${e.so?`<span>\u{1F4BF} ${esc(e.so)}</span>`:''}
             ${e.obs?`<span>\u{1F4DD} ${esc(e.obs)}</span>`:''}
-            ${e.backup?`<a href="${esc(e.backup)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:var(--azul)">\u2601\uFE0F Drive</a>`:''}
+            ${e.backup?`<span>\u2601\uFE0F ${esc(e.backup)}</span>`:''}
           </div>
         </div>
         <span class="eq-mp ${e.mp?'ok':'pend'}">${e.mp?'MP em dia':'MP pendente'}</span>
@@ -1775,7 +1775,7 @@ function imprimirRelatorioEquip(){
       <td>${esc(e.so||'')}</td>
       <td>${esc(e.usuario||'')}</td>
       <td class="cen">${e.mp?'\u2714':'\u2014'}</td>
-      <td>${e.backup?`<a href="${esc(e.backup)}">${esc(e.backup.length>32?e.backup.slice(0,32)+'\u2026':e.backup)}</a>`:''}</td>
+      <td>${esc(e.backup||'')}</td>
       <td>${esc(e.obs||'')}</td></tr>`).join('');
     corpo+=`<h3>${esc(c?c.nome:'(sem cliente)')} <span class="cont">${its.length} equip. \u00b7 ${emdia} com MP em dia</span></h3>
       <table><thead><tr><th>C\u00f3digo</th><th>Equipamento</th><th>Sistema</th><th>Usu\u00e1rio</th><th class="cen">MP</th><th>Drive</th><th>Observa\u00e7\u00f5es</th></tr></thead><tbody>${rows}</tbody></table>`;
