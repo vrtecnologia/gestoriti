@@ -230,7 +230,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
       <a data-view="equip" onclick="showView('equip')">💻 <span class="txt">Equipamentos</span></a>
       <a data-view="config" onclick="showView('config')">⚙️ <span class="txt">Configurações</span></a>
     </nav>
-    <div class="sidebar-rodape">v3.9 · web</div>
+    <div class="sidebar-rodape">v4.0 · web</div>
   </aside>
   <nav class="tabbar" id="tabbar">
     <a data-view="agenda" class="ativo" onclick="showView('agenda')"><i>📅</i><span>Agenda</span></a>
@@ -477,6 +477,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
     <label class="col2">Equipamento (marca, modelo, specs)<textarea id="eq-desc" rows="2" placeholder="NOTEBOOK ACER ASPIRE 5 I7 16GB 512 SSD"></textarea></label>
     <label>Sistema operacional<input id="eq-so" placeholder="WINDOWS 11 PRO"></label>
     <label>Manutenção preventiva<select id="eq-mp"><option value="0">Pendente</option><option value="1">Em dia</option></select></label>
+    <label class="col2">Backup em nuvem (Google Drive / OneDrive)<input id="eq-backup" placeholder="cole o link da pasta de backup desta máquina"></label>
     <label class="col2">Diagnóstico / observações<textarea id="eq-obs" rows="2" placeholder="ADQUIRIDA EM JUNHO/2025, etc"></textarea></label>
   </div>
   <div class="modal-rodape">
@@ -1684,7 +1685,7 @@ function equipFiltrados(){
     if(fc&&String(e.cliente_id)!==String(fc))return false;
     if(fmp==='ok'&&!e.mp)return false;
     if(fmp==='pend'&&e.mp)return false;
-    if(q){const t=((e.codigo||'')+' '+(e.usuario||'')+' '+(e.equipamento||'')+' '+(e.so||'')+' '+(e.obs||'')).toLowerCase();if(!t.includes(q))return false;}
+    if(q){const t=((e.codigo||'')+' '+(e.usuario||'')+' '+(e.equipamento||'')+' '+(e.so||'')+' '+(e.obs||'')+' '+(e.backup||'')).toLowerCase();if(!t.includes(q))return false;}
     return true;
   });
 }
@@ -1736,6 +1737,7 @@ function renderEquip(){
             ${e.usuario?`<span>\u{1F464} ${esc(e.usuario)}</span>`:''}
             ${e.so?`<span>\u{1F4BF} ${esc(e.so)}</span>`:''}
             ${e.obs?`<span>\u{1F4DD} ${esc(e.obs)}</span>`:''}
+            ${e.backup?`<a href="${esc(e.backup)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:var(--azul)">\u2601\uFE0F backup</a>`:''}
           </div>
         </div>
         <span class="eq-mp ${e.mp?'ok':'pend'}">${e.mp?'MP em dia':'MP pendente'}</span>
@@ -1773,9 +1775,10 @@ function imprimirRelatorioEquip(){
       <td>${esc(e.so||'')}</td>
       <td>${esc(e.usuario||'')}</td>
       <td class="cen">${e.mp?'\u2714':'\u2014'}</td>
+      <td>${e.backup?`<a href="${esc(e.backup)}">${esc(e.backup.length>32?e.backup.slice(0,32)+'\u2026':e.backup)}</a>`:''}</td>
       <td>${esc(e.obs||'')}</td></tr>`).join('');
     corpo+=`<h3>${esc(c?c.nome:'(sem cliente)')} <span class="cont">${its.length} equip. \u00b7 ${emdia} com MP em dia</span></h3>
-      <table><thead><tr><th>C\u00f3digo</th><th>Equipamento</th><th>Sistema</th><th>Usu\u00e1rio</th><th class="cen">MP</th><th>Observa\u00e7\u00f5es</th></tr></thead><tbody>${rows}</tbody></table>`;
+      <table><thead><tr><th>C\u00f3digo</th><th>Equipamento</th><th>Sistema</th><th>Usu\u00e1rio</th><th class="cen">MP</th><th>Backup</th><th>Observa\u00e7\u00f5es</th></tr></thead><tbody>${rows}</tbody></table>`;
   });
   const total=lista.length, totMP=lista.filter(e=>e.mp).length;
   const html=`<!DOCTYPE html><html lang="pt-br"><head><meta charset="utf-8"><title>Relatorio de Equipamentos</title>
@@ -1805,7 +1808,7 @@ function abrirNovoEquip(){
   if(!DB.clientes.length){toast('Cadastre um cliente primeiro.','erro');return;}
   document.getElementById('eq-id').value='';
   selectClientes('eq-cliente', document.getElementById('eq-filtro-cli').value||'');
-  ['eq-codigo','eq-usuario','eq-desc','eq-so','eq-obs'].forEach(i=>document.getElementById(i).value='');
+  ['eq-codigo','eq-usuario','eq-desc','eq-so','eq-obs','eq-backup'].forEach(i=>document.getElementById(i).value='');
   document.getElementById('eq-mp').value='0';
   document.getElementById('modal-equip-titulo').textContent='Novo equipamento';
   document.getElementById('btn-excluir-eq').style.display='none';
@@ -1820,6 +1823,7 @@ function editarEquip(id){
   document.getElementById('eq-desc').value=e.equipamento||'';
   document.getElementById('eq-so').value=e.so||'';
   document.getElementById('eq-obs').value=e.obs||'';
+  document.getElementById('eq-backup').value=e.backup||'';
   document.getElementById('eq-mp').value=e.mp?'1':'0';
   document.getElementById('modal-equip-titulo').textContent='Editar equipamento';
   document.getElementById('btn-excluir-eq').style.display='inline-block';
@@ -1834,6 +1838,7 @@ function salvarEquip(){
     equipamento:document.getElementById('eq-desc').value.trim(),
     so:document.getElementById('eq-so').value.trim(),
     obs:document.getElementById('eq-obs').value.trim(),
+    backup:document.getElementById('eq-backup').value.trim(),
     mp:document.getElementById('eq-mp').value==='1'};
   if(!d.equipamento&&!d.codigo){toast('Informe ao menos o c\u00f3digo ou o equipamento.','erro');return;}
   const id=document.getElementById('eq-id').value;
@@ -1881,7 +1886,7 @@ function processarLinhasEquip(linhas){
       const mapa={RED:'RED-SALES',REMMKTMAC:'REM MARKETING',REMMKT:'REM MARKETING',TACA:'CLUBEDATACA',IAM:'IAM (FARMERSGROUP)'};
       blocoAtual.nome=mapa[pref]||pref||'Sem grupo';
     }
-    blocoAtual.itens.push({codigo,equipamento:equip,so:(c[2]||'').toString().trim(),usuario:(c[3]||'').toString().trim(),obs:(c[4]||'').toString().trim(),mp:(c[5]||'').toString().trim().toUpperCase()==='X'});
+    blocoAtual.itens.push({codigo,equipamento:equip,so:(c[2]||'').toString().trim(),usuario:(c[3]||'').toString().trim(),obs:(c[4]||'').toString().trim(),mp:(c[5]||'').toString().trim().toUpperCase()==='X',backup:(c[6]||'').toString().trim()});
   }
   const comItens=blocos.filter(b=>b.itens.length);
   if(!comItens.length){toast('Nenhum equipamento encontrado na planilha.','erro');return;}
@@ -1902,8 +1907,8 @@ function aplicarImportEquip(blocos){
   blocos.forEach(b=>{
     b.itens.forEach(it=>{
       const jaTem=DB.equipamentos.find(e=>String(e.cliente_id)===String(b.cliente_id)&&(e.codigo||'').trim().toUpperCase()===it.codigo.toUpperCase()&&it.codigo);
-      if(jaTem){Object.assign(jaTem,{equipamento:it.equipamento,so:it.so,usuario:it.usuario,obs:it.obs,mp:it.mp});dup++;return;}
-      DB.equipamentos.push({id:novoId('eq'),cliente_id:String(b.cliente_id),codigo:it.codigo,equipamento:it.equipamento,so:it.so,usuario:it.usuario,obs:it.obs,mp:it.mp});
+      if(jaTem){Object.assign(jaTem,{equipamento:it.equipamento,so:it.so,usuario:it.usuario,obs:it.obs,mp:it.mp,backup:it.backup||jaTem.backup||''});dup++;return;}
+      DB.equipamentos.push({id:novoId('eq'),cliente_id:String(b.cliente_id),codigo:it.codigo,equipamento:it.equipamento,so:it.so,usuario:it.usuario,obs:it.obs,mp:it.mp,backup:it.backup||''});
       add++;
     });
   });
