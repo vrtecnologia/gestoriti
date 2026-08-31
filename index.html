@@ -230,7 +230,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
       <a data-view="equip" onclick="showView('equip')">💻 <span class="txt">Equipamentos</span></a>
       <a data-view="config" onclick="showView('config')">⚙️ <span class="txt">Configurações</span></a>
     </nav>
-    <div class="sidebar-rodape">v4.0 · web</div>
+    <div class="sidebar-rodape">v4.1 · web</div>
   </aside>
   <nav class="tabbar" id="tabbar">
     <a data-view="agenda" class="ativo" onclick="showView('agenda')"><i>📅</i><span>Agenda</span></a>
@@ -477,7 +477,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
     <label class="col2">Equipamento (marca, modelo, specs)<textarea id="eq-desc" rows="2" placeholder="NOTEBOOK ACER ASPIRE 5 I7 16GB 512 SSD"></textarea></label>
     <label>Sistema operacional<input id="eq-so" placeholder="WINDOWS 11 PRO"></label>
     <label>Manutenção preventiva<select id="eq-mp"><option value="0">Pendente</option><option value="1">Em dia</option></select></label>
-    <label class="col2">Backup em nuvem (Google Drive / OneDrive)<input id="eq-backup" placeholder="cole o link da pasta de backup desta máquina"></label>
+    <label class="col2">Drive (Google Drive / OneDrive)<input id="eq-backup" placeholder="cole o link do Drive desta máquina"></label>
     <label class="col2">Diagnóstico / observações<textarea id="eq-obs" rows="2" placeholder="ADQUIRIDA EM JUNHO/2025, etc"></textarea></label>
   </div>
   <div class="modal-rodape">
@@ -1737,7 +1737,7 @@ function renderEquip(){
             ${e.usuario?`<span>\u{1F464} ${esc(e.usuario)}</span>`:''}
             ${e.so?`<span>\u{1F4BF} ${esc(e.so)}</span>`:''}
             ${e.obs?`<span>\u{1F4DD} ${esc(e.obs)}</span>`:''}
-            ${e.backup?`<a href="${esc(e.backup)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:var(--azul)">\u2601\uFE0F backup</a>`:''}
+            ${e.backup?`<a href="${esc(e.backup)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:var(--azul)">\u2601\uFE0F Drive</a>`:''}
           </div>
         </div>
         <span class="eq-mp ${e.mp?'ok':'pend'}">${e.mp?'MP em dia':'MP pendente'}</span>
@@ -1778,7 +1778,7 @@ function imprimirRelatorioEquip(){
       <td>${e.backup?`<a href="${esc(e.backup)}">${esc(e.backup.length>32?e.backup.slice(0,32)+'\u2026':e.backup)}</a>`:''}</td>
       <td>${esc(e.obs||'')}</td></tr>`).join('');
     corpo+=`<h3>${esc(c?c.nome:'(sem cliente)')} <span class="cont">${its.length} equip. \u00b7 ${emdia} com MP em dia</span></h3>
-      <table><thead><tr><th>C\u00f3digo</th><th>Equipamento</th><th>Sistema</th><th>Usu\u00e1rio</th><th class="cen">MP</th><th>Backup</th><th>Observa\u00e7\u00f5es</th></tr></thead><tbody>${rows}</tbody></table>`;
+      <table><thead><tr><th>C\u00f3digo</th><th>Equipamento</th><th>Sistema</th><th>Usu\u00e1rio</th><th class="cen">MP</th><th>Drive</th><th>Observa\u00e7\u00f5es</th></tr></thead><tbody>${rows}</tbody></table>`;
   });
   const total=lista.length, totMP=lista.filter(e=>e.mp).length;
   const html=`<!DOCTYPE html><html lang="pt-br"><head><meta charset="utf-8"><title>Relatorio de Equipamentos</title>
