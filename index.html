@@ -230,7 +230,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
       <a data-view="equip" onclick="showView('equip')">💻 <span class="txt">Equipamentos</span></a>
       <a data-view="config" onclick="showView('config')">⚙️ <span class="txt">Configurações</span></a>
     </nav>
-    <div class="sidebar-rodape">v4.4 · web</div>
+    <div class="sidebar-rodape">v4.5 · web</div>
   </aside>
   <nav class="tabbar" id="tabbar">
     <a data-view="agenda" class="ativo" onclick="showView('agenda')"><i>📅</i><span>Agenda</span></a>
@@ -268,6 +268,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
         <div class="campo">Competência<input type="month" id="nt-filtro-mes" onchange="renderNotas()"></div>
         <div class="campo">Status<select id="nt-filtro-status" onchange="renderNotas()"><option value="">Todos</option><option value="autorizada">Autorizada</option><option value="portal">Aguardando emissão</option></select></div>
         <button class="btn btn-secundario" onclick="limparFiltroNotas()">Limpar filtro</button>
+        <label class="btn btn-secundario" style="display:inline-block;margin:0">📥 Importar XML<input type="file" accept=".xml" multiple style="display:none" onchange="importarNotasXml(this)"></label>
         <button class="btn btn-primario" onclick="imprimirRelatorioNotas()">🖨️ Relatório mês a mês</button>
       </div><span class="dim" id="nt-contador" style="font-size:13px"></span></div>
       <div id="lista-notas"></div></section>
@@ -1393,12 +1394,13 @@ function renderNotas(){
   if(!lista.length){box.innerHTML='<p class="vazio">Nenhuma nota com esse filtro.</p>';return;}
   const rows=lista.map(n=>{
     const c=DB.clientes.find(x=>String(x.id)===String(n.cliente_id));
+    const nomeCli=c?c.nome:(n.cliente_nome_xml||'\u2014');
     const editavel=n.status==='portal';
     const acoes=`<td class="acoes-cel">`
       +(editavel?`<span class="link-acao" onclick="editarNota(${n.id})">Editar</span>`:'')
       +`<span class="link-acao" onclick="verNota(${n.id})">${editavel?'Registrar n\u00ba':'Ver'}</span>`
       +`<span class="link-acao perigo" onclick="excluirNota(${n.id})">Excluir</span></td>`;
-    return`<tr><td data-rot="Compet\u00eancia">${esc(nomeMesAAAA(competenciaNota(n)))}</td><td data-rot="Emitida em">${esc(n.emitida_em)}</td><td data-rot="Cliente"><b>${esc(c?c.nome:'\u2014')}</b></td><td data-rot="N\u00ba NFS-e">${esc(n.numero_nfse)||'\u2014'}</td><td data-rot="Valor">R$ ${(n.valor||0).toFixed(2)}</td><td data-rot="Status"><span class="tag tag-${n.status}">${esc(rotStatusNota(n.status))}</span></td>${acoes}</tr>`;
+    return`<tr><td data-rot="Compet\u00eancia">${esc(nomeMesAAAA(competenciaNota(n)))}</td><td data-rot="Emitida em">${esc(n.emitida_em)}</td><td data-rot="Cliente"><b>${esc(nomeCli)}</b>${!c&&n.cliente_nome_xml?' <span class="dim" style="font-size:11px">(do XML)</span>':''}</td><td data-rot="N\u00ba NFS-e">${esc(n.numero_nfse)||'\u2014'}</td><td data-rot="Valor">R$ ${(n.valor||0).toFixed(2)}</td><td data-rot="Status"><span class="tag tag-${n.status}">${esc(rotStatusNota(n.status))}</span></td>${acoes}</tr>`;
   }).join('');
   box.innerHTML=`<table class="tabela"><thead><tr><th>Compet\u00eancia</th><th>Emitida em</th><th>Cliente</th><th>N\u00ba NFS-e</th><th>Valor</th><th>Status</th><th></th></tr></thead><tbody>${rows}</tbody></table>`;
 }
@@ -1420,7 +1422,7 @@ function imprimirRelatorioNotas(){
     const rows=ns.map(n=>{
       const c=DB.clientes.find(x=>String(x.id)===String(n.cliente_id));
       sub+=n.valor||0;
-      return `<tr><td>${esc(c?c.nome:'\u2014')}</td><td class="cen">${esc(n.numero_nfse)||'\u2014'}</td><td class="cen">${esc(n.emitida_em||'')}</td><td class="cen">${esc(rotStatusNota(n.status))}</td><td class="dir">R$ ${(n.valor||0).toFixed(2)}</td></tr>`;
+      return `<tr><td>${esc(c?c.nome:(n.cliente_nome_xml||'\u2014'))}</td><td class="cen">${esc(n.numero_nfse)||'\u2014'}</td><td class="cen">${esc(n.emitida_em||'')}</td><td class="cen">${esc(rotStatusNota(n.status))}</td><td class="dir">R$ ${(n.valor||0).toFixed(2)}</td></tr>`;
     }).join('');
     totalGeral+=sub; qtdGeral+=ns.length;
     corpo+=`<h3>${esc(nomeMesAAAA(comp))} <span class="cont">${ns.length} nota(s)</span></h3>
@@ -1451,6 +1453,88 @@ function imprimirRelatorioNotas(){
     <script>window.onload=function(){setTimeout(function(){window.print();},400);};<\/script>
   </body></html>`;
   abrirImpressao(html);
+}
+// ---- Importar XML de NFS-e (Padrão Nacional nfse.gov.br) ----
+function tag(xml,nome){
+  // pega o conteudo da primeira ocorrencia de <nome ...>...</nome> (ignora namespace prefixo)
+  const re=new RegExp('<(?:\\w+:)?'+nome+'(?:\\s[^>]*)?>([\\s\\S]*?)<\\/(?:\\w+:)?'+nome+'>','i');
+  const m=xml.match(re);return m?m[1].trim():'';
+}
+function tagIn(xml,pai,filho){
+  const bloco=tag(xml,pai);return bloco?tag(bloco,filho):'';
+}
+function importarNotasXml(input){
+  const files=Array.from(input.files||[]);
+  if(!files.length)return;
+  let add=0,dup=0,erros=0,pend=0;
+  let feitos=0;
+  files.forEach(f=>{
+    const r=new FileReader();
+    r.onload=()=>{
+      try{
+        const xml=r.result;
+        const nota=parseNfseNacional(xml);
+        if(nota){
+          const jaTem=DB.notas.find(n=>n.numero_nfse&&n.numero_nfse===nota.numero_nfse);
+          if(jaTem){dup++;}
+          else{DB.notas.push(nota);add++;if(!nota.cliente_id)pend++;}
+        }else erros++;
+      }catch(e){erros++;}
+      feitos++;
+      if(feitos===files.length){
+        salvarDB();renderNotas();renderClientes();
+        let msg=add+' nota(s) importada(s)';
+        if(dup)msg+=', '+dup+' já existia(m)';
+        if(pend)msg+=' \u00b7 '+pend+' sem cliente reconhecido';
+        if(erros)msg+=' \u00b7 '+erros+' arquivo(s) não reconhecido(s)';
+        toast(msg+'.',erros&&!add?'erro':'sucesso');
+      }
+    };
+    r.readAsText(f);
+  });
+  input.value='';
+}
+function parseNfseNacional(xml){
+  if(!/infNFSe|<NFSe|infDPS/i.test(xml))return null;
+  // numero da NFS-e: tag nNFSe, ou atributo Id="NFS..." do infNFSe
+  let numero=tag(xml,'nNFSe');
+  if(!numero){
+    const mid=xml.match(/<(?:\w+:)?infNFSe[^>]*\bId="([^"]+)"/i);
+    if(mid)numero=mid[1].replace(/^NFS/i,'');
+  }
+  // valor: valores/vServPrest/vServ
+  let valorStr=tag(xml,'vServ')||tag(xml,'vLiq')||tag(xml,'vNF');
+  const valor=parseFloat(String(valorStr).replace(',','.'))||0;
+  // data de emissao: dhEmi (DPS) ou dhProc (NFSe)
+  let dh=tag(xml,'dhEmi')||tag(xml,'dhProc');
+  let competencia='', emitida='';
+  if(dh){competencia=dh.slice(0,7);const p=dh.slice(0,10).split('-');if(p.length===3)emitida=p[2]+'/'+p[1]+'/'+p[0];}
+  // competencia especifica (dCompet) se existir
+  const dcomp=tag(xml,'dCompet');
+  if(dcomp)competencia=dcomp.slice(0,7);
+  // tomador: bloco <toma>
+  const toma=tag(xml,'toma');
+  let doc=toma?(tag(toma,'CNPJ')||tag(toma,'CPF')):(tag(xml,'CNPJ')||tag(xml,'CPF'));
+  let nome=toma?tag(toma,'xNome'):tag(xml,'xNome');
+  // descricao do servico
+  const desc=tag(xml,'xDescServ')||tag(xml,'discriminacao')||(DB.config.desc||'');
+  // tenta casar cliente por documento, depois por nome
+  let cliente=null;
+  if(doc)cliente=DB.clientes.find(c=>soNums(c.documento)===soNums(doc));
+  if(!cliente&&nome)cliente=DB.clientes.find(c=>(c.nome||'').trim().toLowerCase()===nome.trim().toLowerCase());
+  return {
+    id:novoId('nota'),
+    cliente_id:cliente?cliente.id:'',
+    cliente_nome_xml:nome||'',
+    cliente_doc_xml:doc||'',
+    competencia:competencia,
+    numero_nfse:numero||'',
+    valor:valor,
+    descricao:desc,
+    status:'autorizada',
+    origem:'xml',
+    emitida_em:emitida||fmtData(new Date())
+  };
 }
 function rotStatusNota(s){return s==='portal'?'aguardando emiss\u00e3o':(s==='autorizada'?'autorizada':s);}
 function verNota(id){editarNota(id);}
