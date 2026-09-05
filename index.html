@@ -230,7 +230,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
       <a data-view="equip" onclick="showView('equip')">💻 <span class="txt">Equipamentos</span></a>
       <a data-view="config" onclick="showView('config')">⚙️ <span class="txt">Configurações</span></a>
     </nav>
-    <div class="sidebar-rodape">v4.5 · web</div>
+    <div class="sidebar-rodape">v4.6 · web</div>
   </aside>
   <nav class="tabbar" id="tabbar">
     <a data-view="agenda" class="ativo" onclick="showView('agenda')"><i>📅</i><span>Agenda</span></a>
@@ -325,6 +325,11 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
         <button class="subaba ativa" data-tipo="servico" onclick="trocarTipoRecibo('servico')">&#128295; Servi&ccedil;os</button>
         <button class="subaba" data-tipo="venda" onclick="trocarTipoRecibo('venda')">&#128230; Vendas</button>
       </div>
+      <div class="card no-print"><div class="os-filtros">
+        <div class="campo">M&ecirc;s<input type="month" id="rc-filtro-mes" onchange="renderRecibos()"></div>
+        <button class="btn btn-secundario" onclick="document.getElementById('rc-filtro-mes').value='';renderRecibos()">Limpar filtro</button>
+        <button class="btn btn-primario" onclick="imprimirRelatorioRecibos()">🖨️ Relatório do mês</button>
+      </div><span class="dim" id="rc-contador" style="font-size:13px"></span></div>
       <div id="lista-recibos"></div>
     </section>
 
@@ -1176,10 +1181,21 @@ function autoNumeroRecibo(){
   campo.value=proximoNumeroRecibo(document.getElementById('rc-data').value,document.getElementById('rc-id').value);
 }
 function totalRecibo(r){return (r.itens||[]).reduce((a,i)=>a+(parseFloat(i.valor)||0),0);}
+function recibosFiltrados(){
+  const fm=document.getElementById('rc-filtro-mes')?document.getElementById('rc-filtro-mes').value:'';
+  return DB.recibos.filter(r=>r.tipo===tipoRecibo && (!fm || String(r.data||'').slice(0,7)===fm));
+}
 function renderRecibos(){
   const box=document.getElementById('lista-recibos');if(!box)return;
-  const lista=DB.recibos.filter(r=>r.tipo===tipoRecibo).sort((a,b)=>(b.data||'').localeCompare(a.data||''));
-  if(!lista.length){box.innerHTML=`<p class="vazio">Nenhum recibo de ${tipoRecibo==='venda'?'venda':'servi\u00e7o'} ainda. Clique em "+ Novo recibo".</p>`;return;}
+  const lista=recibosFiltrados().sort((a,b)=>(b.data||'').localeCompare(a.data||''));
+  const cont=document.getElementById('rc-contador');
+  const fm=document.getElementById('rc-filtro-mes')?document.getElementById('rc-filtro-mes').value:'';
+  if(cont){
+    const tot=lista.reduce((a,r)=>a+totalRecibo(r),0);
+    cont.textContent=lista.length?(lista.length+' recibo(s)'+(fm?' em '+nomeMesAAAA(fm):'')+' \u00b7 Total: R$ '+tot.toFixed(2)):'';
+  }
+  if(!DB.recibos.filter(r=>r.tipo===tipoRecibo).length){box.innerHTML=`<p class="vazio">Nenhum recibo de ${tipoRecibo==='venda'?'venda':'servi\u00e7o'} ainda. Clique em "+ Novo recibo".</p>`;return;}
+  if(!lista.length){box.innerHTML=`<p class="vazio">Nenhum recibo ${fm?'em '+nomeMesAAAA(fm):''} nesta aba.</p>`;return;}
   let tot=0;
   const rows=lista.map(r=>{const v=totalRecibo(r);tot+=v;
     return `<tr><td data-rot="Data">${brdata(r.data)}</td><td data-rot="N\u00ba">${esc(numRecibo(r))}</td>`
@@ -1191,6 +1207,53 @@ function renderRecibos(){
      +`<span class="link-acao" onclick="duplicarRecibo(${r.id})">Duplicar</span></td></tr>`;}).join('');
   box.innerHTML=`<table class="tabela"><thead><tr><th>Data</th><th>N\u00ba</th><th>Pagador</th><th>Itens</th><th>Valor</th><th></th></tr></thead><tbody>${rows}</tbody></table>`
    +`<div class="os-total">${lista.length} recibo(s) \u00b7 Total: R$ ${tot.toFixed(2)}</div>`;
+}
+function imprimirRelatorioRecibos(){
+  const fm=document.getElementById('rc-filtro-mes')?document.getElementById('rc-filtro-mes').value:'';
+  // relatorio usa a aba atual (servico ou venda); se houver filtro de mes, so aquele mes; senao agrupa mes a mes
+  const base=DB.recibos.filter(r=>r.tipo===tipoRecibo && (!fm || String(r.data||'').slice(0,7)===fm));
+  if(!base.length){toast('Nenhum recibo '+(fm?'em '+nomeMesAAAA(fm):'')+' nesta aba.','erro');return;}
+  const tituloTipo=tipoRecibo==='venda'?'Vendas':'Serviços';
+  const grupos={};
+  base.forEach(r=>{const mes=String(r.data||'').slice(0,7)||'(sem data)';(grupos[mes]=grupos[mes]||[]).push(r);});
+  const meses=Object.keys(grupos).sort().reverse();
+  let corpo='', totalGeral=0, qtdGeral=0;
+  meses.forEach(mes=>{
+    const rs=grupos[mes].slice().sort((a,b)=>(a.data||'').localeCompare(b.data||''));
+    let sub=0;
+    const rows=rs.map(r=>{
+      const v=totalRecibo(r); sub+=v;
+      const servs=(r.itens||[]).map(i=>i.desc||'').filter(Boolean).join('; ');
+      return `<tr><td class="cen">${brdata(r.data)}</td><td class="cen">${esc(numRecibo(r))}</td><td>${esc(r.pag_nome||'\u2014')}</td><td>${esc(servs.length>70?servs.slice(0,70)+'\u2026':servs)}</td><td class="dir">R$ ${v.toFixed(2)}</td></tr>`;
+    }).join('');
+    totalGeral+=sub; qtdGeral+=rs.length;
+    corpo+=`<h3>${esc(nomeMesAAAA(mes))} <span class="cont">${rs.length} recibo(s)</span></h3>
+      <table><thead><tr><th class="cen">Data</th><th class="cen">N\u00ba</th><th>Pagador</th><th>Servi\u00e7os/Itens</th><th class="dir">Valor</th></tr></thead>
+      <tbody>${rows}<tr class="sub"><td colspan="4">Subtotal ${esc(nomeMesAAAA(mes))}</td><td class="dir">R$ ${sub.toFixed(2)}</td></tr></tbody></table>`;
+  });
+  const titulo=fm?(tituloTipo+' \u2014 '+nomeMesAAAA(fm)):(tituloTipo+' \u2014 todos os meses');
+  const html=`<!DOCTYPE html><html lang="pt-br"><head><meta charset="utf-8"><title>Relatorio de Recibos</title>
+  <style>@page{size:A4;margin:14mm}body{font-family:Arial,sans-serif;color:#111;margin:0;font-size:12px}
+  img{height:48px;margin-bottom:6px}
+  h2{margin:6px 0 2px;font-size:16px}.sub-hd{color:#555;font-size:12px;margin-bottom:14px}
+  h3{margin:16px 0 4px;font-size:13px;border-bottom:2px solid #333;padding-bottom:3px}
+  h3 .cont{font-size:11px;font-weight:400;color:#666}
+  table{width:100%;border-collapse:collapse;margin-bottom:6px}
+  th,td{border:1px solid #999;padding:5px 7px;text-align:left;vertical-align:top}
+  th{background:#f0f0f0;font-size:11px}
+  .cen{text-align:center}.dir{text-align:right}
+  tr.sub td{font-weight:700;background:#f7f7f7}
+  .tg{margin-top:14px;font-size:14px;font-weight:700;text-align:right;border-top:2px solid #333;padding-top:8px}
+  .rod{margin-top:14px;font-size:10px;color:#666}</style></head><body>
+    <img src="${LOGO_URL}" alt="VR Tecnologia">
+    <h2>Relat\u00f3rio de Recibos \u2014 ${esc(tituloTipo)}</h2>
+    <div class="sub-hd">${esc(titulo)} \u00b7 ${qtdGeral} recibo(s) \u00b7 Emitido em ${brdata(fmtData(new Date()))}</div>
+    ${corpo}
+    <div class="tg">TOTAL GERAL: R$ ${totalGeral.toFixed(2)}</div>
+    <p class="rod">VR Tecnologia Consultoria \u00b7 CNPJ 42.612.058/0001-36</p>
+    <script>window.onload=function(){setTimeout(function(){window.print();},400);};<\/script>
+  </body></html>`;
+  abrirImpressao(html);
 }
 function linhaItemRecibo(it){
   it=it||{};
