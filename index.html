@@ -231,7 +231,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
       <a data-view="contas" onclick="showView('contas')">💰 <span class="txt">Contas a pagar</span></a>
       <a data-view="config" onclick="showView('config')">⚙️ <span class="txt">Configurações</span></a>
     </nav>
-    <div class="sidebar-rodape">v4.8 · web</div>
+    <div class="sidebar-rodape">v5.2 · web</div>
   </aside>
   <nav class="tabbar" id="tabbar">
     <a data-view="agenda" class="ativo" onclick="showView('agenda')"><i>📅</i><span>Agenda</span></a>
@@ -329,7 +329,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
       </div>
       <div class="card no-print"><div class="os-filtros">
         <div class="campo">M&ecirc;s<input type="month" id="rc-filtro-mes" onchange="renderRecibos()"></div>
-        <button class="btn btn-secundario" onclick="document.getElementById('rc-filtro-mes').value='';renderRecibos()">Limpar filtro</button>
+        <button class="btn btn-secundario" onclick="limparFiltroRecibos()">Limpar filtro</button>
         <button class="btn btn-primario" onclick="imprimirRelatorioRecibos()">🖨️ Relatório do mês</button>
       </div><span class="dim" id="rc-contador" style="font-size:13px"></span></div>
       <div id="lista-recibos"></div>
@@ -362,7 +362,10 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
       <div class="card no-print"><div class="os-filtros">
         <div class="campo">M&ecirc;s<input type="month" id="ca-filtro-mes" onchange="renderContas()"></div>
         <div class="campo">Status<select id="ca-filtro-status" onchange="renderContas()"><option value="">Todas</option><option value="pendente">Pendentes</option><option value="pago">Pagas</option></select></div>
+        <div class="campo">Grupo<select id="ca-filtro-grupo" onchange="renderContas()"><option value="">Todos</option></select></div>
+        <label class="campo" style="flex-direction:row;align-items:center;gap:6px;align-self:end;padding-bottom:8px"><input type="checkbox" id="ca-filtro-inv" onchange="renderContas()" style="width:16px;height:16px"> tudo menos esse grupo</label>
         <button class="btn btn-secundario" onclick="limparFiltroContas()">Limpar</button>
+        <button class="btn btn-secundario" onclick="estenderContasEternas(false)" title="Adiciona os próximos meses das contas fixas">🔁 Estender fixas</button>
         <button class="btn btn-primario" onclick="imprimirRelatorioContas()">🖨️ Relatório</button>
       </div><span class="dim" id="ca-contador" style="font-size:13px"></span></div>
       <div id="lista-contas"></div>
@@ -505,6 +508,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
     <label>Status<select id="ca-status"><option value="pendente">Pendente</option><option value="pago">Pago</option></select></label>
     <label>Repeti&ccedil;&atilde;o<select id="ca-recorr" onchange="caToggleVezes()"><option value="nao">N&atilde;o repete</option><option value="vezes">Repetir X vezes</option><option value="eterna">Todo m&ecirc;s (fixa)</option></select></label>
     <label id="ca-vezes-wrap" style="display:none">Quantas vezes?<input type="number" id="ca-vezes" min="2" max="60" value="12"></label>
+    <label class="col2">Grupo <span class="dim">(ex: Cart&otilde;es, Fixas, Impostos)</span><input id="ca-grupo-nome" list="ca-grupos-sug" placeholder="opcional"><datalist id="ca-grupos-sug"></datalist></label>
     <label class="col2">Observa&ccedil;&otilde;es<input id="ca-obs" placeholder="opcional"></label>
   </div>
   <p class="dim" id="ca-aviso-recorr" style="margin-top:4px"></p>
@@ -1220,8 +1224,12 @@ function recibosFiltrados(){
   const fm=document.getElementById('rc-filtro-mes')?document.getElementById('rc-filtro-mes').value:'';
   return DB.recibos.filter(r=>r.tipo===tipoRecibo && (!fm || String(r.data||'').slice(0,7)===fm));
 }
+let recibosFiltroInit=false;
+function limparFiltroRecibos(){recibosFiltroInit=true;document.getElementById('rc-filtro-mes').value='';renderRecibos();}
 function renderRecibos(){
   const box=document.getElementById('lista-recibos');if(!box)return;
+  const inpMes=document.getElementById('rc-filtro-mes');
+  if(inpMes&&!recibosFiltroInit&&!inpMes.value){inpMes.value=mesAtualStr();recibosFiltroInit=true;}
   const lista=recibosFiltrados().sort((a,b)=>(b.data||'').localeCompare(a.data||''));
   const cont=document.getElementById('rc-contador');
   const fm=document.getElementById('rc-filtro-mes')?document.getElementById('rc-filtro-mes').value:'';
@@ -2237,7 +2245,7 @@ function caToggleVezes(){
   const r=document.getElementById('ca-recorr').value;
   document.getElementById('ca-vezes-wrap').style.display=r==='vezes'?'':'none';
   const av=document.getElementById('ca-aviso-recorr');
-  if(r==='eterna')av.textContent='Vai criar lançamentos mensais para os próximos 24 meses (dá pra estender depois).';
+  if(r==='eterna')av.textContent='Cria os próximos 24 meses. O app renova sozinho conforme os meses passam — nunca acaba.';
   else if(r==='vezes')av.textContent='Vai criar um lançamento por mês, na quantidade escolhida.';
   else av.textContent='';
 }
@@ -2247,7 +2255,8 @@ function abrirNovaConta(){
   document.getElementById('ca-venc').value=fmtData(new Date());
   document.getElementById('ca-status').value='pendente';
   document.getElementById('ca-recorr').value='nao';document.getElementById('ca-vezes').value='12';
-  document.getElementById('ca-obs').value='';
+  document.getElementById('ca-obs').value='';document.getElementById('ca-grupo-nome').value='';
+  preencherSugestoesGrupo();
   document.getElementById('modal-conta-titulo').textContent='Nova conta';
   document.getElementById('btn-excluir-ca').style.display='none';
   document.getElementById('ca-recorr').disabled=false;caToggleVezes();
@@ -2258,11 +2267,11 @@ function editarConta(id){
   document.getElementById('ca-id').value=c.id;document.getElementById('ca-grupo').value=c.grupo||'';
   document.getElementById('ca-nome').value=c.nome||'';document.getElementById('ca-valor').value=c.valor||'';
   document.getElementById('ca-venc').value=c.venc||'';document.getElementById('ca-status').value=c.status||'pendente';
-  document.getElementById('ca-obs').value=c.obs||'';
-  // ao editar, a recorrencia ja foi definida na criacao; edita so esta ocorrencia
+  document.getElementById('ca-obs').value=c.obs||'';document.getElementById('ca-grupo-nome').value=c.categoria||'';preencherSugestoesGrupo();
   document.getElementById('ca-recorr').value='nao';document.getElementById('ca-recorr').disabled=true;
   document.getElementById('ca-vezes-wrap').style.display='none';
-  document.getElementById('ca-aviso-recorr').textContent=c.grupo?'Esta conta faz parte de uma série mensal. A edição altera só este mês.':'';
+  const irmaos=c.grupo?DB.contas.filter(x=>x.grupo===c.grupo&&x.id!==c.id).length:0;
+  document.getElementById('ca-aviso-recorr').textContent=irmaos?('Esta conta se repete ('+(irmaos+1)+' meses). Ao salvar, você escolhe aplicar só a este mês ou a todos.'):'';
   document.getElementById('modal-conta-titulo').textContent='Editar conta';
   document.getElementById('btn-excluir-ca').style.display='inline-block';
   abrirModal('modal-conta');
@@ -2282,6 +2291,16 @@ function criarAgendaConta(conta){
   DB.agendamentos.push(ag);
   return ag.id;
 }
+function sincAgendaConta(c){
+  const ag=DB.agendamentos.find(a=>a.tipo==='conta'&&a.conta_id===c.id);
+  if(ag){
+    ag.titulo=c.nome+(c.valor?(' \u2013 R$ '+parseFloat(c.valor).toFixed(2)):'');
+    ag.inicio=c.venc+'T09:00';ag.fim=c.venc+'T09:30';
+    ag.status=c.status==='pago'?'pago':'agendado';
+  }else{
+    c.agendamento_id=criarAgendaConta(c);
+  }
+}
 function salvarConta(){
   const nome=document.getElementById('ca-nome').value.trim();
   if(!nome){toast('Informe o nome da conta.','erro');return;}
@@ -2290,15 +2309,36 @@ function salvarConta(){
   const valor=parseFloat(document.getElementById('ca-valor').value)||0;
   const status=document.getElementById('ca-status').value;
   const obs=document.getElementById('ca-obs').value.trim();
+  const categoria=document.getElementById('ca-grupo-nome').value.trim();
   const id=document.getElementById('ca-id').value;
   if(id){
-    // edicao de uma ocorrencia
     const c=DB.contas.find(x=>x.id==id);
-    Object.assign(c,{nome,valor,venc,status,obs});
-    // sincroniza o agendamento vinculado
-    const ag=DB.agendamentos.find(a=>a.tipo==='conta'&&a.conta_id===c.id);
-    if(ag){ag.titulo=nome+(valor?(' \u2013 R$ '+valor.toFixed(2)):'');ag.inicio=venc+'T09:00';ag.fim=venc+'T09:30';ag.status=status==='pago'?'pago':'agendado';}
-    else c.agendamento_id=criarAgendaConta(c);
+    const antesVenc=c.venc, novoDia=(venc.split('-')[2]||'').padStart(2,'0');
+    const irmaos=c.grupo?DB.contas.filter(x=>x.grupo===c.grupo&&x.id!==c.id):[];
+    // aplica sempre a este mês
+    Object.assign(c,{nome,valor,venc,status,obs,categoria});
+    sincAgendaConta(c);
+    // se há série, pergunta se replica (valor/nome/obs a todos; a data replica só o DIA, mantendo o mês de cada um)
+    if(irmaos.length){
+      const mudouData=antesVenc!==venc;
+      let msg='Esta conta se repete em mais '+irmaos.length+' mês(es).\n\nOK = aplicar as alterações a TODOS os meses';
+      msg+=mudouData?' (o dia do vencimento vira '+novoDia+' em todos, mantendo o mês de cada um).':' (nome, valor e observação).';
+      msg+='\nCancelar = alterar só este mês.';
+      if(confirm(msg)){
+        irmaos.forEach(x=>{
+          x.nome=nome;x.valor=valor;x.obs=obs;x.categoria=categoria;
+          if(mudouData){
+            const pm=String(x.venc).split('-'); // mantém ano-mês do irmão, troca o dia (ajustando a mês curto)
+            const ano=+pm[0], mes=+pm[1], ult=new Date(ano,mes,0).getDate();
+            const dia=Math.min(parseInt(novoDia)||1,ult);
+            x.venc=ano+'-'+String(mes).padStart(2,'0')+'-'+String(dia).padStart(2,'0');
+          }
+          sincAgendaConta(x); // NÃO mexe no status de cada mês (individual)
+        });
+        salvarDB();fecharModal('modal-conta');renderContas();renderCalendario();
+        toast('Alterações aplicadas a '+(irmaos.length+1)+' meses.','sucesso');return;
+      }
+    }
     salvarDB();fecharModal('modal-conta');renderContas();renderCalendario();toast('Conta atualizada.','sucesso');
     return;
   }
@@ -2312,7 +2352,7 @@ function salvarConta(){
   for(let i=0;i<ocorrencias;i++){
     const vi=proximoVenc(venc,i);
     const conta={id:novoId('ca'),grupo:grupo,eterna:recorr==='eterna',nome,valor,venc:vi,
-      status:i===0?status:'pendente',obs};
+      status:i===0?status:'pendente',obs,categoria};
     conta.agendamento_id=criarAgendaConta(conta);
     DB.contas.push(conta);criadas++;
   }
@@ -2343,19 +2383,74 @@ function alternarStatusConta(id){
   if(ag)ag.status=c.status==='pago'?'pago':'agendado';
   salvarDB();renderContas();renderCalendario();
 }
+function gruposDeContas(){
+  const s=new Set();DB.contas.forEach(c=>{if(c.categoria&&c.categoria.trim())s.add(c.categoria.trim());});
+  return Array.from(s).sort((a,b)=>a.localeCompare(b));
+}
+function preencherSugestoesGrupo(){
+  const dl=document.getElementById('ca-grupos-sug');
+  if(dl)dl.innerHTML=gruposDeContas().map(g=>`<option value="${esc(g)}">`).join('');
+}
+function preencherFiltroGrupo(){
+  const sel=document.getElementById('ca-filtro-grupo');if(!sel)return;
+  const atual=sel.value;
+  sel.innerHTML='<option value="">Todos</option>'+gruposDeContas().map(g=>`<option value="${esc(g)}">${esc(g)}</option>`).join('')+'<option value="__sem__">(sem grupo)</option>';
+  sel.value=atual;
+}
 function contasFiltradas(){
   const fm=document.getElementById('ca-filtro-mes')?document.getElementById('ca-filtro-mes').value:'';
   const fs=document.getElementById('ca-filtro-status')?document.getElementById('ca-filtro-status').value:'';
+  const fg=document.getElementById('ca-filtro-grupo')?document.getElementById('ca-filtro-grupo').value:'';
+  const inv=document.getElementById('ca-filtro-inv')?document.getElementById('ca-filtro-inv').checked:false;
   return DB.contas.filter(c=>{
     if(fm&&String(c.venc||'').slice(0,7)!==fm)return false;
     if(fs&&c.status!==fs)return false;
+    if(fg){
+      const cat=(c.categoria||'').trim();
+      const bate = fg==='__sem__' ? !cat : (cat===fg);
+      if(inv? bate : !bate)return false;
+    }
     return true;
   });
 }
 let contasFiltroInit=false;
-function limparFiltroContas(){contasFiltroInit=true;document.getElementById('ca-filtro-mes').value='';document.getElementById('ca-filtro-status').value='';renderContas();}
+function estenderContasEternas(silencioso){
+  // garante lançamentos das contas fixas (eternas) até ~24 meses à frente
+  const HORIZONTE=24;
+  const hoje=new Date(); const limite=new Date(hoje.getFullYear(),hoje.getMonth()+HORIZONTE,1);
+  // agrupa as eternas por grupo
+  const grupos={};
+  DB.contas.filter(c=>c.eterna&&c.grupo).forEach(c=>{(grupos[c.grupo]=grupos[c.grupo]||[]).push(c);});
+  let criadas=0;
+  Object.keys(grupos).forEach(g=>{
+    const ocs=grupos[g];
+    // pega a de maior vencimento como base pra continuar a série
+    const ultima=ocs.slice().sort((a,b)=>(a.venc||'').localeCompare(b.venc||'')).pop();
+    let venc=ultima.venc;
+    // enquanto o próximo mês ainda estiver dentro do horizonte, cria
+    let guard=0;
+    while(guard++<120){
+      const prox=proximoVenc(venc,1);
+      const d=new Date(prox+'T00:00');
+      if(d>limite)break;
+      const conta={id:novoId('ca'),grupo:g,eterna:true,nome:ultima.nome,valor:ultima.valor,venc:prox,status:'pendente',obs:ultima.obs||'',categoria:ultima.categoria||''};
+      conta.agendamento_id=criarAgendaConta(conta);
+      DB.contas.push(conta);criadas++;venc=prox;
+    }
+  });
+  if(criadas){salvarDB();renderCalendario();}
+  if(!silencioso){
+    if(criadas)toast(criadas+' lançamento(s) futuro(s) adicionado(s).','sucesso');
+    else toast('As contas fixas já estão com os próximos 24 meses lançados.','sucesso');
+    renderContas();
+  }
+  return criadas;
+}
+function limparFiltroContas(){contasFiltroInit=true;document.getElementById('ca-filtro-mes').value='';document.getElementById('ca-filtro-status').value='';document.getElementById('ca-filtro-grupo').value='';document.getElementById('ca-filtro-inv').checked=false;renderContas();}
 function renderContas(){
   const box=document.getElementById('lista-contas');if(!box)return;
+  if(!contasFiltroInit)estenderContasEternas(true);
+  preencherFiltroGrupo(); // renova as fixas silenciosamente ao abrir
   const inpMes=document.getElementById('ca-filtro-mes');
   if(inpMes&&!contasFiltroInit&&!inpMes.value){inpMes.value=mesAtualStr();contasFiltroInit=true;}
   const lista=contasFiltradas().sort((a,b)=>(a.venc||'').localeCompare(b.venc||''));
@@ -2375,7 +2470,7 @@ function renderContas(){
     const selo=pago?'<span class="tag tag-autorizada">pago</span>':(vencido?'<span class="tag tag-pendente">vencida</span>':'<span class="tag tag-portal">pendente</span>');
     const serie=c.grupo?' <span class="dim" style="font-size:11px">\u{1F501}</span>':'';
     return `<tr><td data-rot="Vencimento">${brdata(c.venc)}</td>`
-      +`<td data-rot="Conta"><b>${esc(c.nome)}</b>${serie}${c.obs?'<br><span class="dim" style="font-size:12px">'+esc(c.obs)+'</span>':''}</td>`
+      +`<td data-rot="Conta"><b>${esc(c.nome)}</b>${serie}${c.categoria?' <span class="tag" style="background:#e0e7ff;color:#3730a3">'+esc(c.categoria)+'</span>':''}${c.obs?'<br><span class="dim" style="font-size:12px">'+esc(c.obs)+'</span>':''}</td>`
       +`<td data-rot="Valor">R$ ${(parseFloat(c.valor)||0).toFixed(2)}</td>`
       +`<td data-rot="Status">${selo}</td>`
       +`<td class="acoes-cel"><span class="link-acao" onclick="alternarStatusConta(${c.id})">${pago?'Marcar pendente':'Marcar pago'}</span>`
