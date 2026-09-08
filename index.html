@@ -231,7 +231,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
       <a data-view="contas" onclick="showView('contas')">💰 <span class="txt">Contas a pagar</span></a>
       <a data-view="config" onclick="showView('config')">⚙️ <span class="txt">Configurações</span></a>
     </nav>
-    <div class="sidebar-rodape">v5.2 · web</div>
+    <div class="sidebar-rodape">v5.3 · web</div>
   </aside>
   <nav class="tabbar" id="tabbar">
     <a data-view="agenda" class="ativo" onclick="showView('agenda')"><i>📅</i><span>Agenda</span></a>
@@ -2262,6 +2262,23 @@ function abrirNovaConta(){
   document.getElementById('ca-recorr').disabled=false;caToggleVezes();
   abrirModal('modal-conta');
 }
+function infoParcelasConta(c){
+  // retorna {pos, total, faltam} baseado na série (mesmo grupo de recorrência)
+  if(!c.grupo)return null;
+  const serie=DB.contas.filter(x=>x.grupo===c.grupo).sort((a,b)=>(a.venc||'').localeCompare(b.venc||''));
+  const total=serie.length;
+  const pos=serie.findIndex(x=>x.id===c.id)+1;
+  const hoje=fmtData(new Date());
+  // faltam = as que ainda não foram pagas E cujo vencimento é de hoje em diante (a pagar no futuro), a partir desta
+  const daquiPraFrente=serie.slice(Math.max(0,pos-1));
+  const faltam=daquiPraFrente.filter(x=>x.status!=='pago').length;
+  return {pos,total,faltam};
+}
+function textoParcelas(c){
+  const i=infoParcelasConta(c);
+  if(!i)return '';
+  return 'Parcela '+i.pos+' de '+i.total+(i.faltam?(' · faltam '+i.faltam):' · última');
+}
 function editarConta(id){
   const c=DB.contas.find(x=>x.id===id);if(!c)return;
   document.getElementById('ca-id').value=c.id;document.getElementById('ca-grupo').value=c.grupo||'';
@@ -2271,7 +2288,8 @@ function editarConta(id){
   document.getElementById('ca-recorr').value='nao';document.getElementById('ca-recorr').disabled=true;
   document.getElementById('ca-vezes-wrap').style.display='none';
   const irmaos=c.grupo?DB.contas.filter(x=>x.grupo===c.grupo&&x.id!==c.id).length:0;
-  document.getElementById('ca-aviso-recorr').textContent=irmaos?('Esta conta se repete ('+(irmaos+1)+' meses). Ao salvar, você escolhe aplicar só a este mês ou a todos.'):'';
+  const tp=textoParcelas(c);
+  document.getElementById('ca-aviso-recorr').innerHTML=irmaos?('<b>'+tp+'</b>. Ao salvar, você escolhe aplicar só a este mês ou a todos.'):'';
   document.getElementById('modal-conta-titulo').textContent='Editar conta';
   document.getElementById('btn-excluir-ca').style.display='inline-block';
   abrirModal('modal-conta');
@@ -2468,7 +2486,7 @@ function renderContas(){
     const pago=c.status==='pago';
     const vencido=!pago&&c.venc<hoje;
     const selo=pago?'<span class="tag tag-autorizada">pago</span>':(vencido?'<span class="tag tag-pendente">vencida</span>':'<span class="tag tag-portal">pendente</span>');
-    const serie=c.grupo?' <span class="dim" style="font-size:11px">\u{1F501}</span>':'';
+    const ip=infoParcelasConta(c);const serie=ip?(' <span class="tag" style="background:#fef3c7;color:#92400e;font-size:11px">\u{1F501} '+ip.pos+'/'+ip.total+(ip.faltam?(' \u00b7 faltam '+ip.faltam):'')+'</span>'):'';
     return `<tr><td data-rot="Vencimento">${brdata(c.venc)}</td>`
       +`<td data-rot="Conta"><b>${esc(c.nome)}</b>${serie}${c.categoria?' <span class="tag" style="background:#e0e7ff;color:#3730a3">'+esc(c.categoria)+'</span>':''}${c.obs?'<br><span class="dim" style="font-size:12px">'+esc(c.obs)+'</span>':''}</td>`
       +`<td data-rot="Valor">R$ ${(parseFloat(c.valor)||0).toFixed(2)}</td>`
