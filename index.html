@@ -46,13 +46,13 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
 .cal-nav{display:flex;align-items:center;gap:8px}.cal-nav h2{font-size:18px;margin-left:8px}.cal-nav .btn{padding:7px 12px}
 .cal-views{display:flex;gap:6px}
 .cal-grade{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--borda);border:1px solid var(--borda);border-radius:8px;overflow:hidden}
-.cal-cabdia{background:#f8fafc;text-align:center;padding:8px 0;font-size:12px;font-weight:700;color:var(--cinza);text-transform:uppercase}
-.cal-cel{background:#fff;min-height:104px;padding:5px 6px;cursor:pointer;transition:.12s;display:flex;flex-direction:column;gap:3px}
+.cal-cabdia{background:#f8fafc;text-align:center;padding:8px 0;font-size:12px;font-weight:700;color:var(--cinza);text-transform:uppercase}.cal-cel.fds{background:#f1f5f9}.cal-cel.fds.hoje{background:#dbeafe}
+.cal-cel{background:#fff;height:110px;padding:4px 6px;cursor:pointer;transition:.12s;display:flex;flex-direction:column;gap:2px;overflow:hidden}
 .cal-cel:hover{background:#f0f7ff}.cal-cel.fora{background:#fafafa}.cal-cel.fora .cal-num{color:#cbd5e1}
 .cal-cel.hoje{background:#eff6ff}.cal-cel.hoje .cal-num{background:var(--azul);color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center}
 .cal-num{font-size:13px;font-weight:600;color:#374151}
-.cal-chips{display:flex;flex-direction:column;gap:2px;overflow:hidden}
-.cal-chip{color:#fff;font-size:11px;padding:2px 6px;border-radius:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+.cal-chips{display:flex;flex-direction:column;gap:2px;overflow-y:auto;flex:1;min-height:0;scrollbar-width:thin}.cal-chips::-webkit-scrollbar{width:5px}.cal-chips::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}
+.cal-chip{color:#fff;font-size:10px;padding:1px 5px;border-radius:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;flex:0 0 auto}
 .cal-chip:hover{opacity:.88}.cal-chip-h{font-weight:700;opacity:.9}
 .cal-lista{display:flex;flex-direction:column}
 .cal-lista-dia{font-size:13px;font-weight:700;color:var(--cinza);padding:14px 4px 6px;border-bottom:1px solid var(--borda);text-transform:capitalize}
@@ -232,7 +232,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
       <a data-view="receber" onclick="showView('receber')">💵 <span class="txt">Contas a receber</span></a>
       <a data-view="config" onclick="showView('config')">⚙️ <span class="txt">Configurações</span></a>
     </nav>
-    <div class="sidebar-rodape">v5.5 · web</div>
+    <div class="sidebar-rodape">v5.7 · web</div>
   </aside>
   <nav class="tabbar" id="tabbar">
     <a data-view="agenda" class="ativo" onclick="showView('agenda')"><i>📅</i><span>Agenda</span></a>
@@ -689,7 +689,7 @@ async function nuvemCarregar(avisar){
   if(!conectado||carregando)return; carregando=true;
   try{
     const r=await fetch(GH+'/repos/'+GH_REPO+'/contents/dados.json',{headers:ghHeaders(),cache:'no-store'});
-    if(r.status===200){const j=await r.json();ghSha=j.sha;const dados=JSON.parse(b64dec(j.content));DB=migrar(dados);salvarLocal();rerenderTudo();if(avisar)toast('Dados atualizados da nuvem.','sucesso');}
+    if(r.status===200){const j=await r.json();ghSha=j.sha;const dados=JSON.parse(b64dec(j.content));DB=migrar(dados);limparContasPagasDaAgenda();salvarLocal();rerenderTudo();if(avisar)toast('Dados atualizados da nuvem.','sucesso');}
     else if(r.status===404){ghSha=null;await nuvemSalvarAgora();if(avisar)toast('Nuvem iniciada com os dados deste aparelho.','sucesso');}
     else if(avisar)toast('Não consegui baixar (erro '+r.status+').','erro');
   }catch(e){if(avisar)toast('Erro ao baixar: '+e.message,'erro');}
@@ -716,6 +716,8 @@ const CHAVE='gestor_ti_db_v2';
 const CAMPOS_CLI=['nome','tipo_pessoa','documento','email','telefone','inscricao_municipal','venc_dia','cep','logradouro','numero','complemento','bairro','municipio','codigo_municipio_ibge','uf','observacoes'];
 const MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 const DIAS=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+const DIAS_SEG=['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
+function dowSeg(d){return (d.getDay()+6)%7;} // 0=Seg ... 6=Dom
 let DB=carregarLocal();
 function dbPadrao(){return{clientes:[],agendamentos:[],notas:[],servicos:[],contratos:[],cobrancas:[],recibos:[],equipamentos:[],contas:[],receber_recebidos:[],receber_vencimentos:{},config:{desc:'REPARAÇÃO E MANUTENÇÃO DE COMPUTADORES',ctrib:'140101',cnpj:'42612058000136',mun:'3304557',razao:'',pix:'PIX CNPJ 42.612.058/0001-36',pix_cpf:'',banco:'',emit_nome:'',emit_cpf:''},seq:{cli:1,ag:1,nota:1,serv:1,ct:1,cob:1,rec:1,eq:1,ca:1}};}
 function migrar(d){
@@ -786,14 +788,25 @@ function corEvento(a){if(a.tipo==='conta')return a.status==='pago'?'#16a34a':'#f
 function mudarMes(d){calState.ref=new Date(calState.ref.getFullYear(),calState.ref.getMonth()+d,1);renderCalendario();}
 function irHoje(){calState.ref=primeiroDiaMes(new Date());renderCalendario();}
 function trocarView(v){calState.view=v;renderCalendario();}
-function renderCalendario(){const el=document.getElementById('calendario');const ref=calState.ref;const cab=`<div class="cal-cab"><div class="cal-nav"><button class="btn btn-secundario" onclick="mudarMes(-1)">‹</button><button class="btn btn-secundario" onclick="irHoje()">Hoje</button><button class="btn btn-secundario" onclick="mudarMes(1)">›</button><h2>${MESES[ref.getMonth()]} de ${ref.getFullYear()}</h2></div><div class="cal-views"><button class="btn ${calState.view==='mes'?'btn-primario':'btn-secundario'}" onclick="trocarView('mes')">Mês</button><button class="btn ${calState.view==='lista'?'btn-primario':'btn-secundario'}" onclick="trocarView('lista')">Lista</button></div></div>`;el.innerHTML=cab+(calState.view==='mes'?renderMes():renderLista());}
+function limparContasPagasDaAgenda(){
+  // Remove do calendário QUALQUER evento de conta cuja conta esteja paga.
+  // Roda sempre (sem flag) — corrige inclusive dados que vieram da nuvem.
+  if(!Array.isArray(DB.agendamentos)||!Array.isArray(DB.contas))return false;
+  const pagas=new Set(DB.contas.filter(c=>c.status==='pago').map(c=>c.id));
+  const antes=DB.agendamentos.length;
+  DB.agendamentos=DB.agendamentos.filter(a=>!(a.tipo==='conta'&&pagas.has(a.conta_id)));
+  const mudou=DB.agendamentos.length!==antes;
+  if(mudou){DB.contas.forEach(c=>{if(c.status==='pago')c.agendamento_id=null;});salvarLocal();}
+  return mudou;
+}
+function renderCalendario(){limparContasPagasDaAgenda();const el=document.getElementById('calendario');const ref=calState.ref;const cab=`<div class="cal-cab"><div class="cal-nav"><button class="btn btn-secundario" onclick="mudarMes(-1)">‹</button><button class="btn btn-secundario" onclick="irHoje()">Hoje</button><button class="btn btn-secundario" onclick="mudarMes(1)">›</button><h2>${MESES[ref.getMonth()]} de ${ref.getFullYear()}</h2></div><div class="cal-views"><button class="btn ${calState.view==='mes'?'btn-primario':'btn-secundario'}" onclick="trocarView('mes')">Mês</button><button class="btn ${calState.view==='lista'?'btn-primario':'btn-secundario'}" onclick="trocarView('lista')">Lista</button></div></div>`;el.innerHTML=cab+(calState.view==='mes'?renderMes():renderLista());}
 function eventosDoDia(d){const s=fmtData(d);return DB.agendamentos.filter(e=>(e.inicio||'').slice(0,10)===s).sort((a,b)=>(a.inicio||'').localeCompare(b.inicio||''));}
 function periodoEvento(e){var hh=parseInt((e.inicio||'').slice(11,13))||0;return hh<13?'M':'T';}
 function iconePeriodo(e){return periodoEvento(e)==='M'?'\u{1F305}':'\u{1F306}';}
 function duracaoHoras(e){if(!e.inicio||!e.fim)return 0;var h=(new Date(e.fim)-new Date(e.inicio))/3600000;return h>0?Math.round(h*2)/2:0;}
 function durTxt(e){var d=duracaoHoras(e);return d?(String(d).replace('.',',')+'h'):'';}
 function nomeCurto(e){if(e.tipo==='conta')return'\u{1F4B0} '+e.titulo;const c=DB.clientes.find(x=>x.id==e.cliente_id);return(c?c.nome+' - ':'')+e.titulo;}
-function renderMes(){const ref=calState.ref,primeiro=primeiroDiaMes(ref),ini=new Date(primeiro);ini.setDate(1-primeiro.getDay());const hoje=new Date();let h='<div class="cal-grade">'+DIAS.map(d=>`<div class="cal-cabdia">${d}</div>`).join('');for(let i=0;i<42;i++){const dia=new Date(ini);dia.setDate(ini.getDate()+i);const fora=dia.getMonth()!==ref.getMonth(),eh=mesmaData(dia,hoje);const chips=eventosDoDia(dia).map(e=>`<div class="cal-chip" style="background:${corEvento(e)}" title="${esc(nomeCurto(e))}" onclick="event.stopPropagation();abrirAgendamento(${e.id})"><span class="cal-chip-h">${iconePeriodo(e)} ${(e.inicio||'').slice(11,16)}${durTxt(e)?' '+durTxt(e):''}</span> ${esc(nomeCurto(e))}</div>`).join('');h+=`<div class="cal-cel ${fora?'fora':''} ${eh?'hoje':''}" onclick="abrirNovoAgendamento('${fmtData(dia)}')"><div class="cal-num">${dia.getDate()}</div><div class="cal-chips">${chips}</div></div>`;}return h+'</div>';}
+function renderMes(){const ref=calState.ref,primeiro=primeiroDiaMes(ref),ini=new Date(primeiro);ini.setDate(1-dowSeg(primeiro));const hoje=new Date();let h='<div class="cal-grade">'+DIAS_SEG.map(d=>`<div class="cal-cabdia">${d}</div>`).join('');for(let i=0;i<42;i++){const dia=new Date(ini);dia.setDate(ini.getDate()+i);const fora=dia.getMonth()!==ref.getMonth(),eh=mesmaData(dia,hoje);const fds=(dia.getDay()===0||dia.getDay()===6);const chips=eventosDoDia(dia).map(e=>`<div class="cal-chip" style="background:${corEvento(e)}" title="${esc(nomeCurto(e))}" onclick="event.stopPropagation();abrirAgendamento(${e.id})"><span class="cal-chip-h">${iconePeriodo(e)} ${(e.inicio||'').slice(11,16)}${durTxt(e)?' '+durTxt(e):''}</span> ${esc(nomeCurto(e))}</div>`).join('');h+=`<div class="cal-cel ${fora?'fora':''} ${eh?'hoje':''} ${fds?'fds':''}" onclick="abrirNovoAgendamento('${fmtData(dia)}')"><div class="cal-num">${dia.getDate()}</div><div class="cal-chips">${chips}</div></div>`;}return h+'</div>';}
 function renderLista(){const hojeStr=fmtData(new Date());const fut=DB.agendamentos.filter(e=>(e.inicio||'').slice(0,10)>=hojeStr).sort((a,b)=>(a.inicio||'').localeCompare(b.inicio||''));if(!fut.length)return'<p class="vazio">Nenhum agendamento futuro.</p>';let h='<div class="cal-lista">',ult='';fut.forEach(e=>{const dia=(e.inicio||'').slice(0,10);if(dia!==ult){const d=new Date(dia+'T12:00');h+=`<div class="cal-lista-dia">${DIAS[d.getDay()]}, ${d.getDate()} de ${MESES[d.getMonth()]}</div>`;ult=dia;}h+=`<div class="cal-lista-item" onclick="abrirAgendamento(${e.id})"><span class="cal-lista-hora">${iconePeriodo(e)} ${(e.inicio||'').slice(11,16)}${durTxt(e)?' \u00b7 '+durTxt(e):''}</span><span class="cal-lista-cor" style="background:${corEvento(e)}"></span><span class="cal-lista-tit">${esc(nomeCurto(e))}</span></div>`;});return h+'</div>';}
 function fmtLocal(dt){return dt?dt.slice(0,16):'';}
 function abrirNovoAgendamento(dataStr){carregarClientesSelect();document.getElementById('ag-id').value='';['ag-titulo','ag-valor','ag-local','ag-descricao'].forEach(i=>document.getElementById(i).value='');document.getElementById('ag-cliente').value='';document.getElementById('ag-status').value='agendado';document.getElementById('modal-titulo').textContent='Novo agendamento';document.getElementById('btn-excluir-ag').style.display='none';document.getElementById('btn-outlook').style.display='none';document.getElementById('bloco-recorrencia').style.display='';document.querySelectorAll('.dow').forEach(c=>c.checked=false);document.getElementById('ag-repetir-ate').value=(new Date().getFullYear())+'-12-31';const base=(dataStr||fmtData(new Date()))+'T09:00';document.getElementById('ag-inicio').value=base;document.getElementById('ag-horas').value='1';recalcFim();abrirModal('modal-agendamento');}
@@ -2320,18 +2333,28 @@ function proximoVenc(dataISO,addMeses){
   return ano+'-'+String(mes+1).padStart(2,'0')+'-'+String(dia).padStart(2,'0');
 }
 function criarAgendaConta(conta){
+  if(conta.status==='pago')return null; // conta paga não entra no calendário
   const ag={id:novoId('ag'),tipo:'conta',conta_id:conta.id,titulo:conta.nome+(conta.valor?(' \u2013 R$ '+parseFloat(conta.valor).toFixed(2)):''),
     cliente_id:'',inicio:conta.venc+'T09:00',fim:conta.venc+'T09:30',
-    status:conta.status==='pago'?'pago':'agendado',origem:'app'};
+    status:'agendado',origem:'app'};
   DB.agendamentos.push(ag);
   return ag.id;
 }
 function sincAgendaConta(c){
-  const ag=DB.agendamentos.find(a=>a.tipo==='conta'&&a.conta_id===c.id);
-  if(ag){
+  // Conta PAGA não aparece no calendário (some pra não poluir a agenda de serviços);
+  // conta PENDENTE fica no calendário no dia do vencimento.
+  const idx=DB.agendamentos.findIndex(a=>a.tipo==='conta'&&a.conta_id===c.id);
+  if(c.status==='pago'){
+    if(idx>=0)DB.agendamentos.splice(idx,1); // remove só do calendário; a conta continua em Contas a pagar
+    c.agendamento_id=null;
+    return;
+  }
+  // pendente: garante o evento
+  if(idx>=0){
+    const ag=DB.agendamentos[idx];
     ag.titulo=c.nome+(c.valor?(' \u2013 R$ '+parseFloat(c.valor).toFixed(2)):'');
     ag.inicio=c.venc+'T09:00';ag.fim=c.venc+'T09:30';
-    ag.status=c.status==='pago'?'pago':'agendado';
+    ag.status='agendado';
   }else{
     c.agendamento_id=criarAgendaConta(c);
   }
@@ -2414,8 +2437,7 @@ function excluirConta(){
 function alternarStatusConta(id){
   const c=DB.contas.find(x=>x.id===id);if(!c)return;
   c.status=c.status==='pago'?'pendente':'pago';
-  const ag=DB.agendamentos.find(a=>a.tipo==='conta'&&a.conta_id===c.id);
-  if(ag)ag.status=c.status==='pago'?'pago':'agendado';
+  sincAgendaConta(c); // pago remove do calendário, pendente recoloca
   salvarDB();renderContas();renderCalendario();
 }
 function gruposDeContas(){
@@ -2742,6 +2764,7 @@ function exportarBackup(){baixarArquivo(new Blob([JSON.stringify(DB,null,2)],{ty
 function importarBackup(input){const f=input.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.clientes||!d.agendamentos)throw new Error('inv');if(!confirm('Isso substitui os dados atuais pelos do backup. Continuar?'))return;DB=Object.assign(dbPadrao(),d);salvarDB();rerenderTudo();toast('Backup restaurado!','sucesso');}catch(e){toast('Arquivo de backup inválido.','erro');}input.value='';};r.readAsText(f);}
 
 // ================== Início ==================
+limparContasPagasDaAgenda();
 carregarClientesSelect();renderCalendario();
 if(GH_REPO&&GH_TOKEN){ conectarNuvem(); }
 </script>
