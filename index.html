@@ -232,7 +232,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
       <a data-view="receber" onclick="showView('receber')">💵 <span class="txt">Contas a receber</span></a>
       <a data-view="config" onclick="showView('config')">⚙️ <span class="txt">Configurações</span></a>
     </nav>
-    <div class="sidebar-rodape">v5.7 · web</div>
+    <div class="sidebar-rodape">v5.8 · web</div>
   </aside>
   <nav class="tabbar" id="tabbar">
     <a data-view="agenda" class="ativo" onclick="showView('agenda')"><i>📅</i><span>Agenda</span></a>
@@ -2588,12 +2588,12 @@ function montarReceber(){
     // vencimento: se a nota tem competência e veio de contrato, usa vencContrato; senão emissão
     let data='';
     const comp=(typeof competenciaNota==='function')?competenciaNota(n):(n.competencia||'');
-    if(n.contrato_id){
-      const ct=DB.contratos.find(t=>t.id===n.contrato_id);
-      if(ct&&comp)data=vencISO(ct,comp);
-    }
-    if(!data&&comp)data=comp+'-10'; // fallback: dia 10 da competência
-    if(!data)data=emiToISO(n.emitida_em);
+    // contrato: pelo vínculo direto; se não tiver (ex: nota importada por XML), pelo cliente — mas não para OS avulsa
+    let ct=n.contrato_id?DB.contratos.find(t=>t.id===n.contrato_id):null;
+    const ehOS=Array.isArray(n.servico_ids)&&n.servico_ids.length>0;
+    if(!ct&&!ehOS)ct=DB.contratos.find(t=>String(t.cliente_id)===String(n.cliente_id)&&t.tipo!=='comunicado');
+    if(ct&&comp)data=vencISO(ct,comp);      // contrato: dia do contrato, mês seguinte à competência
+    if(!data)data=emiToISO(n.emitida_em);    // avulsa: data de emissão
     itens.push({chave:'nota:'+n.id,grupo:'NFSe',data:data,cliente:nome,
       doc:(n.numero_nfse?('NF '+n.numero_nfse):'NFS-e'),valor:parseFloat(n.valor)||0});
   });
@@ -2625,8 +2625,10 @@ function vencISO(ct,comp){
   return p.length===3?(p[2]+'-'+p[1]+'-'+p[0]):(comp+'-10');
 }
 function emiToISO(emi){
-  const p=String(emi||'').split('/');
-  return p.length===3?(p[2]+'-'+p[1]+'-'+p[0]):fmtData(new Date());
+  const s=String(emi||'').trim();
+  if(/^\d{4}-\d{2}-\d{2}/.test(s))return s.slice(0,10);
+  const p=s.split('/');
+  return p.length===3?(p[2]+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0')):fmtData(new Date());
 }
 function marcarRecebidosAte31Ago(){
   // roda uma única vez: NFSe e Email com vencimento até 31/08/2026 entram como recebidos
