@@ -232,7 +232,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
       <a data-view="receber" onclick="showView('receber')">💵 <span class="txt">Contas a receber</span></a>
       <a data-view="config" onclick="showView('config')">⚙️ <span class="txt">Configurações</span></a>
     </nav>
-    <div class="sidebar-rodape">v6.1 · web</div>
+    <div class="sidebar-rodape">v6.2 · web</div>
   </aside>
   <nav class="tabbar" id="tabbar">
     <a data-view="agenda" class="ativo" onclick="showView('agenda')"><i>📅</i><span>Agenda</span></a>
@@ -282,8 +282,8 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
       <div class="topo"><h1>Ordens de Serviço</h1></div>
       <div class="card no-print">
         <div class="os-filtros">
-          <div class="campo">Cliente<select id="os-cliente" onchange="renderOS()"><option value="">— selecione —</option></select></div>
-          <div class="campo">Mês<input type="month" id="os-mes" onchange="renderOS()"></div>
+          <div class="campo">Cliente<select id="os-cliente" onchange="fecharBloco('bloco-nfse-os');renderOS()"><option value="">— selecione —</option></select></div>
+          <div class="campo">Mês<input type="month" id="os-mes" onchange="fecharBloco('bloco-nfse-os');renderOS()"></div>
           <div class="campo">Nº da OS<input id="os-numero" style="width:150px"></div>
           <button class="btn btn-secundario" onclick="importarServicosDaAgenda()">📥 Puxar da agenda</button>
           <label class="btn btn-secundario" style="display:inline-block;margin:0">&#128196; Importar OS (arquivo)<input type="file" accept="application/json" style="display:none" onchange="importarOSArquivo(this)"></label>
@@ -303,7 +303,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
         </div>
       </div>
       <div id="os-lista"></div>
-      <div id="bloco-nfse-os" class="bloco-nfse oculto"><h3>Nota Fiscal (NFS-e)</h3><div id="nfse-info-os"></div></div>
+      <div id="bloco-nfse-os" class="bloco-nfse oculto"><button class="btn btn-secundario" style="float:right;padding:4px 10px" onclick="fecharBloco('bloco-nfse-os')">✕ Fechar</button><h3>Nota Fiscal (NFS-e)</h3><div id="nfse-info-os"></div></div>
       <div id="os-print"></div>
     </section>
 
@@ -313,14 +313,14 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
       </div></div>
       <div class="card no-print">
         <div class="os-filtros">
-          <div class="campo">Compet&ecirc;ncia (m&ecirc;s a cobrar)<input type="month" id="ct-mes" onchange="renderContratos()"></div>
+          <div class="campo">Compet&ecirc;ncia (m&ecirc;s a cobrar)<input type="month" id="ct-mes" onchange="fecharBloco('bloco-ct');renderContratos()"></div>
           <button class="btn btn-nfse" id="btn-nfse-ct" onclick="emitirNFSeContratos()" disabled>&#129534; Emitir NFS-e</button>
           <button class="btn btn-outlook" id="btn-com-ct" onclick="gerarComunicados()" disabled>&#9993;&#65039; Gerar comunicado</button>
         </div>
         <p class="dim" style="margin-top:8px">Marque os contratos que vai cobrar neste m&ecirc;s. Os de <b>NFS-e</b> preparam a nota e abrem o Emissor Nacional; os de <b>comunicado</b> geram o texto do e-mail com seus dados de pagamento.</p>
       </div>
       <div id="lista-contratos"></div>
-      <div id="bloco-ct" class="bloco-nfse oculto"><h3 id="bloco-ct-tit">Resultado</h3><div id="bloco-ct-info"></div></div>
+      <div id="bloco-ct" class="bloco-nfse oculto"><button class="btn btn-secundario" style="float:right;padding:4px 10px" onclick="fecharBloco('bloco-ct')">✕ Fechar</button><h3 id="bloco-ct-tit">Resultado</h3><div id="bloco-ct-info"></div></div>
     </section>
 
     <section id="view-recibos" class="oculto">
@@ -706,7 +706,7 @@ async function nuvemCarregar(avisar){
   if(!conectado||carregando)return; carregando=true;
   try{
     const r=await fetch(GH+'/repos/'+GH_REPO+'/contents/dados.json',{headers:ghHeaders(),cache:'no-store'});
-    if(r.status===200){const j=await r.json();ghSha=j.sha;const dados=JSON.parse(b64dec(j.content));DB=migrar(dados);limparContasPagasDaAgenda();salvarLocal();rerenderTudo();if(avisar)toast('Dados atualizados da nuvem.','sucesso');setTimeout(checarInboxCaldav,300);setTimeout(()=>msSincronizar(false),1200);}
+    if(r.status===200){const j=await r.json();if(!avisar&&ghSha&&j.sha===ghSha){carregando=false;setTimeout(checarInboxCaldav,300);return;}ghSha=j.sha;const dados=JSON.parse(b64dec(j.content));DB=migrar(dados);limparContasPagasDaAgenda();salvarLocal();rerenderTudo();if(avisar)toast('Dados atualizados da nuvem.','sucesso');setTimeout(checarInboxCaldav,300);setTimeout(()=>msSincronizar(false),1200);}
     else if(r.status===404){ghSha=null;await nuvemSalvarAgora();if(avisar)toast('Nuvem iniciada com os dados deste aparelho.','sucesso');}
     else if(avisar)toast('Não consegui baixar (erro '+r.status+').','erro');
   }catch(e){if(avisar)toast('Erro ao baixar: '+e.message,'erro');}
@@ -1151,7 +1151,6 @@ function renderContratos(){
   const box=document.getElementById('lista-contratos');if(!box)return;
   const inp=document.getElementById('ct-mes');if(!inp.value)inp.value=mesAtualStr();
   const mes=inp.value;
-  document.getElementById('bloco-ct').classList.add('oculto');
   const lista=DB.contratos.slice().sort((a,b)=>{
     const na=(DB.clientes.find(x=>x.id==a.cliente_id)||{}).nome||'',nb=(DB.clientes.find(x=>x.id==b.cliente_id)||{}).nome||'';
     return (b.ativo?1:0)-(a.ativo?1:0)||na.localeCompare(nb);});
@@ -1310,6 +1309,7 @@ function gerarComunicados(){
   toast('Comunicados gerados.','sucesso');
 }
 function copiarCampo(id){const t=document.getElementById(id);if(!t)return;t.select();navigator.clipboard.writeText(t.value).then(()=>toast('Copiado!','sucesso'),()=>toast('Copie manualmente (Ctrl+C).','erro'));}
+function fecharBloco(id){const b=document.getElementById(id);if(b)b.classList.add('oculto');}
 function registrarNumCobranca(notaId,campoId){
   const num=(document.getElementById(campoId).value||'').trim();
   if(!num){toast('Informe o n\u00famero da NFS-e.','erro');return;}
@@ -1317,7 +1317,10 @@ function registrarNumCobranca(notaId,campoId){
   n.numero_nfse=num;n.status='autorizada';
   const cob=DB.cobrancas.find(c=>c.nota_id===notaId);
   if(cob){cob.status='autorizada';cob.numero_nfse=num;}
-  salvarDB();renderContratos();renderNotas();toast('N\u00famero registrado!','sucesso');
+  salvarDB();renderContratos();renderNotas();
+  const inp=document.getElementById(campoId);
+  if(inp){inp.value=num;inp.disabled=true;const bt=inp.nextElementSibling;if(bt){bt.textContent='\u2713 Registrada';bt.disabled=true;}}
+  toast('N\u00famero registrado!','sucesso');
 }
 
 // ================== Recibos ==================
@@ -1867,7 +1870,6 @@ function renderOS(){
   if(!document.getElementById('os-mes').value)document.getElementById('os-mes').value=mesDefaultOS();
   if(!document.getElementById('os-numero').value){const d=new Date();document.getElementById('os-numero').value=String(d.getDate()).padStart(2,'0')+String(d.getMonth()+1).padStart(2,'0')+d.getFullYear();}
   const box=document.getElementById('os-lista'); const cid=document.getElementById('os-cliente').value;
-  document.getElementById('bloco-nfse-os').classList.add('oculto');
   if(!cid){box.innerHTML='<p class="vazio">Escolha um cliente e o mês para montar a OS.</p>';atualizarSelecaoOS();return;}
   const itens=servicosFiltrados();
   if(!itens.length){box.innerHTML='<p class="vazio">Nenhum serviço neste mês. Adicione acima, ou clique em "Puxar da agenda".</p>';atualizarSelecaoOS();return;}
