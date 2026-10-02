@@ -232,7 +232,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
       <a data-view="receber" onclick="showView('receber')">💵 <span class="txt">Contas a receber</span></a>
       <a data-view="config" onclick="showView('config')">⚙️ <span class="txt">Configurações</span></a>
     </nav>
-    <div class="sidebar-rodape">v6.2 · web</div>
+    <div class="sidebar-rodape">v6.3 · web</div>
   </aside>
   <nav class="tabbar" id="tabbar">
     <a data-view="agenda" class="ativo" onclick="showView('agenda')"><i>📅</i><span>Agenda</span></a>
@@ -255,7 +255,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
 
     <section id="view-agenda">
       <div class="topo"><h1>Agenda</h1><div class="topo-acoes">
-        <button class="btn btn-outlook" id="btn-ms" onclick="msBotao()" title="Agenda no Outlook e no iPhone (mão dupla)">📅 Outlook</button>
+        <button class="btn btn-outlook" id="btn-g" onclick="gBotao()" title="Agenda no Google e no iPhone (mão dupla)">📅 Google</button>
         <label class="btn btn-outlook" style="display:inline-block" title="Importar sua agenda do Outlook (arquivo .ics)">📥 Importar Outlook (.ics)<input type="file" accept=".ics,text/calendar" style="display:none" onchange="importarICS(this)"></label>
         <button class="btn btn-primario" onclick="abrirNovoAgendamento()">+ Novo agendamento</button>
       </div></div>
@@ -392,19 +392,21 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
     <section id="view-config" class="oculto">
       <div class="topo"><h1>Configurações</h1></div>
       <div class="card">
-        <h2>📅 Agenda no Outlook / iPhone</h2>
-        <p class="dim">Mão dupla: o que criar/editar no app vai pro calendário <b>Gestor de TI</b> do seu Outlook (e do iPhone), e o que criar/editar/excluir lá volta pro app quando você abrir o app. Contas a pagar pendentes aparecem com 💰 (só leitura).</p>
+        <h2>📅 Agenda no Google / iPhone</h2>
+        <p class="dim">Mão dupla: o que criar/editar no app vai pro calendário <b>Gestor de TI</b> do seu Google Agenda (e do iPhone), e o que criar/editar/excluir lá volta pro app quando ele estiver aberto. Contas a pagar pendentes aparecem com 💰 (só leitura). Conecte uma vez em cada aparelho.</p>
         <div class="form-grid" style="margin-top:12px">
-          <label class="col2">Application (client) ID do Azure<input id="cfg-ms-cid" placeholder="ex.: 1a2b3c4d-...."></label>
-          <label class="col2">Redirect URI para cadastrar no Azure (tipo <b>Single-page application</b>)<input id="cfg-ms-redirect" readonly onclick="this.select()"></label>
+          <label class="col2">Client ID (Google Cloud)<input id="cfg-g-cid" placeholder="...apps.googleusercontent.com"></label>
+          <label class="col2">Client secret<input id="cfg-g-sec" type="password" placeholder="GOCSPX-..."></label>
+          <label>Origem JavaScript autorizada<input id="cfg-g-origem" readonly onclick="this.select()"></label>
+          <label>URI de redirecionamento autorizado<input id="cfg-g-redirect" readonly onclick="this.select()"></label>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
-          <button class="btn btn-secundario" onclick="msSalvarClientId()">Salvar Client ID</button>
-          <button class="btn btn-primario" onclick="msConectar()">Conectar Outlook</button>
-          <button class="btn btn-secundario" onclick="msSincronizar(true)">Sincronizar agora</button>
-          <button class="btn btn-secundario" onclick="msDesconectar()">Desconectar</button>
+          <button class="btn btn-secundario" onclick="gSalvarCredenciais()">Salvar</button>
+          <button class="btn btn-primario" onclick="gConectar()">Conectar Google</button>
+          <button class="btn btn-secundario" onclick="gSincronizar(true)">Sincronizar agora</button>
+          <button class="btn btn-secundario" onclick="gDesconectar()">Desconectar</button>
         </div>
-        <p class="dim" id="ms-status" style="margin-top:8px"></p>
+        <p class="dim" id="g-status" style="margin-top:8px"></p>
       </div>
 
       <div class="card">
@@ -706,7 +708,7 @@ async function nuvemCarregar(avisar){
   if(!conectado||carregando)return; carregando=true;
   try{
     const r=await fetch(GH+'/repos/'+GH_REPO+'/contents/dados.json',{headers:ghHeaders(),cache:'no-store'});
-    if(r.status===200){const j=await r.json();if(!avisar&&ghSha&&j.sha===ghSha){carregando=false;setTimeout(checarInboxCaldav,300);return;}ghSha=j.sha;const dados=JSON.parse(b64dec(j.content));DB=migrar(dados);limparContasPagasDaAgenda();salvarLocal();rerenderTudo();if(avisar)toast('Dados atualizados da nuvem.','sucesso');setTimeout(checarInboxCaldav,300);setTimeout(()=>msSincronizar(false),1200);}
+    if(r.status===200){const j=await r.json();if(!avisar&&ghSha&&j.sha===ghSha){carregando=false;setTimeout(checarInboxCaldav,300);return;}ghSha=j.sha;const dados=JSON.parse(b64dec(j.content));DB=migrar(dados);limparContasPagasDaAgenda();salvarLocal();rerenderTudo();if(avisar)toast('Dados atualizados da nuvem.','sucesso');setTimeout(checarInboxCaldav,300);setTimeout(()=>gSincronizar(false),1200);}
     else if(r.status===404){ghSha=null;await nuvemSalvarAgora();if(avisar)toast('Nuvem iniciada com os dados deste aparelho.','sucesso');}
     else if(avisar)toast('Não consegui baixar (erro '+r.status+').','erro');
   }catch(e){if(avisar)toast('Erro ao baixar: '+e.message,'erro');}
@@ -824,7 +826,7 @@ function migrar(d){
 }
 function carregarLocal(){try{const r=localStorage.getItem(CHAVE);if(r)return migrar(JSON.parse(r));}catch(e){}return dbPadrao();}
 function salvarLocal(){try{localStorage.setItem(CHAVE,JSON.stringify(DB));}catch(e){}}
-function salvarDB(){salvarLocal();agendarSalvarNuvem();if(typeof msAgendar==='function')msAgendar();}
+function salvarDB(){salvarLocal();agendarSalvarNuvem();if(typeof gAgendar==='function')gAgendar();}
 function novoId(t){const id=DB.seq[t]++;salvarDB();return id;}
 
 // ================== Utils ==================
@@ -1812,7 +1814,7 @@ function excluirNota(id){
 }
 
 // ================== Config ==================
-function carregarConfigForm(){const c=DB.config;if(document.getElementById('cfg-ms-cid')){document.getElementById('cfg-ms-cid').value=c.ms_client_id||'';document.getElementById('cfg-ms-redirect').value=msRedirectUri();msAtualizarBotao();}document.getElementById('cfg-banco').value=c.banco||'';document.getElementById('cfg-pix-cpf').value=c.pix_cpf||'';document.getElementById('cfg-emit-nome').value=c.emit_nome||'';document.getElementById('cfg-emit-cpf').value=c.emit_cpf||'';document.getElementById('cfg-desc').value=c.desc||'';document.getElementById('cfg-ctrib').value=c.ctrib||'';document.getElementById('cfg-cnpj').value=c.cnpj||'';document.getElementById('cfg-mun').value=c.mun||'';document.getElementById('cfg-razao').value=c.razao||'';document.getElementById('cfg-pix').value=c.pix||'';document.getElementById('cfg-repo').value=GH_REPO;document.getElementById('cfg-token').value=GH_TOKEN;}
+function carregarConfigForm(){const c=DB.config;if(document.getElementById('cfg-g-cid')){document.getElementById('cfg-g-cid').value=c.g_client_id||'';document.getElementById('cfg-g-sec').value=c.g_client_secret||'';document.getElementById('cfg-g-origem').value=location.origin;document.getElementById('cfg-g-redirect').value=gRedirectUri();gAtualizarBotao();}document.getElementById('cfg-banco').value=c.banco||'';document.getElementById('cfg-pix-cpf').value=c.pix_cpf||'';document.getElementById('cfg-emit-nome').value=c.emit_nome||'';document.getElementById('cfg-emit-cpf').value=c.emit_cpf||'';document.getElementById('cfg-desc').value=c.desc||'';document.getElementById('cfg-ctrib').value=c.ctrib||'';document.getElementById('cfg-cnpj').value=c.cnpj||'';document.getElementById('cfg-mun').value=c.mun||'';document.getElementById('cfg-razao').value=c.razao||'';document.getElementById('cfg-pix').value=c.pix||'';document.getElementById('cfg-repo').value=GH_REPO;document.getElementById('cfg-token').value=GH_TOKEN;}
 function salvarConfig(){DB.config=Object.assign({},DB.config,{banco:document.getElementById('cfg-banco').value,pix_cpf:document.getElementById('cfg-pix-cpf').value,emit_nome:document.getElementById('cfg-emit-nome').value,emit_cpf:document.getElementById('cfg-emit-cpf').value,desc:document.getElementById('cfg-desc').value,ctrib:document.getElementById('cfg-ctrib').value,cnpj:document.getElementById('cfg-cnpj').value,mun:document.getElementById('cfg-mun').value,razao:document.getElementById('cfg-razao').value,pix:document.getElementById('cfg-pix').value});salvarDB();toast('Configurações salvas.','sucesso');}
 
 // ================== Importar agenda do Outlook (.ics) ==================
@@ -2853,113 +2855,108 @@ function imprimirRelatorioReceber(){
   abrirImpressao(html);
 }
 
-// ================== Agenda no Outlook.com (e no iPhone) — Microsoft Graph ==================
-// Mão dupla, sem servidor: o app fala direto com um calendário "Gestor de TI" no seu Outlook.
-// O iPhone sincroniza o Outlook sozinho. Login com PKCE (nenhuma senha/segredo fica no app).
-const MS_AUTH='https://login.microsoftonline.com/consumers/oauth2/v2.0';
-const MS_GRAPH='https://graph.microsoft.com/v1.0';
-const MS_SCOPE='offline_access Calendars.ReadWrite';
-const MS_TZ='E. South America Standard Time';
-const MS_PROP='String {6b8f2c1e-6a1d-4c7e-9a55-3f1d2b7e9c10} Name GestorId';
-const MS_CAL_NOME='Gestor de TI';
-function msRedirectUri(){return location.origin+location.pathname.replace(/index\.html$/,'');}
-function msClientId(){return ((DB.config&&DB.config.ms_client_id)||'').trim();}
-function msTok(){try{return JSON.parse(localStorage.getItem('ms_tok')||'null');}catch(e){return null;}}
-function msB64url(buf){let s='';new Uint8Array(buf).forEach(b=>s+=String.fromCharCode(b));return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
-function msHash(c){const s=[c.resumo,c.inicio,c.fim,c.local,c.descricao,c.cancelado?1:0].join('\u241f');let h=0x811c9dc5;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,0x01000193)>>>0;}return h.toString(16);}
-async function msConectar(){
-  const cid=msClientId();
-  if(!cid){toast('Informe o Client ID do Azure em Configurações.','erro');showView('config');return;}
-  const ver=msB64url(crypto.getRandomValues(new Uint8Array(48)));
-  const chal=msB64url(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(ver)));
-  const st=msB64url(crypto.getRandomValues(new Uint8Array(16)));
-  localStorage.setItem('ms_pkce',JSON.stringify({ver,st,cid}));
-  const p=new URLSearchParams({client_id:cid,response_type:'code',redirect_uri:msRedirectUri(),response_mode:'query',
-    scope:MS_SCOPE,code_challenge:chal,code_challenge_method:'S256',state:st});
-  location.href=MS_AUTH+'/authorize?'+p.toString();
+// ================== Agenda no Google (e no iPhone) — Google Calendar API ==================
+// Mão dupla, sem servidor: o app fala direto com um calendário "Gestor de TI" no seu Google Agenda.
+// O iPhone sincroniza o Google sozinho. Login com PKCE + refresh token (conecta uma vez por aparelho).
+const G_AUTH='https://accounts.google.com/o/oauth2/v2/auth';
+const G_TOKEN='https://oauth2.googleapis.com/token';
+const G_API='https://www.googleapis.com/calendar/v3';
+const G_SCOPE='https://www.googleapis.com/auth/calendar';
+const G_TZ='America/Sao_Paulo';
+const G_CAL_NOME='Gestor de TI';
+function gRedirectUri(){return location.origin+location.pathname.replace(/index\.html$/,'');}
+function gCid(){return((DB.config&&DB.config.g_client_id)||'').trim();}
+function gSec(){return((DB.config&&DB.config.g_client_secret)||'').trim();}
+function gTok(){try{return JSON.parse(localStorage.getItem('g_tok')||'null');}catch(e){return null;}}
+function gB64url(buf){let s='';new Uint8Array(buf).forEach(b=>s+=String.fromCharCode(b));return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
+function gHash(c){const s=[c.resumo,c.inicio,c.fim,c.local,c.descricao,c.cancelado?1:0].join('\u241f');let h=0x811c9dc5;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,0x01000193)>>>0;}return h.toString(16);}
+async function gConectar(){
+  if(!gCid()||!gSec()){toast('Informe o Client ID e o Client secret do Google em Configurações.','erro');showView('config');return;}
+  const ver=gB64url(crypto.getRandomValues(new Uint8Array(48)));
+  const chal=gB64url(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(ver)));
+  const st=gB64url(crypto.getRandomValues(new Uint8Array(16)));
+  localStorage.setItem('g_pkce',JSON.stringify({ver,st,cid:gCid(),sec:gSec()}));
+  const p=new URLSearchParams({client_id:gCid(),redirect_uri:gRedirectUri(),response_type:'code',scope:G_SCOPE,
+    access_type:'offline',prompt:'consent',include_granted_scopes:'true',code_challenge:chal,code_challenge_method:'S256',state:st});
+  location.href=G_AUTH+'?'+p.toString();
 }
-function msGuardar(j){const antigo=msTok()||{};localStorage.setItem('ms_tok',JSON.stringify({at:j.access_token,exp:Date.now()+((j.expires_in||3600)-60)*1000,rt:j.refresh_token||antigo.rt,cid:antigo.cid||msClientId()}));}
-async function msTrocarCodigo(){ // volta do login da Microsoft (?code=...)
+async function gTrocarCodigo(){ // volta do login do Google (?code=...)
   const q=new URLSearchParams(location.search);
   if(!q.get('code')&&!q.get('error'))return false;
-  const salvo=JSON.parse(localStorage.getItem('ms_pkce')||'null');
-  localStorage.removeItem('ms_pkce');
-  history.replaceState(null,'',msRedirectUri());
-  if(q.get('error')){toast('Outlook: '+(q.get('error_description')||q.get('error')),'erro');return false;}
-  if(!salvo||salvo.st!==q.get('state')){toast('Outlook: resposta de login inválida, tente de novo.','erro');return false;}
+  const salvo=JSON.parse(localStorage.getItem('g_pkce')||'null');
+  localStorage.removeItem('g_pkce');
+  history.replaceState(null,'',gRedirectUri());
+  if(q.get('error')){toast('Google: '+q.get('error'),'erro');return false;}
+  if(!salvo||salvo.st!==q.get('state')){toast('Google: resposta de login inválida, tente de novo.','erro');return false;}
   try{
-    const r=await fetch(MS_AUTH+'/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},
-      body:new URLSearchParams({client_id:salvo.cid,grant_type:'authorization_code',code:q.get('code'),
-        redirect_uri:msRedirectUri(),code_verifier:salvo.ver,scope:MS_SCOPE}).toString()});
+    const r=await fetch(G_TOKEN,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},
+      body:new URLSearchParams({client_id:salvo.cid,client_secret:salvo.sec,code:q.get('code'),code_verifier:salvo.ver,
+        grant_type:'authorization_code',redirect_uri:gRedirectUri()}).toString()});
     const j=await r.json();
-    if(!r.ok||!j.access_token){toast('Outlook: '+(j.error_description||'não consegui entrar').slice(0,160),'erro');return false;}
-    localStorage.setItem('ms_tok',JSON.stringify({cid:salvo.cid}));msGuardar(j);
-    toast('Outlook conectado! Sincronizando a agenda...','sucesso');msAtualizarBotao();return true;
-  }catch(e){toast('Outlook: erro ao entrar ('+e.message+')','erro');return false;}
+    if(!r.ok||!j.access_token){toast('Google: '+(j.error_description||j.error||'não consegui entrar'),'erro');return false;}
+    if(!j.refresh_token)toast('Google conectado, mas sem acesso permanente. Desconecte e conecte de novo.','erro');
+    localStorage.setItem('g_tok',JSON.stringify({at:j.access_token,exp:Date.now()+((j.expires_in||3600)-60)*1000,rt:j.refresh_token||null}));
+    toast('Google conectado! Sincronizando a agenda...','sucesso');gAtualizarBotao();return true;
+  }catch(e){toast('Google: não consegui falar com o servidor ('+e.message+')','erro');return false;}
 }
-async function msAccessToken(){
-  const t=msTok();if(!t)return null;
+async function gAccessToken(){
+  const t=gTok();if(!t)return null;
   if(t.at&&t.exp>Date.now())return t.at;
   if(!t.rt)return null;
   try{
-    const r=await fetch(MS_AUTH+'/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},
-      body:new URLSearchParams({client_id:t.cid||msClientId(),grant_type:'refresh_token',refresh_token:t.rt,scope:MS_SCOPE}).toString()});
+    const r=await fetch(G_TOKEN,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},
+      body:new URLSearchParams({client_id:gCid(),client_secret:gSec(),grant_type:'refresh_token',refresh_token:t.rt}).toString()});
     const j=await r.json();
-    if(!r.ok||!j.access_token){localStorage.setItem('ms_tok',JSON.stringify({cid:t.cid,expirado:true}));msAtualizarBotao();return null;}
-    msGuardar(j);return j.access_token;
+    if(!r.ok||!j.access_token){if(j.error==='invalid_grant'){localStorage.setItem('g_tok',JSON.stringify({expirado:true}));gAtualizarBotao();}return null;}
+    localStorage.setItem('g_tok',JSON.stringify({at:j.access_token,exp:Date.now()+((j.expires_in||3600)-60)*1000,rt:t.rt}));
+    return j.access_token;
   }catch(e){return null;}
 }
-async function msApi(metodo,caminho,corpo,tent){
-  const at=await msAccessToken();if(!at)throw new Error('sem_login');
-  const r=await fetch(caminho.startsWith('http')?caminho:MS_GRAPH+caminho,{method:metodo,
-    headers:{Authorization:'Bearer '+at,'Content-Type':'application/json',
-      Prefer:'outlook.timezone="'+MS_TZ+'", outlook.body-content-type="text"'},
-    body:corpo?JSON.stringify(corpo):undefined});
-  if(r.status===429&&(tent||0)<3){await new Promise(s=>setTimeout(s,(parseInt(r.headers.get('Retry-After'))||3)*1000));return msApi(metodo,caminho,corpo,(tent||0)+1);}
-  if(r.status===204||r.status===202)return null;
-  if(!r.ok){const t=await r.text();const e=new Error('Graph '+r.status+': '+t.slice(0,160));e.status=r.status;throw e;}
+async function gApi(metodo,caminho,corpo,tent){
+  tent=tent||0;
+  const at=await gAccessToken();if(!at)throw new Error('sem_login');
+  const r=await fetch(caminho.startsWith('http')?caminho:G_API+caminho,{method:metodo,
+    headers:{Authorization:'Bearer '+at,'Content-Type':'application/json'},body:corpo?JSON.stringify(corpo):undefined});
+  if((r.status===429||r.status===403||r.status>=500)&&tent<5){
+    let limite=r.status!==403;
+    if(r.status===403){try{const j=await r.clone().json();limite=/rateLimit/i.test(JSON.stringify(j));}catch(e){}}
+    if(limite){await new Promise(s=>setTimeout(s,1000*Math.pow(2,tent)));return gApi(metodo,caminho,corpo,tent+1);}
+  }
+  if(r.status===204)return null;
+  if(!r.ok){const t=await r.text();const e=new Error('Google '+r.status+': '+t.slice(0,160));e.status=r.status;throw e;}
   return r.json();
 }
-async function msLote(reqs){ // até 20 por chamada ($batch); devolve os ids que deram certo
-  const ok=new Set();
-  for(let i=0;i<reqs.length;i+=20){
-    const parte=reqs.slice(i,i+20).map((q,k)=>({id:String(i+k),method:q.method,url:q.url,
-      headers:{'Content-Type':'application/json'},body:q.body}));
-    let pend=parte;
-    for(let t=0;t<3&&pend.length;t++){
-      const j=await msApi('POST','/$batch',{requests:pend});
-      const falhas=[];
-      (j.responses||[]).forEach(r=>{if(r.status<300)ok.add(r.id);else if(r.status===429)falhas.push(pend.find(p=>p.id===r.id));else console.warn('Outlook lote',r.status,r.body);});
-      pend=falhas.filter(Boolean);
-      if(pend.length)await new Promise(s=>setTimeout(s,3000));
-    }
-  }
+async function gExecutar(reqs){ // até 4 de cada vez; devolve quantas deram certo
+  let i=0,ok=0;
+  const trab=async()=>{while(i<reqs.length){const q=reqs[i++];
+    try{await gApi(q.method,q.path,q.body);q.depois();ok++;}catch(e){if(e.message==='sem_login')throw e;console.warn('Google',e.message);}}};
+  await Promise.all([trab(),trab(),trab(),trab()]);
   return ok;
 }
-async function msCalendarioId(){
-  const salvo=localStorage.getItem('ms_cal');if(salvo)return salvo;
-  const j=await msApi('GET','/me/calendars?$select=id,name&$top=100');
-  let c=(j.value||[]).find(x=>x.name===MS_CAL_NOME);
-  if(!c)c=await msApi('POST','/me/calendars',{name:MS_CAL_NOME});
-  localStorage.setItem('ms_cal',c.id);return c.id;
+async function gCalendarioId(){
+  if(DB.config.g_cal_id)return DB.config.g_cal_id;
+  let id=null,page='';
+  do{const j=await gApi('GET','/users/me/calendarList?maxResults=250'+(page?'&pageToken='+encodeURIComponent(page):''));
+    const c=(j.items||[]).find(x=>x.summary===G_CAL_NOME);if(c){id=c.id;break;}page=j.nextPageToken||'';}while(page);
+  if(!id){const c=await gApi('POST','/calendars',{summary:G_CAL_NOME,timeZone:G_TZ});id=c.id;}
+  DB.config.g_cal_id=id;salvarLocal();agendarSalvarNuvem();return id;
 }
-async function msListar(calId){
-  let url='/me/calendars/'+encodeURIComponent(calId)+'/events?$top=250&$select=id,subject,start,end,location,body,isAllDay,type&$expand='+
-    encodeURIComponent("singleValueExtendedProperties($filter=id eq '"+MS_PROP+"')");
-  const out=[];
-  while(url){const j=await msApi('GET',url);out.push(...(j.value||[]));url=j['@odata.nextLink']||null;}
+async function gListar(calId){
+  const out=[];let page='';
+  do{const j=await gApi('GET','/calendars/'+encodeURIComponent(calId)+'/events?maxResults=2500&showDeleted=false&singleEvents=false&timeZone='+encodeURIComponent(G_TZ)+(page?'&pageToken='+encodeURIComponent(page):''));
+    out.push(...(j.items||[]));page=j.nextPageToken||'';}while(page);
   return out;
 }
-function msCampos(ev){
-  let resumo=(ev.subject||'').trim(),cancelado=false;
+function gCampos(ev){
+  let resumo=(ev.summary||'').trim(),cancelado=false;
   if(resumo.startsWith('\u274C')){cancelado=true;resumo=resumo.replace(/^\u274C\s*/,'');}
-  const ini=((ev.start||{}).dateTime||'').slice(0,16);
-  let fim=((ev.end||{}).dateTime||'').slice(0,16);
-  if(ev.isAllDay)fim=ini.slice(0,10)+'T23:59';
-  return{resumo,inicio:ini,fim:fim||ini,local:(((ev.location||{}).displayName)||'').trim(),
-    descricao:(((ev.body||{}).content)||'').trim(),cancelado};
+  const s=ev.start||{},f=ev.end||{};
+  let ini,fim;
+  if(s.date){ini=s.date+'T00:00';fim=s.date+'T23:59';}
+  else{ini=(s.dateTime||'').slice(0,16);fim=(f.dateTime||s.dateTime||'').slice(0,16);}
+  return{resumo,inicio:ini,fim:fim||ini,local:(ev.location||'').trim(),descricao:(ev.description||'').trim(),cancelado};
 }
-function msEventosApp(){
+function gEventosApp(){
   const cli={};DB.clientes.forEach(c=>cli[String(c.id)]=c.nome||'');
   const contas={};(DB.contas||[]).forEach(c=>contas[c.id]=c);
   const out={};
@@ -2974,89 +2971,89 @@ function msEventosApp(){
   });
   return out;
 }
-function msPayload(gid,c){
-  return{subject:(c.cancelado?'\u274C ':'')+c.resumo,
-    start:{dateTime:c.inicio+':00',timeZone:MS_TZ},end:{dateTime:c.fim+':00',timeZone:MS_TZ},
-    location:{displayName:c.local||''},body:{contentType:'text',content:c.descricao||''},
-    singleValueExtendedProperties:[{id:MS_PROP,value:gid}]};
+function gPayload(gid,c){
+  return{summary:(c.cancelado?'\u274C ':'')+c.resumo,location:c.local||'',description:c.descricao||'',
+    start:{dateTime:c.inicio+':00',timeZone:G_TZ},end:{dateTime:c.fim+':00',timeZone:G_TZ},
+    extendedProperties:{private:{gestorId:gid}}};
 }
-function msSeparar(resumo){ // "CLIENTE - titulo" liga ao cliente cadastrado
+function gSeparar(resumo){ // "CLIENTE - titulo" liga ao cliente cadastrado
   const i=(resumo||'').indexOf(' - ');
   if(i>0){const n=resumo.slice(0,i).trim().toLowerCase();const c=DB.clientes.find(x=>(x.nome||'').trim().toLowerCase()===n);
     if(c)return{cliente_id:c.id,titulo:resumo.slice(i+3).trim()};}
   return{cliente_id:null,titulo:(resumo||'').trim()||'(sem título)'};
 }
-let msSincronizando=false,msTimer=null;
-function msAgendar(){if(!msTok()||!msClientId())return;clearTimeout(msTimer);msTimer=setTimeout(()=>msSincronizar(false),4000);}
-async function msSincronizar(avisar){
-  const t=msTok();
-  if(msSincronizando||!t||t.expirado||!msClientId())return;
-  msSincronizando=true;msAtualizarBotao();
+let gSincronizando=false,gTimer=null;
+function gLigado(){const t=gTok();return!!(t&&!t.expirado&&(t.at||t.rt)&&gCid());}
+function gAgendar(){if(!gLigado())return;clearTimeout(gTimer);gTimer=setTimeout(()=>gSincronizar(false),4000);}
+async function gSincronizar(avisar){
+  if(gSincronizando||!gLigado())return;
+  gSincronizando=true;gAtualizarBotao();
   try{
-    let calId=await msCalendarioId(),evs;
-    try{evs=await msListar(calId);}
-    catch(e){if(e.status===404){localStorage.removeItem('ms_cal');calId=await msCalendarioId();evs=await msListar(calId);}else throw e;}
-    if(!DB.outlook_estado||typeof DB.outlook_estado!=='object')DB.outlook_estado={};
-    const est=DB.outlook_estado,antes=JSON.stringify(est);
-    const desejado=msEventosApp(),noOut={},semId=[];
-    evs.forEach(ev=>{const p=(ev.singleValueExtendedProperties||[])[0];if(p&&p.value)noOut[p.value]=ev;else semId.push(ev);});
-    let mudouApp=false,recebidos=0;const reqs=[],depois=[];
+    let calId=await gCalendarioId(),evs;
+    try{evs=await gListar(calId);}
+    catch(e){if(e.status===404){DB.config.g_cal_id='';calId=await gCalendarioId();evs=await gListar(calId);}else throw e;}
+    if(!DB.agenda_estado||typeof DB.agenda_estado!=='object')DB.agenda_estado={};
+    const est=DB.agenda_estado,antes=JSON.stringify(est);
+    const desejado=gEventosApp(),noG={},semId=[];
+    evs.forEach(ev=>{if(ev.status==='cancelled'||ev.recurringEventId)return;
+      const gid=((ev.extendedProperties||{}).private||{}).gestorId;if(gid)noG[gid]=ev;else semId.push(ev);});
+    let mudouApp=false,recebidos=0;const reqs=[];
+    const cal='/calendars/'+encodeURIComponent(calId)+'/events';
     for(const gid of Object.keys(desejado)){
-      const c=desejado[gid],hApp=msHash(c),ev=noOut[gid],st=est[gid];
+      const c=desejado[gid],hApp=gHash(c),ev=noG[gid],st=est[gid];
       if(ev){
-        const cc=msCampos(ev),hOut=msHash(cc);
-        if(hOut===hApp){est[gid]=hApp;continue;}
-        if(st&&hOut!==st&&!c.conta){ // mudou no iPhone/Outlook: vale o de lá
-          const s=msSeparar(cc.resumo);
+        const cc=gCampos(ev),hG=gHash(cc);
+        if(hG===hApp){est[gid]=hApp;continue;}
+        if(st&&hG!==st&&!c.conta){ // mudou no iPhone/Google: vale o de lá
+          const s=gSeparar(cc.resumo);
           Object.assign(c.ag,{titulo:s.titulo,cliente_id:s.cliente_id,inicio:cc.inicio,fim:cc.fim,local:cc.local,descricao:cc.descricao});
           if(cc.cancelado)c.ag.status='cancelado';else if(c.ag.status==='cancelado')c.ag.status='agendado';
-          est[gid]=hOut;mudouApp=true;recebidos++;
+          est[gid]=hG;mudouApp=true;recebidos++;
         }else{ // mudou no app (ou mexeram numa conta no iPhone): vale o do app
-          reqs.push({method:'PATCH',url:'/me/events/'+ev.id,body:msPayload(gid,c)});depois.push(()=>{est[gid]=hApp;});
+          reqs.push({method:'PATCH',path:cal+'/'+encodeURIComponent(ev.id),body:gPayload(gid,c),depois:()=>{est[gid]=hApp;}});
         }
-      }else if(st&&!c.conta){ // apagado no iPhone/Outlook
+      }else if(st&&!c.conta){ // apagado no iPhone/Google
         DB.agendamentos=DB.agendamentos.filter(x=>x!==c.ag);delete est[gid];mudouApp=true;recebidos++;
       }else{
-        reqs.push({method:'POST',url:'/me/calendars/'+calId+'/events',body:msPayload(gid,c)});depois.push(()=>{est[gid]=hApp;});
+        reqs.push({method:'POST',path:cal,body:gPayload(gid,c),depois:()=>{est[gid]=hApp;}});
       }
     }
-    for(const gid of Object.keys(noOut)){ // apagado no app
+    for(const gid of Object.keys(noG)){ // apagado no app
       if(desejado[gid]||est[gid]===undefined)continue;
-      reqs.push({method:'DELETE',url:'/me/events/'+noOut[gid].id});depois.push(()=>{delete est[gid];});
+      reqs.push({method:'DELETE',path:cal+'/'+encodeURIComponent(noG[gid].id),depois:()=>{delete est[gid];}});
     }
-    for(const ev of semId){ // criado no iPhone/Outlook
-      if(ev.type==='occurrence'||ev.type==='exception')continue;
-      const cc=msCampos(ev),s=msSeparar(cc.resumo);
+    for(const ev of semId){ // criado no iPhone/Google
+      const cc=gCampos(ev),s=gSeparar(cc.resumo);
       const a={id:novoId('ag'),titulo:s.titulo,cliente_id:s.cliente_id,inicio:cc.inicio,fim:cc.fim,local:cc.local,
-        descricao:cc.descricao,valor:0,status:cc.cancelado?'cancelado':'agendado',origem:'outlook'};
+        descricao:cc.descricao,valor:0,status:cc.cancelado?'cancelado':'agendado',origem:'google'};
       DB.agendamentos.push(a);mudouApp=true;recebidos++;
-      const gid='ag-'+a.id;est[gid]=msHash(cc);
-      reqs.push({method:'PATCH',url:'/me/events/'+ev.id,body:{singleValueExtendedProperties:[{id:MS_PROP,value:gid}]}});depois.push(()=>{});
+      const gid='ag-'+a.id;est[gid]=gHash(cc);
+      reqs.push({method:'PATCH',path:cal+'/'+encodeURIComponent(ev.id),body:{extendedProperties:{private:{gestorId:gid}}},depois:()=>{}});
     }
-    let enviados=0;
-    if(reqs.length){const ok=await msLote(reqs);reqs.forEach((q,i)=>{if(ok.has(String(i))){depois[i]();enviados++;}});}
+    if(reqs.length>20)toast('Google: enviando '+reqs.length+' compromissos (só na primeira vez demora um pouco)...','sucesso');
+    const enviados=reqs.length?await gExecutar(reqs):0;
     if(mudouApp||JSON.stringify(est)!==antes){salvarLocal();agendarSalvarNuvem();}
     if(mudouApp)rerenderTudo();
-    localStorage.setItem('ms_ult',new Date().toISOString());
-    if(avisar||recebidos)toast('Outlook: '+enviados+' enviado(s), '+recebidos+' recebido(s) do iPhone.','sucesso');
+    localStorage.setItem('g_ult',new Date().toISOString());
+    if(avisar||recebidos)toast('Google: '+enviados+' enviado(s), '+recebidos+' recebido(s) do iPhone.','sucesso');
   }catch(e){
-    if(e.message==='sem_login')toast('Outlook: entre de novo (a Microsoft pede 1x por dia).','erro');
-    else{console.warn('Outlook',e);if(avisar)toast('Outlook: '+e.message,'erro');}
-  }finally{msSincronizando=false;msAtualizarBotao();}
+    if(e.message==='sem_login')toast('Google: conecte de novo em Configurações.','erro');
+    else{console.warn('Google',e);if(avisar)toast(e.message,'erro');}
+  }finally{gSincronizando=false;gAtualizarBotao();}
 }
-function msAtualizarBotao(){
-  const b=document.getElementById('btn-ms'),st=document.getElementById('ms-status');
-  const t=msTok(),ligado=t&&!t.expirado&&(t.at||t.rt);
-  const txt=!msClientId()?'📅 Ligar ao Outlook':(msSincronizando?'📅 Sincronizando...':(ligado?'📅 Outlook ✓':'📅 Reconectar Outlook'));
-  if(b)b.textContent=txt;
-  if(st){const u=localStorage.getItem('ms_ult');
-    st.textContent=!msClientId()?'Não configurado.':ligado?('Conectado.'+(u?' Última sincronização: '+new Date(u).toLocaleString('pt-BR'):'')):'Desconectado — clique em Conectar.';}
+function gAtualizarBotao(){
+  const b=document.getElementById('btn-g'),st=document.getElementById('g-status');
+  const t=gTok(),lig=gLigado();
+  if(b)b.textContent=!gCid()?'📅 Ligar ao Google':(gSincronizando?'📅 Sincronizando...':(lig?'📅 Google ✓':'📅 Reconectar Google'));
+  if(st){const u=localStorage.getItem('g_ult');
+    st.textContent=!gCid()?'Não configurado.':lig?('Conectado neste aparelho.'+(u?' Última sincronização: '+new Date(u).toLocaleString('pt-BR'):'')):'Desconectado neste aparelho — clique em Conectar Google.';}
 }
-function msBotao(){const t=msTok();if(!msClientId()){showView('config');toast('Cole o Client ID do Azure e clique em Conectar.','erro');return;}
-  if(t&&!t.expirado&&(t.at||t.rt))msSincronizar(true);else msConectar();}
-function msSalvarClientId(){DB.config.ms_client_id=document.getElementById('cfg-ms-cid').value.trim();salvarDB();msAtualizarBotao();toast('Client ID salvo.','sucesso');}
-function msDesconectar(){localStorage.removeItem('ms_tok');localStorage.removeItem('ms_cal');msAtualizarBotao();toast('Outlook desconectado neste aparelho.','sucesso');}
-setInterval(()=>{if(document.visibilityState==='visible')msSincronizar(false);},120000);
+function gBotao(){if(!gCid()||!gSec()){showView('config');toast('Preencha o Client ID e o Client secret do Google e clique em Conectar.','erro');return;}
+  if(gLigado())gSincronizar(true);else gConectar();}
+function gSalvarCredenciais(){DB.config.g_client_id=document.getElementById('cfg-g-cid').value.trim();
+  DB.config.g_client_secret=document.getElementById('cfg-g-sec').value.trim();salvarDB();gAtualizarBotao();toast('Credenciais do Google salvas.','sucesso');}
+function gDesconectar(){localStorage.removeItem('g_tok');gAtualizarBotao();toast('Google desconectado neste aparelho.','sucesso');}
+setInterval(()=>{if(document.visibilityState==='visible')gSincronizar(false);},120000);
 
 // ================== Exportar Excel (.xlsx) — gerado no navegador, sem biblioteca ==================
 const XLSX_CRC=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0;}return t;})();
@@ -3139,7 +3136,7 @@ function importarBackup(input){const f=input.files[0];if(!f)return;const r=new F
 // ================== Início ==================
 limparContasPagasDaAgenda();
 carregarClientesSelect();renderCalendario();
-msTrocarCodigo().then(()=>{msAtualizarBotao();setTimeout(()=>msSincronizar(false),1500);});
+gTrocarCodigo().then(()=>{gAtualizarBotao();setTimeout(()=>gSincronizar(false),1500);});
 if(GH_REPO&&GH_TOKEN){ conectarNuvem(); }
 </script>
 <script>
