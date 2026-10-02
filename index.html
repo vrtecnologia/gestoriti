@@ -232,7 +232,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
       <a data-view="receber" onclick="showView('receber')">💵 <span class="txt">Contas a receber</span></a>
       <a data-view="config" onclick="showView('config')">⚙️ <span class="txt">Configurações</span></a>
     </nav>
-    <div class="sidebar-rodape">v6.3 · web</div>
+    <div class="sidebar-rodape">v6.4 · web</div>
   </aside>
   <nav class="tabbar" id="tabbar">
     <a data-view="agenda" class="ativo" onclick="showView('agenda')"><i>📅</i><span>Agenda</span></a>
@@ -401,6 +401,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
           <label>URI de redirecionamento autorizado<input id="cfg-g-redirect" readonly onclick="this.select()"></label>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+          <label class="btn btn-secundario" style="display:inline-block;margin:0">📥 Importar JSON do Google<input type="file" accept=".json,application/json" style="display:none" onchange="gImportarJson(this)"></label>
           <button class="btn btn-secundario" onclick="gSalvarCredenciais()">Salvar</button>
           <button class="btn btn-primario" onclick="gConectar()">Conectar Google</button>
           <button class="btn btn-secundario" onclick="gSincronizar(true)">Sincronizar agora</button>
@@ -3052,6 +3053,27 @@ function gBotao(){if(!gCid()||!gSec()){showView('config');toast('Preencha o Clie
   if(gLigado())gSincronizar(true);else gConectar();}
 function gSalvarCredenciais(){DB.config.g_client_id=document.getElementById('cfg-g-cid').value.trim();
   DB.config.g_client_secret=document.getElementById('cfg-g-sec').value.trim();salvarDB();gAtualizarBotao();toast('Credenciais do Google salvas.','sucesso');}
+function gImportarJson(input){
+  const f=input.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{
+    input.value='';
+    let j;try{j=JSON.parse(r.result);}catch(e){toast('Esse arquivo não é um JSON válido.','erro');return;}
+    const c=j.web||j.installed||j;
+    if(!c||!c.client_id||!c.client_secret){toast('Não achei client_id/client_secret nesse JSON. Baixe o JSON do cliente OAuth (tipo Aplicativo da Web).','erro');return;}
+    if(j.installed){toast('Esse JSON é de cliente "Desktop". Crie um cliente do tipo "Aplicativo da Web".','erro');return;}
+    DB.config.g_client_id=c.client_id.trim();DB.config.g_client_secret=c.client_secret.trim();salvarDB();
+    document.getElementById('cfg-g-cid').value=DB.config.g_client_id;document.getElementById('cfg-g-sec').value=DB.config.g_client_secret;
+    gAtualizarBotao();
+    const avisos=[];
+    const red=(c.redirect_uris||[]).map(u=>u.trim()),ori=(c.javascript_origins||[]).map(u=>u.trim());
+    if(red.length&&!red.includes(gRedirectUri()))avisos.push('URI de redirecionamento deveria ser '+gRedirectUri()+' (no JSON: '+red.join(', ')+')');
+    if(ori.length&&!ori.includes(location.origin))avisos.push('Origem JavaScript deveria ser '+location.origin+' (no JSON: '+ori.join(', ')+')');
+    if(avisos.length){toast('Credenciais importadas, mas ajuste no Google Cloud: '+avisos.join(' | '),'erro');return;}
+    toast('Credenciais do Google importadas! Agora clique em Conectar Google.','sucesso');
+  };
+  r.readAsText(f);
+}
 function gDesconectar(){localStorage.removeItem('g_tok');gAtualizarBotao();toast('Google desconectado neste aparelho.','sucesso');}
 setInterval(()=>{if(document.visibilityState==='visible')gSincronizar(false);},120000);
 
