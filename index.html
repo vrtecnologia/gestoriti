@@ -232,7 +232,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
       <a data-view="receber" onclick="showView('receber')">💵 <span class="txt">Contas a receber</span></a>
       <a data-view="config" onclick="showView('config')">⚙️ <span class="txt">Configurações</span></a>
     </nav>
-    <div class="sidebar-rodape">v6.4 · web</div>
+    <div class="sidebar-rodape">v6.5 · web</div>
   </aside>
   <nav class="tabbar" id="tabbar">
     <a data-view="agenda" class="ativo" onclick="showView('agenda')"><i>📅</i><span>Agenda</span></a>
@@ -680,6 +680,9 @@ let GH_TOKEN=localStorage.getItem('ti_gh_token')||'';
 let ghSha=null, conectado=false, saveTimer=null, carregando=false;
 const GH='https://api.github.com';
 function ghHeaders(){return{Authorization:'Bearer '+GH_TOKEN,'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'};}
+const SYNC_KEY='gestor_sync';
+function syncEst(){try{return JSON.parse(localStorage.getItem(SYNC_KEY)||'{}');}catch(e){return{};}}
+function syncGrava(o){try{localStorage.setItem(SYNC_KEY,JSON.stringify(Object.assign(syncEst(),o)));}catch(e){}}
 function b64enc(s){return btoa(unescape(encodeURIComponent(s)));}
 function b64dec(b){return decodeURIComponent(escape(atob(b)));}
 
@@ -709,14 +712,14 @@ async function nuvemCarregar(avisar){
   if(!conectado||carregando)return; carregando=true;
   try{
     const r=await fetch(GH+'/repos/'+GH_REPO+'/contents/dados.json',{headers:ghHeaders(),cache:'no-store'});
-    if(r.status===200){const j=await r.json();if(!avisar&&ghSha&&j.sha===ghSha){carregando=false;setTimeout(checarInboxCaldav,300);return;}ghSha=j.sha;const dados=JSON.parse(b64dec(j.content));DB=migrar(dados);limparContasPagasDaAgenda();salvarLocal();rerenderTudo();if(avisar)toast('Dados atualizados da nuvem.','sucesso');setTimeout(checarInboxCaldav,300);setTimeout(()=>gSincronizar(false),1200);}
-    else if(r.status===404){ghSha=null;await nuvemSalvarAgora();if(avisar)toast('Nuvem iniciada com os dados deste aparelho.','sucesso');}
+    if(r.status===200){const j=await r.json();if(!avisar&&ghSha&&j.sha===ghSha&&!syncEst().sujo){carregando=false;setTimeout(checarInboxCaldav,300);return;}const se=syncEst();if(se.sujo&&se.sha&&j.sha===se.sha){ghSha=j.sha;carregando=false;const ok=await nuvemSalvarAgora();if(ok&&avisar)toast('Alterações deste aparelho enviadas pra nuvem.','sucesso');setTimeout(checarInboxCaldav,300);return;}if(se.sujo&&se.sha&&j.sha!==se.sha)toast('Outro aparelho alterou os dados enquanto este tinha alterações não enviadas. Carreguei a versão mais recente — confira sua última alteração.','erro');ghSha=j.sha;syncGrava({sha:j.sha,sujo:false});const dados=JSON.parse(b64dec(j.content));DB=migrar(dados);limparContasPagasDaAgenda();salvarLocal();rerenderTudo();if(avisar)toast('Dados atualizados da nuvem.','sucesso');setTimeout(checarInboxCaldav,300);setTimeout(()=>gSincronizar(false),1200);}
+    else if(r.status===404){ghSha=null;syncGrava({sujo:true});await nuvemSalvarAgora();if(avisar)toast('Nuvem iniciada com os dados deste aparelho.','sucesso');}
     else if(avisar)toast('Não consegui baixar (erro '+r.status+').','erro');
   }catch(e){if(avisar)toast('Erro ao baixar: '+e.message,'erro');}
   carregando=false;
 }
 let salvarPendente=false;
-function agendarSalvarNuvem(){if(!conectado)return;salvarPendente=true;clearTimeout(saveTimer);saveTimer=setTimeout(nuvemSalvarAgora,1500);}
+function agendarSalvarNuvem(){syncGrava({sujo:true});if(!conectado)return;salvarPendente=true;clearTimeout(saveTimer);saveTimer=setTimeout(nuvemSalvarAgora,1500);}
 async function nuvemSalvarAgora(){
   if(!conectado)return false;
   clearTimeout(saveTimer);salvarPendente=false;
@@ -724,7 +727,7 @@ async function nuvemSalvarAgora(){
   if(ghSha)body.sha=ghSha;
   try{
     const r=await fetch(GH+'/repos/'+GH_REPO+'/contents/dados.json',{method:'PUT',headers:{...ghHeaders(),'Content-Type':'application/json'},body:JSON.stringify(body)});
-    if(r.ok){const j=await r.json();ghSha=j.content.sha;return true;}
+    if(r.ok){const j=await r.json();ghSha=j.content.sha;syncGrava({sha:ghSha,sujo:false});return true;}
     if(r.status===409){
       // Outro aparelho salvou antes. NÃO grava por cima (era isso que apagava dados):
       // carrega a versão mais nova e avisa.
@@ -1815,7 +1818,7 @@ function excluirNota(id){
 }
 
 // ================== Config ==================
-function carregarConfigForm(){const c=DB.config;if(document.getElementById('cfg-g-cid')){document.getElementById('cfg-g-cid').value=c.g_client_id||'';document.getElementById('cfg-g-sec').value=c.g_client_secret||'';document.getElementById('cfg-g-origem').value=location.origin;document.getElementById('cfg-g-redirect').value=gRedirectUri();gAtualizarBotao();}document.getElementById('cfg-banco').value=c.banco||'';document.getElementById('cfg-pix-cpf').value=c.pix_cpf||'';document.getElementById('cfg-emit-nome').value=c.emit_nome||'';document.getElementById('cfg-emit-cpf').value=c.emit_cpf||'';document.getElementById('cfg-desc').value=c.desc||'';document.getElementById('cfg-ctrib').value=c.ctrib||'';document.getElementById('cfg-cnpj').value=c.cnpj||'';document.getElementById('cfg-mun').value=c.mun||'';document.getElementById('cfg-razao').value=c.razao||'';document.getElementById('cfg-pix').value=c.pix||'';document.getElementById('cfg-repo').value=GH_REPO;document.getElementById('cfg-token').value=GH_TOKEN;}
+function carregarConfigForm(){const c=DB.config;if(document.getElementById('cfg-g-cid')){document.getElementById('cfg-g-cid').value=gCid();document.getElementById('cfg-g-sec').value=gSec();document.getElementById('cfg-g-origem').value=location.origin;document.getElementById('cfg-g-redirect').value=gRedirectUri();gAtualizarBotao();}document.getElementById('cfg-banco').value=c.banco||'';document.getElementById('cfg-pix-cpf').value=c.pix_cpf||'';document.getElementById('cfg-emit-nome').value=c.emit_nome||'';document.getElementById('cfg-emit-cpf').value=c.emit_cpf||'';document.getElementById('cfg-desc').value=c.desc||'';document.getElementById('cfg-ctrib').value=c.ctrib||'';document.getElementById('cfg-cnpj').value=c.cnpj||'';document.getElementById('cfg-mun').value=c.mun||'';document.getElementById('cfg-razao').value=c.razao||'';document.getElementById('cfg-pix').value=c.pix||'';document.getElementById('cfg-repo').value=GH_REPO;document.getElementById('cfg-token').value=GH_TOKEN;}
 function salvarConfig(){DB.config=Object.assign({},DB.config,{banco:document.getElementById('cfg-banco').value,pix_cpf:document.getElementById('cfg-pix-cpf').value,emit_nome:document.getElementById('cfg-emit-nome').value,emit_cpf:document.getElementById('cfg-emit-cpf').value,desc:document.getElementById('cfg-desc').value,ctrib:document.getElementById('cfg-ctrib').value,cnpj:document.getElementById('cfg-cnpj').value,mun:document.getElementById('cfg-mun').value,razao:document.getElementById('cfg-razao').value,pix:document.getElementById('cfg-pix').value});salvarDB();toast('Configurações salvas.','sucesso');}
 
 // ================== Importar agenda do Outlook (.ics) ==================
@@ -2866,13 +2869,14 @@ const G_SCOPE='https://www.googleapis.com/auth/calendar';
 const G_TZ='America/Sao_Paulo';
 const G_CAL_NOME='Gestor de TI';
 function gRedirectUri(){return location.origin+location.pathname.replace(/index\.html$/,'');}
-function gCid(){return((DB.config&&DB.config.g_client_id)||'').trim();}
-function gSec(){return((DB.config&&DB.config.g_client_secret)||'').trim();}
+function gCid(){return((DB.config&&DB.config.g_client_id)||localStorage.getItem('g_cid')||'').trim();}
+function gSec(){return((DB.config&&DB.config.g_client_secret)||localStorage.getItem('g_sec')||'').trim();}
 function gTok(){try{return JSON.parse(localStorage.getItem('g_tok')||'null');}catch(e){return null;}}
 function gB64url(buf){let s='';new Uint8Array(buf).forEach(b=>s+=String.fromCharCode(b));return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
 function gHash(c){const s=[c.resumo,c.inicio,c.fim,c.local,c.descricao,c.cancelado?1:0].join('\u241f');let h=0x811c9dc5;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,0x01000193)>>>0;}return h.toString(16);}
 async function gConectar(){
   if(!gCid()||!gSec()){toast('Informe o Client ID e o Client secret do Google em Configurações.','erro');showView('config');return;}
+  if(conectado&&(salvarPendente||syncEst().sujo))await nuvemSalvarAgora();
   const ver=gB64url(crypto.getRandomValues(new Uint8Array(48)));
   const chal=gB64url(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(ver)));
   const st=gB64url(crypto.getRandomValues(new Uint8Array(16)));
@@ -3051,8 +3055,8 @@ function gAtualizarBotao(){
 }
 function gBotao(){if(!gCid()||!gSec()){showView('config');toast('Preencha o Client ID e o Client secret do Google e clique em Conectar.','erro');return;}
   if(gLigado())gSincronizar(true);else gConectar();}
-function gSalvarCredenciais(){DB.config.g_client_id=document.getElementById('cfg-g-cid').value.trim();
-  DB.config.g_client_secret=document.getElementById('cfg-g-sec').value.trim();salvarDB();gAtualizarBotao();toast('Credenciais do Google salvas.','sucesso');}
+function gGuardarCred(cid,sec){DB.config.g_client_id=cid;DB.config.g_client_secret=sec;localStorage.setItem('g_cid',cid);localStorage.setItem('g_sec',sec);salvarDB();if(conectado)nuvemSalvarAgora();}
+function gSalvarCredenciais(){gGuardarCred(document.getElementById('cfg-g-cid').value.trim(),document.getElementById('cfg-g-sec').value.trim());gAtualizarBotao();toast('Credenciais do Google salvas.','sucesso');}
 function gImportarJson(input){
   const f=input.files[0];if(!f)return;
   const r=new FileReader();
@@ -3062,7 +3066,7 @@ function gImportarJson(input){
     const c=j.web||j.installed||j;
     if(!c||!c.client_id||!c.client_secret){toast('Não achei client_id/client_secret nesse JSON. Baixe o JSON do cliente OAuth (tipo Aplicativo da Web).','erro');return;}
     if(j.installed){toast('Esse JSON é de cliente "Desktop". Crie um cliente do tipo "Aplicativo da Web".','erro');return;}
-    DB.config.g_client_id=c.client_id.trim();DB.config.g_client_secret=c.client_secret.trim();salvarDB();
+    gGuardarCred(c.client_id.trim(),c.client_secret.trim());
     document.getElementById('cfg-g-cid').value=DB.config.g_client_id;document.getElementById('cfg-g-sec').value=DB.config.g_client_secret;
     gAtualizarBotao();
     const avisos=[];
