@@ -232,7 +232,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
       <a data-view="receber" onclick="showView('receber')">💵 <span class="txt">Contas a receber</span></a>
       <a data-view="config" onclick="showView('config')">⚙️ <span class="txt">Configurações</span></a>
     </nav>
-    <div class="sidebar-rodape">v6.5 · web</div>
+    <div class="sidebar-rodape">v6.7 · web</div>
   </aside>
   <nav class="tabbar" id="tabbar">
     <a data-view="agenda" class="ativo" onclick="showView('agenda')"><i>📅</i><span>Agenda</span></a>
@@ -364,7 +364,8 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
         <button class="btn btn-primario" onclick="abrirNovaConta()">+ Nova conta</button>
       </div></div>
       <div class="card no-print"><div class="os-filtros">
-        <div class="campo">M&ecirc;s<input type="month" id="ca-filtro-mes" onchange="renderContas()"></div>
+        <div class="campo">M&ecirc;s<input type="month" id="ca-filtro-mes" onchange="mudouMesFiltro('ca')"></div>
+        <div class="campo">Vencimento<select id="ca-filtro-venc" onchange="mudouVenc('ca')"><option value="">Todos</option><option value="vencidas">Vencidas</option><option value="hoje">Vence hoje</option><option value="7">Próximos 7 dias</option><option value="30">Próximos 30 dias</option><option value="periodo">Período…</option></select></div><div class="campo" id="ca-venc-per" style="display:none">De / até<span style="display:flex;gap:6px"><input type="date" id="ca-venc-de" onchange="renderVencP('ca')"><input type="date" id="ca-venc-ate" onchange="renderVencP('ca')"></span></div>
         <div class="campo">Status<select id="ca-filtro-status" onchange="renderContas()"><option value="">Todas</option><option value="pendente">Pendentes</option><option value="pago">Pagas</option></select></div>
         <div class="campo">Grupo<select id="ca-filtro-grupo" onchange="renderContas()"><option value="">Todos</option></select></div>
         <label class="campo" style="flex-direction:row;align-items:center;gap:6px;align-self:end;padding-bottom:8px"><input type="checkbox" id="ca-filtro-inv" onchange="renderContas()" style="width:16px;height:16px"> tudo menos esse grupo</label>
@@ -380,7 +381,8 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
         <button class="btn btn-secundario" onclick="sincReceber(true)">🔄 Atualizar</button>
       </div></div>
       <div class="card no-print"><div class="os-filtros">
-        <div class="campo">M&ecirc;s<input type="month" id="rec-filtro-mes" onchange="renderReceber()"></div>
+        <div class="campo">M&ecirc;s<input type="month" id="rec-filtro-mes" onchange="mudouMesFiltro('rec')"></div>
+        <div class="campo">Vencimento<select id="rec-filtro-venc" onchange="mudouVenc('rec')"><option value="">Todos</option><option value="vencidas">Vencidas</option><option value="hoje">Vence hoje</option><option value="7">Próximos 7 dias</option><option value="30">Próximos 30 dias</option><option value="periodo">Período…</option></select></div><div class="campo" id="rec-venc-per" style="display:none">De / até<span style="display:flex;gap:6px"><input type="date" id="rec-venc-de" onchange="renderVencP('rec')"><input type="date" id="rec-venc-ate" onchange="renderVencP('rec')"></span></div>
         <div class="campo">Grupo<select id="rec-filtro-grupo" onchange="renderReceber()"><option value="">Todos</option><option value="NFSe">NFSe</option><option value="Email">Email</option><option value="RS">RS (Recibo Serviço)</option><option value="RV">RV (Recibo Venda)</option></select></div>
         <div class="campo">Status<select id="rec-filtro-status" onchange="renderReceber()"><option value="">Todos</option><option value="pendente">A receber</option><option value="recebido">Recebidos</option></select></div>
         <button class="btn btn-secundario" onclick="limparFiltroReceber()">Limpar</button>
@@ -541,7 +543,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
     <label class="col2">Nome da conta<input id="ca-nome" placeholder="Ex: Aluguel, Internet, Energia"></label>
     <label>Valor (R$)<input type="number" step="0.01" id="ca-valor" placeholder="0,00"></label>
     <label>Vencimento<input type="date" id="ca-venc"></label>
-    <label>Status<select id="ca-status"><option value="pendente">Pendente</option><option value="pago">Pago</option></select></label>
+    <label>Status<select id="ca-status"><option value="pendente">Pendente</option><option value="parcial">Pago parcialmente</option><option value="pago">Pago</option></select></label>
     <label>Repeti&ccedil;&atilde;o<select id="ca-recorr" onchange="caToggleVezes()"><option value="nao">N&atilde;o repete</option><option value="vezes">Repetir X vezes</option><option value="eterna">Todo m&ecirc;s (fixa)</option></select></label>
     <label id="ca-vezes-wrap" style="display:none">Quantas vezes?<input type="number" id="ca-vezes" min="2" max="60" value="12"></label>
     <label class="col2">Grupo <span class="dim">(ex: Cart&otilde;es, Fixas, Impostos)</span><input id="ca-grupo-nome" list="ca-grupos-sug" placeholder="opcional"><datalist id="ca-grupos-sug"></datalist></label>
@@ -712,8 +714,8 @@ async function nuvemCarregar(avisar){
   if(!conectado||carregando)return; carregando=true;
   try{
     const r=await fetch(GH+'/repos/'+GH_REPO+'/contents/dados.json',{headers:ghHeaders(),cache:'no-store'});
-    if(r.status===200){const j=await r.json();if(!avisar&&ghSha&&j.sha===ghSha&&!syncEst().sujo){carregando=false;setTimeout(checarInboxCaldav,300);return;}const se=syncEst();if(se.sujo&&se.sha&&j.sha===se.sha){ghSha=j.sha;carregando=false;const ok=await nuvemSalvarAgora();if(ok&&avisar)toast('Alterações deste aparelho enviadas pra nuvem.','sucesso');setTimeout(checarInboxCaldav,300);return;}if(se.sujo&&se.sha&&j.sha!==se.sha)toast('Outro aparelho alterou os dados enquanto este tinha alterações não enviadas. Carreguei a versão mais recente — confira sua última alteração.','erro');ghSha=j.sha;syncGrava({sha:j.sha,sujo:false});const dados=JSON.parse(b64dec(j.content));DB=migrar(dados);limparContasPagasDaAgenda();salvarLocal();rerenderTudo();if(avisar)toast('Dados atualizados da nuvem.','sucesso');setTimeout(checarInboxCaldav,300);setTimeout(()=>gSincronizar(false),1200);}
-    else if(r.status===404){ghSha=null;syncGrava({sujo:true});await nuvemSalvarAgora();if(avisar)toast('Nuvem iniciada com os dados deste aparelho.','sucesso');}
+    if(r.status===200){const j=await r.json();if(!avisar&&ghSha&&j.sha===ghSha&&!syncEst().sujo){carregando=false;setTimeout(checarInboxCaldav,300);return;}nuvemPronta=true;const se=syncEst();if(se.sujo&&se.sha&&j.sha===se.sha){ghSha=j.sha;carregando=false;const ok=await nuvemSalvarAgora();if(ok&&avisar)toast('Alterações deste aparelho enviadas pra nuvem.','sucesso');setTimeout(checarInboxCaldav,300);return;}if(se.sujo&&se.sha&&j.sha!==se.sha)toast('Outro aparelho alterou os dados enquanto este tinha alterações não enviadas. Carreguei a versão mais recente — confira sua última alteração.','erro');ghSha=j.sha;syncGrava({sha:j.sha,sujo:false});const dados=JSON.parse(b64dec(j.content));DB=migrar(dados);limparContasPagasDaAgenda();salvarLocal();rerenderTudo();if(avisar)toast('Dados atualizados da nuvem.','sucesso');setTimeout(checarInboxCaldav,300);setTimeout(()=>gSincronizar(false),1200);}
+    else if(r.status===404){nuvemPronta=true;ghSha=null;syncGrava({sujo:true});await nuvemSalvarAgora();if(avisar)toast('Nuvem iniciada com os dados deste aparelho.','sucesso');}
     else if(avisar)toast('Não consegui baixar (erro '+r.status+').','erro');
   }catch(e){if(avisar)toast('Erro ao baixar: '+e.message,'erro');}
   carregando=false;
@@ -2411,14 +2413,16 @@ function textoParcelas(c){
 function editarConta(id){
   const c=DB.contas.find(x=>x.id===id);if(!c)return;
   document.getElementById('ca-id').value=c.id;document.getElementById('ca-grupo').value=c.grupo||'';
-  document.getElementById('ca-nome').value=c.nome||'';document.getElementById('ca-valor').value=c.valor||'';
+  document.getElementById('ca-nome').value=c.nome||'';document.getElementById('ca-valor').value=c.saldo_anterior?r2(c.valor-c.saldo_anterior):(c.valor||'');
   document.getElementById('ca-venc').value=c.venc||'';document.getElementById('ca-status').value=c.status||'pendente';
   document.getElementById('ca-obs').value=c.obs||'';document.getElementById('ca-grupo-nome').value=c.categoria||'';preencherSugestoesGrupo();
   document.getElementById('ca-recorr').value='nao';document.getElementById('ca-recorr').disabled=true;
   document.getElementById('ca-vezes-wrap').style.display='none';
   const irmaos=c.grupo?DB.contas.filter(x=>x.grupo===c.grupo&&x.id!==c.id).length:0;
   const tp=textoParcelas(c);
-  document.getElementById('ca-aviso-recorr').innerHTML=irmaos?('<b>'+tp+'</b>. Ao salvar, você escolhe aplicar só a este mês ou a todos.'):'';
+  document.getElementById('ca-aviso-recorr').innerHTML=(irmaos?('<b>'+tp+'</b>. Ao salvar, você escolhe aplicar só a este mês ou a todos.'):'')
+    +(c.saldo_anterior?('<br>+ <b>R$ '+c.saldo_anterior.toFixed(2)+'</b> de saldo do mês anterior (somado automaticamente ao valor acima).'):'')
+    +(pagoConta(c)>0?('<br>Pago até agora: <b>R$ '+pagoConta(c).toFixed(2)+'</b> · falta <b>R$ '+faltaConta(c).toFixed(2)+'</b>.'):'');
   document.getElementById('modal-conta-titulo').textContent='Editar conta';
   document.getElementById('btn-excluir-ca').style.display='inline-block';
   abrirModal('modal-conta');
@@ -2431,9 +2435,68 @@ function proximoVenc(dataISO,addMeses){
   dia=Math.min(dia,ultimo);
   return ano+'-'+String(mes+1).padStart(2,'0')+'-'+String(dia).padStart(2,'0');
 }
+function ehCartao(c){return /^cart/.test(String(c.categoria||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase());}
+function r2(v){return Math.round((parseFloat(v)||0)*100)/100;}
+function pagoConta(c){return r2((c.pagamentos||[]).reduce((a,p)=>a+(parseFloat(p.valor)||0),0));}
+function faltaConta(c){return c.status==='pago'?0:Math.max(0,r2((parseFloat(c.valor)||0)-pagoConta(c)));}
+function tituloAgConta(c){return c.nome+(pagoConta(c)>0?(' \u2013 falta R$ '+faltaConta(c).toFixed(2)):(c.valor?(' \u2013 R$ '+parseFloat(c.valor).toFixed(2)):''));}
+function lerValorBR(s){s=String(s||'').trim().replace(/[R$\s]/g,'');if(s.includes(','))s=s.replace(/\./g,'').replace(',','.');return parseFloat(s);}
+function pagarParcial(id){
+  const c=DB.contas.find(x=>x.id===id);if(!c)return;
+  const falta=faltaConta(c);
+  const r=prompt(c.nome+'\nTotal da fatura: R$ '+r2(c.valor).toFixed(2)+'\nJá pago: R$ '+pagoConta(c).toFixed(2)+'\nFalta: R$ '+falta.toFixed(2)+'\n\nQuanto você pagou agora?','');
+  if(r===null)return;
+  const v=r2(lerValorBR(r));
+  if(!(v>0)){toast('Valor inválido.','erro');return;}
+  if(v>falta+0.004){toast('Valor maior do que falta (R$ '+falta.toFixed(2)+').','erro');return;}
+  c.pagamentos=c.pagamentos||[];c.pagamentos.push({data:fmtData(new Date()),valor:v});
+  c.status=faltaConta(Object.assign({},c,{status:'parcial'}))<=0.004?'pago':'parcial';
+  sincAgendaConta(c);salvarDB();renderContas();renderCalendario();
+  toast(c.status==='pago'?'Fatura quitada!':('Pagamento registrado. Falta R$ '+faltaConta(c).toFixed(2)+' — se o mês virar, vai pra próxima fatura.'),'sucesso');
+}
+let nuvemPronta=false;
+function rolarSaldosCartao(){
+  // Virou o mês e a fatura do cartão ficou com saldo: o que falta soma na próxima fatura do mesmo cartão.
+  if(GH_TOKEN&&!nuvemPronta)return 0; // espera os dados mais novos da nuvem (evita somar duas vezes)
+  const mesAtual=mesAtualStr();let n=0;
+  DB.contas.filter(c=>c.status==='parcial'&&String(c.venc||'').slice(0,7)<mesAtual)
+    .sort((a,b)=>(a.venc||'').localeCompare(b.venc||'')).forEach(c=>{
+    const falta=faltaConta(c);
+    if(falta<=0.004){c.status='pago';sincAgendaConta(c);n++;return;}
+    let prox=c.grupo?DB.contas.filter(x=>x.grupo===c.grupo&&x.id!==c.id&&(x.venc||'')>(c.venc||'')).sort((a,b)=>a.venc.localeCompare(b.venc))[0]:null;
+    if(!prox){prox={id:novoId('ca'),grupo:'',eterna:false,nome:c.nome,valor:0,venc:proximoVenc(c.venc,1),status:'pendente',obs:'',categoria:c.categoria||'',criado_por_saldo:c.id};DB.contas.push(prox);}
+    if(prox.status==='pago'){if(!(prox.pagamentos||[]).length)prox.pagamentos=[{data:'',valor:r2(prox.valor)}];prox.status='parcial';}
+    const nota='Saldo de '+nomeMesAAAA(String(c.venc).slice(0,7))+': R$ '+falta.toFixed(2);
+    prox.valor=r2((parseFloat(prox.valor)||0)+falta);
+    prox.saldo_anterior=r2((prox.saldo_anterior||0)+falta);
+    prox.obs=(prox.obs?prox.obs+' | ':'')+nota;
+    c.rolado={falta,para_id:prox.id,valor_original:r2(c.valor),nota};
+    c.valor=pagoConta(c);c.status='pago';
+    sincAgendaConta(c);sincAgendaConta(prox);n++;
+  });
+  if(n){salvarDB();toast(n+' fatura(s) de cartão com saldo: o que faltou foi somado na fatura seguinte.','sucesso');}
+  return n;
+}
+function desfazerPagamentosConta(c){
+  // tira o saldo que foi pro mês seguinte (se já virou) e limpa os pagamentos parciais
+  const r=c.rolado;
+  if(r){
+    const prox=DB.contas.find(x=>x.id===r.para_id);
+    if(prox){
+      prox.valor=r2((parseFloat(prox.valor)||0)-r.falta);
+      prox.saldo_anterior=Math.max(0,r2((prox.saldo_anterior||0)-r.falta));
+      prox.obs=(prox.obs||'').split(' | ').filter(t=>t!==r.nota).join(' | ');
+      if(prox.criado_por_saldo===c.id&&prox.valor<=0.004&&!(prox.pagamentos||[]).length){
+        DB.agendamentos=DB.agendamentos.filter(a=>!(a.tipo==='conta'&&a.conta_id===prox.id));DB.contas=DB.contas.filter(x=>x.id!==prox.id);
+      }else sincAgendaConta(prox);
+    }
+    c.valor=r.valor_original;delete c.rolado;
+  }
+  c.pagamentos=[];
+}
 function criarAgendaConta(conta){
   if(conta.status==='pago')return null; // conta paga não entra no calendário
-  const ag={id:novoId('ag'),tipo:'conta',conta_id:conta.id,titulo:conta.nome+(conta.valor?(' \u2013 R$ '+parseFloat(conta.valor).toFixed(2)):''),
+  const ag={id:novoId('ag'),tipo:'conta',conta_id:conta.id,titulo:tituloAgConta(conta),
     cliente_id:'',inicio:conta.venc+'T09:00',fim:conta.venc+'T09:30',
     status:'agendado',origem:'app'};
   DB.agendamentos.push(ag);
@@ -2451,7 +2514,7 @@ function sincAgendaConta(c){
   // pendente: garante o evento
   if(idx>=0){
     const ag=DB.agendamentos[idx];
-    ag.titulo=c.nome+(c.valor?(' \u2013 R$ '+parseFloat(c.valor).toFixed(2)):'');
+    ag.titulo=tituloAgConta(c);
     ag.inicio=c.venc+'T09:00';ag.fim=c.venc+'T09:30';
     ag.status='agendado';
   }else{
@@ -2473,7 +2536,12 @@ function salvarConta(){
     const antesVenc=c.venc, novoDia=(venc.split('-')[2]||'').padStart(2,'0');
     const irmaos=c.grupo?DB.contas.filter(x=>x.grupo===c.grupo&&x.id!==c.id):[];
     // aplica sempre a este mês
-    Object.assign(c,{nome,valor,venc,status,obs,categoria});
+    const statusAntes=c.status;
+    Object.assign(c,{nome,valor:r2(valor+(c.saldo_anterior||0)),venc,status,obs,categoria});
+    if(status==='pendente'&&(c.rolado||(c.pagamentos||[]).length))desfazerPagamentosConta(c);
+    if(status==='parcial'&&!pagoConta(c))c.status='pendente';
+    if(c.status==='parcial'&&faltaConta(c)<=0.004)c.status='pago';
+    if(status==='pago'&&statusAntes==='parcial'){c.pagamentos=c.pagamentos||[];const f=r2(c.valor-pagoConta(c));if(f>0)c.pagamentos.push({data:fmtData(new Date()),valor:f});}
     sincAgendaConta(c);
     // se há série, pergunta se replica (valor/nome/obs a todos; a data replica só o DIA, mantendo o mês de cada um)
     if(irmaos.length){
@@ -2483,7 +2551,7 @@ function salvarConta(){
       msg+='\nCancelar = alterar só este mês.';
       if(confirm(msg)){
         irmaos.forEach(x=>{
-          x.nome=nome;x.valor=valor;x.obs=obs;x.categoria=categoria;
+          x.nome=nome;x.valor=r2(valor+(x.saldo_anterior||0));x.obs=obs;x.categoria=categoria;
           if(mudouData){
             const pm=String(x.venc).split('-'); // mantém ano-mês do irmão, troca o dia (ajustando a mês curto)
             const ano=+pm[0], mes=+pm[1], ult=new Date(ano,mes,0).getDate();
@@ -2535,7 +2603,17 @@ function excluirConta(){
 }
 function alternarStatusConta(id){
   const c=DB.contas.find(x=>x.id===id);if(!c)return;
-  c.status=c.status==='pago'?'pendente':'pago';
+  if(c.status==='pago'){
+    if(c.rolado||(c.pagamentos||[]).length){
+      const msg=c.rolado?('Desfazer? Os R$ '+c.rolado.falta.toFixed(2)+' que foram pra fatura seguinte voltam pra esta, e os pagamentos registrados são apagados.'):'Desfazer? Os pagamentos registrados desta conta serão apagados.';
+      if(!confirm(msg))return;
+      desfazerPagamentosConta(c);
+    }
+    c.status='pendente';
+  }else{
+    if(c.status==='parcial'){c.pagamentos=c.pagamentos||[];c.pagamentos.push({data:fmtData(new Date()),valor:faltaConta(c)});}
+    c.status='pago';
+  }
   sincAgendaConta(c); // pago remove do calendário, pendente recoloca
   salvarDB();renderContas();renderCalendario();
 }
@@ -2553,14 +2631,54 @@ function preencherFiltroGrupo(){
   sel.innerHTML='<option value="">Todos</option>'+gruposDeContas().map(g=>`<option value="${esc(g)}">${esc(g)}</option>`).join('')+'<option value="__sem__">(sem grupo)</option>';
   sel.value=atual;
 }
+function renderVencP(px){if(px==='ca')renderContas();else renderReceber();}
+function mudouVenc(px){
+  const v=document.getElementById(px+'-filtro-venc').value;
+  document.getElementById(px+'-venc-per').style.display=v==='periodo'?'':'none';
+  if(v)document.getElementById(px+'-filtro-mes').value=''; // atalho de vencimento vale pra todos os meses
+  renderVencP(px);
+}
+function mudouMesFiltro(px){
+  if(document.getElementById(px+'-filtro-mes').value){document.getElementById(px+'-filtro-venc').value='';document.getElementById(px+'-venc-per').style.display='none';}
+  renderVencP(px);
+}
+function filtroVenc(px){ // {de,ate,soPendente} ou null
+  const sel=document.getElementById(px+'-filtro-venc');if(!sel||!sel.value)return null;
+  const hoje=fmtData(new Date());
+  const mais=n=>{const d=new Date();d.setDate(d.getDate()+n);return fmtData(d);};
+  switch(sel.value){
+    case 'vencidas':return{ate:mais(-1),soPendente:true};
+    case 'hoje':return{de:hoje,ate:hoje};
+    case '7':return{de:hoje,ate:mais(6)};
+    case '30':return{de:hoje,ate:mais(29)};
+    case 'periodo':return{de:document.getElementById(px+'-venc-de').value,ate:document.getElementById(px+'-venc-ate').value};
+  }
+  return null;
+}
+function passaVenc(fv,data,pendente){
+  if(!fv)return true;
+  const d=String(data||'').slice(0,10);
+  if(fv.de&&d<fv.de)return false;
+  if(fv.ate&&d>fv.ate)return false;
+  if(fv.soPendente&&!pendente)return false;
+  return true;
+}
+function descVenc(px){
+  const sel=document.getElementById(px+'-filtro-venc');if(!sel||!sel.value)return '';
+  if(sel.value==='periodo'){const de=document.getElementById(px+'-venc-de').value,ate=document.getElementById(px+'-venc-ate').value;
+    return 'Vencimento '+(de?'de '+brdata(de):'')+(ate?' até '+brdata(ate):'');}
+  return sel.options[sel.selectedIndex].text;
+}
 function contasFiltradas(){
   const fm=document.getElementById('ca-filtro-mes')?document.getElementById('ca-filtro-mes').value:'';
   const fs=document.getElementById('ca-filtro-status')?document.getElementById('ca-filtro-status').value:'';
   const fg=document.getElementById('ca-filtro-grupo')?document.getElementById('ca-filtro-grupo').value:'';
   const inv=document.getElementById('ca-filtro-inv')?document.getElementById('ca-filtro-inv').checked:false;
+  const fv=filtroVenc('ca');
   return DB.contas.filter(c=>{
     if(fm&&String(c.venc||'').slice(0,7)!==fm)return false;
-    if(fs&&c.status!==fs)return false;
+    if(!passaVenc(fv,c.venc,c.status!=='pago'))return false;
+    if(fs&&(c.status==='parcial'?'pendente':c.status)!==fs)return false;
     if(fg){
       const cat=(c.categoria||'').trim();
       const bate = fg==='__sem__' ? !cat : (cat===fg);
@@ -2602,9 +2720,10 @@ function estenderContasEternas(silencioso){
   }
   return criadas;
 }
-function limparFiltroContas(){contasFiltroInit=true;document.getElementById('ca-filtro-mes').value='';document.getElementById('ca-filtro-status').value='';document.getElementById('ca-filtro-grupo').value='';document.getElementById('ca-filtro-inv').checked=false;renderContas();}
+function limparFiltroContas(){contasFiltroInit=true;document.getElementById('ca-filtro-venc').value='';document.getElementById('ca-venc-per').style.display='none';document.getElementById('ca-filtro-mes').value='';document.getElementById('ca-filtro-status').value='';document.getElementById('ca-filtro-grupo').value='';document.getElementById('ca-filtro-inv').checked=false;renderContas();}
 function renderContas(){
   const box=document.getElementById('lista-contas');if(!box)return;
+  rolarSaldosCartao();
   if(!contasFiltroInit)estenderContasEternas(true);
   preencherFiltroGrupo(); // renova as fixas silenciosamente ao abrir
   const inpMes=document.getElementById('ca-filtro-mes');
@@ -2614,7 +2733,7 @@ function renderContas(){
   const fm=document.getElementById('ca-filtro-mes')?document.getElementById('ca-filtro-mes').value:'';
   if(cont){
     const tot=lista.reduce((a,c)=>a+(parseFloat(c.valor)||0),0);
-    const pend=lista.filter(c=>c.status!=='pago').reduce((a,c)=>a+(parseFloat(c.valor)||0),0);
+    const pend=lista.reduce((a,c)=>a+faltaConta(c),0);
     cont.textContent=lista.length?(lista.length+' conta(s)'+(fm?' em '+nomeMesAAAA(fm):'')+' \u00b7 Total: R$ '+tot.toFixed(2)+' \u00b7 A pagar: R$ '+pend.toFixed(2)):'';
   }
   if(!DB.contas.length){box.innerHTML='<p class="vazio">Nenhuma conta cadastrada. Clique em "+ Nova conta".</p>';return;}
@@ -2623,13 +2742,13 @@ function renderContas(){
   const rows=lista.map(c=>{
     const pago=c.status==='pago';
     const vencido=!pago&&c.venc<hoje;
-    const selo=pago?'<span class="tag tag-autorizada">pago</span>':(vencido?'<span class="tag tag-pendente">vencida</span>':'<span class="tag tag-portal">pendente</span>');
+    const selo=pago?'<span class="tag tag-autorizada">pago</span>':(c.status==='parcial'?'<span class="tag tag-pendente">parcial'+(vencido?' · vencida':'')+'</span>':(vencido?'<span class="tag tag-pendente">vencida</span>':'<span class="tag tag-portal">pendente</span>'));
     const ip=infoParcelasConta(c);const serie=ip?(' <span class="tag" style="background:#fef3c7;color:#92400e;font-size:11px">\u{1F501} '+ip.pos+'/'+ip.total+(ip.faltam?(' \u00b7 faltam '+ip.faltam):'')+'</span>'):'';
     return `<tr><td data-rot="Vencimento">${brdata(c.venc)}</td>`
       +`<td data-rot="Conta"><b>${esc(c.nome)}</b>${serie}${c.categoria?' <span class="tag" style="background:#e0e7ff;color:#3730a3">'+esc(c.categoria)+'</span>':''}${c.obs?'<br><span class="dim" style="font-size:12px">'+esc(c.obs)+'</span>':''}</td>`
-      +`<td data-rot="Valor">R$ ${(parseFloat(c.valor)||0).toFixed(2)}</td>`
+      +`<td data-rot="Valor">R$ ${(parseFloat(c.valor)||0).toFixed(2)}`+(pagoConta(c)>0&&c.status!=='pago'?`<br><span class="dim" style="font-size:11px">pago R$ ${pagoConta(c).toFixed(2)} · <b>falta R$ ${faltaConta(c).toFixed(2)}</b></span>`:'')+(c.rolado?`<br><span class="dim" style="font-size:11px">R$ ${c.rolado.falta.toFixed(2)} foi pra fatura seguinte</span>`:'')+(c.saldo_anterior?`<br><span class="dim" style="font-size:11px">inclui saldo anterior R$ ${c.saldo_anterior.toFixed(2)}</span>`:'')+`</td>`
       +`<td data-rot="Status">${selo}</td>`
-      +`<td class="acoes-cel"><span class="link-acao" onclick="alternarStatusConta(${c.id})">${pago?'Marcar pendente':'Marcar pago'}</span>`
+      +`<td class="acoes-cel">${(ehCartao(c)&&!pago)?`<span class="link-acao" onclick="pagarParcial(${c.id})">Pagar parcial</span>`:''}<span class="link-acao" onclick="alternarStatusConta(${c.id})">${pago?'Marcar pendente':(c.status==='parcial'?'Pagar restante':'Marcar pago')}</span>`
       +`<span class="link-acao" onclick="editarConta(${c.id})">Editar</span></td></tr>`;
   }).join('');
   box.innerHTML=`<table class="tabela"><thead><tr><th>Vencimento</th><th>Conta</th><th>Valor</th><th>Status</th><th></th></tr></thead><tbody>${rows}</tbody></table>`;
@@ -2644,8 +2763,8 @@ function imprimirRelatorioContas(){
   meses.forEach(mes=>{
     const cs=grupos[mes].slice().sort((a,b)=>(a.venc||'').localeCompare(b.venc||''));
     let sub=0,subPago=0;
-    const rows=cs.map(c=>{const v=parseFloat(c.valor)||0;sub+=v;if(c.status==='pago')subPago+=v;
-      return `<tr><td class="cen">${brdata(c.venc)}</td><td>${esc(c.nome)}</td><td class="cen">${c.status==='pago'?'Pago':'Pendente'}</td><td class="dir">R$ ${v.toFixed(2)}</td></tr>`;}).join('');
+    const rows=cs.map(c=>{const v=parseFloat(c.valor)||0;sub+=v;subPago+=c.status==='pago'?v:pagoConta(c);
+      return `<tr><td class="cen">${brdata(c.venc)}</td><td>${esc(c.nome)}</td><td class="cen">${c.status==='pago'?'Pago':(c.status==='parcial'?'Parcial (falta R$ '+faltaConta(c).toFixed(2)+')':'Pendente')}</td><td class="dir">R$ ${v.toFixed(2)}</td></tr>`;}).join('');
     totalGeral+=sub;pagoGeral+=subPago;qtd+=cs.length;
     corpo+=`<h3>${esc(nomeMesAAAA(mes))} <span class="cont">${cs.length} conta(s) \u00b7 pago R$ ${subPago.toFixed(2)} de R$ ${sub.toFixed(2)}</span></h3>
       <table><thead><tr><th class="cen">Venc.</th><th>Conta</th><th class="cen">Status</th><th class="dir">Valor</th></tr></thead>
@@ -2662,7 +2781,7 @@ function imprimirRelatorioContas(){
   .tg b{font-size:15px}.rod{margin-top:14px;font-size:10px;color:#666}</style></head><body>
     <img src="${LOGO_URL}" alt="VR Tecnologia">
     <h2>Relat\u00f3rio de Contas a Pagar</h2>
-    <div class="sub-hd">${fm?nomeMesAAAA(fm):'Todos os meses'} \u00b7 ${qtd} conta(s) \u00b7 Emitido em ${brdata(fmtData(new Date()))}</div>
+    <div class="sub-hd">${fm?nomeMesAAAA(fm):(descVenc('ca')||'Todos os meses')} \u00b7 ${qtd} conta(s) \u00b7 Emitido em ${brdata(fmtData(new Date()))}</div>
     ${corpo}
     <div class="tg">Pago: R$ ${pagoGeral.toFixed(2)} \u00b7 Pendente: R$ ${(totalGeral-pagoGeral).toFixed(2)}<br><b>TOTAL GERAL: R$ ${totalGeral.toFixed(2)}</b></div>
     <p class="rod">VR Tecnologia Consultoria \u00b7 CNPJ 42.612.058/0001-36</p>
@@ -2756,13 +2875,15 @@ function sincReceber(avisar){
   if(avisar)toast('Contas a receber atualizadas.','sucesso');
 }
 let receberFiltroInit=false;
-function limparFiltroReceber(){receberFiltroInit=true;document.getElementById('rec-filtro-mes').value='';document.getElementById('rec-filtro-grupo').value='';document.getElementById('rec-filtro-status').value='';renderReceber();}
+function limparFiltroReceber(){receberFiltroInit=true;document.getElementById('rec-filtro-venc').value='';document.getElementById('rec-venc-per').style.display='none';document.getElementById('rec-filtro-mes').value='';document.getElementById('rec-filtro-grupo').value='';document.getElementById('rec-filtro-status').value='';renderReceber();}
 function receberFiltrado(){
   const fm=document.getElementById('rec-filtro-mes').value;
   const fg=document.getElementById('rec-filtro-grupo').value;
   const fs=document.getElementById('rec-filtro-status').value;
+  const fv=filtroVenc('rec');
   return montarReceber().filter(i=>{
     if(fm&&String(i.data||'').slice(0,7)!==fm)return false;
+    if(!passaVenc(fv,i.data,!i.recebido))return false;
     if(fg&&i.grupo!==fg)return false;
     if(fs==='recebido'&&!i.recebido)return false;
     if(fs==='pendente'&&i.recebido)return false;
@@ -2850,7 +2971,7 @@ function imprimirRelatorioReceber(){
   .tg{margin-top:14px;font-size:13px;text-align:right;border-top:2px solid #333;padding-top:8px}.tg b{font-size:15px}.rod{margin-top:14px;font-size:10px;color:#666}</style></head><body>
     <img src="${LOGO_URL}" alt="VR Tecnologia">
     <h2>Relat\u00f3rio de Contas a Receber</h2>
-    <div class="sub-hd">${fm?nomeMesAAAA(fm):'Todos os meses'} \u00b7 ${qtd} lançamento(s) \u00b7 Emitido em ${brdata(fmtData(new Date()))}</div>
+    <div class="sub-hd">${fm?nomeMesAAAA(fm):(descVenc('rec')||'Todos os meses')} \u00b7 ${qtd} lançamento(s) \u00b7 Emitido em ${brdata(fmtData(new Date()))}</div>
     ${corpo}
     <div class="tg">Recebido: R$ ${recGeral.toFixed(2)} \u00b7 A receber: R$ ${(totalGeral-recGeral).toFixed(2)}<br><b>TOTAL GERAL: R$ ${totalGeral.toFixed(2)}</b></div>
     <p class="rod">VR Tecnologia Consultoria \u00b7 CNPJ 42.612.058/0001-36</p>
