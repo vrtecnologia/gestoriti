@@ -232,7 +232,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
       <a data-view="receber" onclick="showView('receber')">💵 <span class="txt">Contas a receber</span></a>
       <a data-view="config" onclick="showView('config')">⚙️ <span class="txt">Configurações</span></a>
     </nav>
-    <div class="sidebar-rodape">v6.7 · web</div>
+    <div class="sidebar-rodape">v6.8 · web</div>
   </aside>
   <nav class="tabbar" id="tabbar">
     <a data-view="agenda" class="ativo" onclick="showView('agenda')"><i>📅</i><span>Agenda</span></a>
@@ -2636,6 +2636,7 @@ function mudouVenc(px){
   const v=document.getElementById(px+'-filtro-venc').value;
   document.getElementById(px+'-venc-per').style.display=v==='periodo'?'':'none';
   if(v)document.getElementById(px+'-filtro-mes').value=''; // atalho de vencimento vale pra todos os meses
+  else if(!document.getElementById(px+'-filtro-mes').value)document.getElementById(px+'-filtro-mes').value=mesAtualStr(); // voltou pra Todos: volta pro mês atual
   renderVencP(px);
 }
 function mudouMesFiltro(px){
@@ -2720,7 +2721,7 @@ function estenderContasEternas(silencioso){
   }
   return criadas;
 }
-function limparFiltroContas(){contasFiltroInit=true;document.getElementById('ca-filtro-venc').value='';document.getElementById('ca-venc-per').style.display='none';document.getElementById('ca-filtro-mes').value='';document.getElementById('ca-filtro-status').value='';document.getElementById('ca-filtro-grupo').value='';document.getElementById('ca-filtro-inv').checked=false;renderContas();}
+function limparFiltroContas(){contasFiltroInit=true;document.getElementById('ca-filtro-venc').value='';document.getElementById('ca-venc-per').style.display='none';document.getElementById('ca-filtro-mes').value=mesAtualStr();document.getElementById('ca-filtro-status').value='';document.getElementById('ca-filtro-grupo').value='';document.getElementById('ca-filtro-inv').checked=false;renderContas();}
 function renderContas(){
   const box=document.getElementById('lista-contas');if(!box)return;
   rolarSaldosCartao();
@@ -2875,7 +2876,7 @@ function sincReceber(avisar){
   if(avisar)toast('Contas a receber atualizadas.','sucesso');
 }
 let receberFiltroInit=false;
-function limparFiltroReceber(){receberFiltroInit=true;document.getElementById('rec-filtro-venc').value='';document.getElementById('rec-venc-per').style.display='none';document.getElementById('rec-filtro-mes').value='';document.getElementById('rec-filtro-grupo').value='';document.getElementById('rec-filtro-status').value='';renderReceber();}
+function limparFiltroReceber(){receberFiltroInit=true;document.getElementById('rec-filtro-venc').value='';document.getElementById('rec-venc-per').style.display='none';document.getElementById('rec-filtro-mes').value=mesAtualStr();document.getElementById('rec-filtro-grupo').value='';document.getElementById('rec-filtro-status').value='';renderReceber();}
 function receberFiltrado(){
   const fm=document.getElementById('rec-filtro-mes').value;
   const fg=document.getElementById('rec-filtro-grupo').value;
