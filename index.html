@@ -232,7 +232,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
       <a data-view="receber" onclick="showView('receber')">💵 <span class="txt">Contas a receber</span></a>
       <a data-view="config" onclick="showView('config')">⚙️ <span class="txt">Configurações</span></a>
     </nav>
-    <div class="sidebar-rodape">v6.8 · web</div>
+    <div class="sidebar-rodape">v6.9 · web</div>
   </aside>
   <nav class="tabbar" id="tabbar">
     <a data-view="agenda" class="ativo" onclick="showView('agenda')"><i>📅</i><span>Agenda</span></a>
@@ -499,6 +499,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
     <button class="btn btn-perigo" id="btn-excluir-ag" onclick="excluirAgendamento()">Excluir</button>
     <div style="flex:1"></div>
     <button class="btn btn-outlook" id="btn-outlook" onclick="adicionarAoOutlook()">📅 Adicionar ao Outlook</button>
+    <button class="btn btn-secundario" id="btn-recibo-ag" onclick="reciboDoAgendamento()">🧾 Gerar recibo</button>
     <button class="btn btn-nfse oculto" id="btn-emitir-nfse"></button>
     <button class="btn btn-primario" onclick="salvarAgendamento()">Salvar</button>
   </div>
@@ -908,8 +909,8 @@ function nomeCurto(e){if(e.tipo==='conta')return'\u{1F4B0} '+e.titulo;const c=DB
 function renderMes(){const ref=calState.ref,primeiro=primeiroDiaMes(ref),ini=new Date(primeiro);ini.setDate(1-dowSeg(primeiro));const hoje=new Date();let h='<div class="cal-grade">'+DIAS_SEG.map(d=>`<div class="cal-cabdia">${d}</div>`).join('');for(let i=0;i<42;i++){const dia=new Date(ini);dia.setDate(ini.getDate()+i);const fora=dia.getMonth()!==ref.getMonth(),eh=mesmaData(dia,hoje);const fds=(dia.getDay()===0||dia.getDay()===6);const chips=eventosDoDia(dia).map(e=>`<div class="cal-chip" style="background:${corEvento(e)}" title="${esc(nomeCurto(e))}" onclick="event.stopPropagation();abrirAgendamento(${e.id})"><span class="cal-chip-h">${iconePeriodo(e)} ${(e.inicio||'').slice(11,16)}${durTxt(e)?' '+durTxt(e):''}</span> ${esc(nomeCurto(e))}</div>`).join('');h+=`<div class="cal-cel ${fora?'fora':''} ${eh?'hoje':''} ${fds?'fds':''}" onclick="abrirNovoAgendamento('${fmtData(dia)}')"><div class="cal-num">${dia.getDate()}</div><div class="cal-chips">${chips}</div></div>`;}return h+'</div>';}
 function renderLista(){const hojeStr=fmtData(new Date());const fut=DB.agendamentos.filter(e=>(e.inicio||'').slice(0,10)>=hojeStr).sort((a,b)=>(a.inicio||'').localeCompare(b.inicio||''));if(!fut.length)return'<p class="vazio">Nenhum agendamento futuro.</p>';let h='<div class="cal-lista">',ult='';fut.forEach(e=>{const dia=(e.inicio||'').slice(0,10);if(dia!==ult){const d=new Date(dia+'T12:00');h+=`<div class="cal-lista-dia">${DIAS[d.getDay()]}, ${d.getDate()} de ${MESES[d.getMonth()]}</div>`;ult=dia;}h+=`<div class="cal-lista-item" onclick="abrirAgendamento(${e.id})"><span class="cal-lista-hora">${iconePeriodo(e)} ${(e.inicio||'').slice(11,16)}${durTxt(e)?' \u00b7 '+durTxt(e):''}</span><span class="cal-lista-cor" style="background:${corEvento(e)}"></span><span class="cal-lista-tit">${esc(nomeCurto(e))}</span></div>`;});return h+'</div>';}
 function fmtLocal(dt){return dt?dt.slice(0,16):'';}
-function abrirNovoAgendamento(dataStr){carregarClientesSelect();document.getElementById('ag-id').value='';['ag-titulo','ag-valor','ag-local','ag-descricao'].forEach(i=>document.getElementById(i).value='');document.getElementById('ag-cliente').value='';document.getElementById('ag-status').value='agendado';document.getElementById('modal-titulo').textContent='Novo agendamento';document.getElementById('btn-excluir-ag').style.display='none';document.getElementById('btn-outlook').style.display='none';document.getElementById('bloco-recorrencia').style.display='';document.querySelectorAll('.dow').forEach(c=>c.checked=false);document.getElementById('ag-repetir-ate').value=(new Date().getFullYear())+'-12-31';const base=(dataStr||fmtData(new Date()))+'T09:00';document.getElementById('ag-inicio').value=base;document.getElementById('ag-horas').value='1';recalcFim();abrirModal('modal-agendamento');}
-function abrirAgendamento(id){const _ag=DB.agendamentos.find(x=>x.id===id);if(_ag&&_ag.tipo==='conta'){if(_ag.conta_id){showView('contas');editarConta(_ag.conta_id);}return;}carregarClientesSelect();const a=DB.agendamentos.find(x=>x.id===id);if(!a)return;document.getElementById('ag-id').value=a.id;document.getElementById('ag-titulo').value=a.titulo||'';document.getElementById('ag-cliente').value=a.cliente_id||'';document.getElementById('ag-inicio').value=fmtLocal(a.inicio);document.getElementById('ag-fim').value=fmtLocal(a.fim);(function(){const hi=new Date(a.inicio),hf=new Date(a.fim);let hh=(hf-hi)/3600000;if(!(hh>0))hh=1;document.getElementById('ag-horas').value=(Math.round(hh*2)/2);})();recalcFim();document.getElementById('ag-valor').value=a.valor||'';document.getElementById('ag-status').value=a.status||'agendado';document.getElementById('ag-local').value=a.local||'';document.getElementById('ag-descricao').value=a.descricao||'';document.getElementById('modal-titulo').textContent='Editar agendamento';document.getElementById('btn-excluir-ag').style.display='inline-block';document.getElementById('btn-outlook').style.display='inline-block';document.getElementById('bloco-recorrencia').style.display='none';abrirModal('modal-agendamento');}
+function abrirNovoAgendamento(dataStr){carregarClientesSelect();document.getElementById('ag-id').value='';['ag-titulo','ag-valor','ag-local','ag-descricao'].forEach(i=>document.getElementById(i).value='');document.getElementById('ag-cliente').value='';document.getElementById('ag-status').value='agendado';document.getElementById('modal-titulo').textContent='Novo agendamento';document.getElementById('btn-excluir-ag').style.display='none';document.getElementById('btn-outlook').style.display='none';document.getElementById('btn-recibo-ag').style.display='none';document.getElementById('bloco-recorrencia').style.display='';document.querySelectorAll('.dow').forEach(c=>c.checked=false);document.getElementById('ag-repetir-ate').value=(new Date().getFullYear())+'-12-31';const base=(dataStr||fmtData(new Date()))+'T09:00';document.getElementById('ag-inicio').value=base;document.getElementById('ag-horas').value='1';recalcFim();abrirModal('modal-agendamento');}
+function abrirAgendamento(id){const _ag=DB.agendamentos.find(x=>x.id===id);if(_ag&&_ag.tipo==='conta'){if(_ag.conta_id){showView('contas');editarConta(_ag.conta_id);}return;}carregarClientesSelect();const a=DB.agendamentos.find(x=>x.id===id);if(!a)return;document.getElementById('ag-id').value=a.id;document.getElementById('ag-titulo').value=a.titulo||'';document.getElementById('ag-cliente').value=a.cliente_id||'';document.getElementById('ag-inicio').value=fmtLocal(a.inicio);document.getElementById('ag-fim').value=fmtLocal(a.fim);(function(){const hi=new Date(a.inicio),hf=new Date(a.fim);let hh=(hf-hi)/3600000;if(!(hh>0))hh=1;document.getElementById('ag-horas').value=(Math.round(hh*2)/2);})();recalcFim();document.getElementById('ag-valor').value=a.valor||'';document.getElementById('ag-status').value=a.status||'agendado';document.getElementById('ag-local').value=a.local||'';document.getElementById('ag-descricao').value=a.descricao||'';document.getElementById('modal-titulo').textContent='Editar agendamento';document.getElementById('btn-excluir-ag').style.display='inline-block';document.getElementById('btn-outlook').style.display='inline-block';document.getElementById('btn-recibo-ag').style.display='inline-block';document.getElementById('bloco-recorrencia').style.display='none';abrirModal('modal-agendamento');}
 function recalcFim(){
   const ini=document.getElementById('ag-inicio').value;
   const horas=parseFloat(document.getElementById('ag-horas').value)||0;
@@ -1073,6 +1074,24 @@ function resumoPortalOS(c,itens,total,mes){
   l.push('DISCRIMINACAO / MENSAGEM (cole no campo de descricao do servico):');
   l.push(mensagemNotaOS(c,mes));
   return l.join('\n');
+}
+function reciboDoAgendamento(){
+  // monta um recibo de serviço com o que está no agendamento aberto (cliente, data, horas, valor)
+  const g=id=>(document.getElementById(id)||{}).value||'';
+  const cid=g('ag-cliente'),ini=g('ag-inicio'),fim=g('ag-fim')||ini;
+  const c=DB.clientes.find(x=>String(x.id)===String(cid))||{};
+  let horas=(new Date(fim)-new Date(ini))/3600000;if(!(horas>0))horas=parseFloat(g('ag-horas'))||1;
+  const titulo=g('ag-titulo').trim(),det=g('ag-descricao').trim();
+  const r={tipo:'servico',data:(ini||fmtData(new Date())).slice(0,10),numero:'',
+    cliente_id:cid?String(cid):'',pag_nome:c.nome||'',pag_doc:c.documento||'',pag_end:[c.logradouro,c.numero].filter(Boolean).join(', '),
+    prep:'DO',pix:true,decl:'',
+    itens:[{data:(ini||'').slice(0,10),desc:(titulo+(det?'\n'+det:''))||'Serviço de informática',qtd:fmtHoras(Math.round(horas*2)/2),valor:parseFloat(g('ag-valor'))||0}]};
+  fecharModal('modal-agendamento');
+  tipoRecibo='servico';
+  document.querySelectorAll('.subaba').forEach(x=>x.classList.toggle('ativa',x.dataset.tipo==='servico'));
+  abrirModalRecibo(r,'Recibo do agendamento');
+  if(!cid)toast('Esse agendamento não tem cliente — preencha o pagador no recibo.','erro');
+  else toast('Recibo montado com os dados do agendamento. Confira e salve.','sucesso');
 }
 function puxarReciboDaOS(){
   const ids=servicosSelecionados();
