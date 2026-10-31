@@ -232,7 +232,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
       <a data-view="receber" onclick="showView('receber')">💵 <span class="txt">Contas a receber</span></a>
       <a data-view="config" onclick="showView('config')">⚙️ <span class="txt">Configurações</span></a>
     </nav>
-    <div class="sidebar-rodape">v6.9 · web</div>
+    <div class="sidebar-rodape">v7.0 · web</div>
   </aside>
   <nav class="tabbar" id="tabbar">
     <a data-view="agenda" class="ativo" onclick="showView('agenda')"><i>📅</i><span>Agenda</span></a>
@@ -1646,7 +1646,13 @@ function renderNotas(){
   if(cont){
     const tot=lista.reduce((a,n)=>a+(n.valor||0),0);
     const fm=document.getElementById('nt-filtro-mes').value;
-    cont.textContent=lista.length+' nota(s)'+(fm?' em '+nomeMesAAAA(fm):'')+' \u00b7 Total: R$ '+tot.toFixed(2);
+    const ano=(fm||mesAtualStr()).slice(0,4);
+    const fsel=document.getElementById('nt-filtro-status').value;
+    const doAno=DB.notas.filter(n=>String(competenciaNota(n)||'').slice(0,4)===ano&&(!fsel||n.status===fsel));
+    const totAno=doAno.reduce((a,n)=>a+(n.valor||0),0);
+    cont.textContent=fm
+      ?(lista.length+' nota(s) em '+nomeMesAAAA(fm)+' \u00b7 Total do mês: R$ '+tot.toFixed(2)+' \u00b7 Total de '+ano+': R$ '+totAno.toFixed(2))
+      :(doAno.length+' nota(s) em '+ano+' \u00b7 Total de '+ano+': R$ '+totAno.toFixed(2));
   }
   if(!lista.length){box.innerHTML='<p class="vazio">Nenhuma nota com esse filtro.</p>';return;}
   const rows=lista.map(n=>{
