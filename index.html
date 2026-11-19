@@ -232,7 +232,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
       <a data-view="receber" onclick="showView('receber')">💵 <span class="txt">Contas a receber</span></a>
       <a data-view="config" onclick="showView('config')">⚙️ <span class="txt">Configurações</span></a>
     </nav>
-    <div class="sidebar-rodape">v7.0 · web</div>
+    <div class="sidebar-rodape">v7.2 · web</div>
   </aside>
   <nav class="tabbar" id="tabbar">
     <a data-view="agenda" class="ativo" onclick="showView('agenda')"><i>📅</i><span>Agenda</span></a>
@@ -395,7 +395,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
       <div class="topo"><h1>Configurações</h1></div>
       <div class="card">
         <h2>📅 Agenda no Google / iPhone</h2>
-        <p class="dim">Mão dupla: o que criar/editar no app vai pro calendário <b>Gestor de TI</b> do seu Google Agenda (e do iPhone), e o que criar/editar/excluir lá volta pro app quando ele estiver aberto. Contas a pagar pendentes aparecem com 💰 (só leitura). Conecte uma vez em cada aparelho.</p>
+        <p class="dim">Mão dupla: o que criar/editar no app vai pro calendário <b>Gestor de TI</b> do seu Google Agenda (e do iPhone), e o que criar/editar/excluir lá volta pro app quando ele estiver aberto. Contas a pagar pendentes aparecem com 💰 (só leitura). Conecte em um aparelho e vale para todos.</p>
         <div class="form-grid" style="margin-top:12px">
           <label class="col2">Client ID (Google Cloud)<input id="cfg-g-cid" placeholder="...apps.googleusercontent.com"></label>
           <label class="col2">Client secret<input id="cfg-g-sec" type="password" placeholder="GOCSPX-..."></label>
@@ -595,6 +595,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
   <div class="os-total" id="rc-total">Total: R$ 0,00</div>
   <div class="form-grid" style="margin-top:6px">
     <label class="col2"><span style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="rc-pix" style="width:18px;height:18px" onchange="montarDeclaracao()"> Mostrar a linha do PIX (CPF) no recibo</span><span id="rc-pix-aviso" class="dim"></span></label>
+    <label class="col2"><span style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="rc-recebido" style="width:18px;height:18px"> <b>Já recebido</b> (o cliente já pagou) — atualiza o Contas a receber</span></label>
     <label class="col2">Texto de recebimento <span class="dim">(gerado automaticamente &mdash; pode editar &agrave; vontade)</span><textarea id="rc-decl" rows="3"></textarea></label>
   </div>
   <div class="modal-rodape">
@@ -1386,7 +1387,8 @@ function renderRecibos(){
   const fm=document.getElementById('rc-filtro-mes')?document.getElementById('rc-filtro-mes').value:'';
   if(cont){
     const tot=lista.reduce((a,r)=>a+totalRecibo(r),0);
-    cont.textContent=lista.length?(lista.length+' recibo(s)'+(fm?' em '+nomeMesAAAA(fm):'')+' \u00b7 Total: R$ '+tot.toFixed(2)):'';
+    const aRec=lista.filter(r=>!reciboRecebido(r.id)).reduce((a,r)=>a+totalRecibo(r),0);
+    cont.textContent=lista.length?(lista.length+' recibo(s)'+(fm?' em '+nomeMesAAAA(fm):'')+' \u00b7 Total: R$ '+tot.toFixed(2)+' \u00b7 A receber: R$ '+aRec.toFixed(2)):'';
   }
   if(!DB.recibos.filter(r=>r.tipo===tipoRecibo).length){box.innerHTML=`<p class="vazio">Nenhum recibo de ${tipoRecibo==='venda'?'venda':'servi\u00e7o'} ainda. Clique em "+ Novo recibo".</p>`;return;}
   if(!lista.length){box.innerHTML=`<p class="vazio">Nenhum recibo ${fm?'em '+nomeMesAAAA(fm):''} nesta aba.</p>`;return;}
@@ -1396,10 +1398,11 @@ function renderRecibos(){
      +`<td data-rot="Pagador"><b>${esc(r.pag_nome||'\u2014')}</b></td>`
      +`<td data-rot="Itens">${(r.itens||[]).length}</td>`
      +`<td data-rot="Valor">R$ ${v.toFixed(2)}</td>`
-     +`<td class="acoes-cel"><span class="link-acao" onclick="imprimirRecibo(${r.id})">\u{1F5A8}\uFE0F Imprimir</span>`
+     +`<td data-rot="Status">${reciboRecebido(r.id)?'<span class="tag tag-autorizada">recebido</span>':'<span class="tag tag-portal">a receber</span>'}</td>`
+     +`<td class="acoes-cel"><span class="link-acao" onclick="alternarReciboRecebido(${r.id})">${reciboRecebido(r.id)?'Marcar a receber':'Marcar recebido'}</span><span class="link-acao" onclick="imprimirRecibo(${r.id})">\u{1F5A8}\uFE0F Imprimir</span>`
      +`<span class="link-acao" onclick="editarRecibo(${r.id})">Editar</span>`
      +`<span class="link-acao" onclick="duplicarRecibo(${r.id})">Duplicar</span></td></tr>`;}).join('');
-  box.innerHTML=`<table class="tabela"><thead><tr><th>Data</th><th>N\u00ba</th><th>Pagador</th><th>Itens</th><th>Valor</th><th></th></tr></thead><tbody>${rows}</tbody></table>`
+  box.innerHTML=`<table class="tabela"><thead><tr><th>Data</th><th>N\u00ba</th><th>Pagador</th><th>Itens</th><th>Valor</th><th>Status</th><th></th></tr></thead><tbody>${rows}</tbody></table>`
    +`<div class="os-total">${lista.length} recibo(s) \u00b7 Total: R$ ${tot.toFixed(2)}</div>`;
 }
 function imprimirRelatorioRecibos(){
@@ -1512,6 +1515,9 @@ function preencherPagador(){
   document.getElementById('rc-decl').dataset.editado='';
   montarDeclaracao();
 }
+function reciboRecebido(id){return !!id&&Array.isArray(DB.receber_recebidos)&&DB.receber_recebidos.includes('rec:'+id);}
+function marcarReciboRecebido(id,sim){if(!Array.isArray(DB.receber_recebidos))DB.receber_recebidos=[];const k='rec:'+id,i=DB.receber_recebidos.indexOf(k);if(sim&&i<0)DB.receber_recebidos.push(k);if(!sim&&i>=0)DB.receber_recebidos.splice(i,1);}
+function alternarReciboRecebido(id){marcarReciboRecebido(id,!reciboRecebido(id));salvarDB();renderRecibos();if(typeof renderReceber==='function')renderReceber();}
 function abrirModalRecibo(r,titulo){
   document.getElementById('rc-tipo').value=r.tipo;
   document.getElementById('rc-id').value=r.id||'';
@@ -1528,6 +1534,7 @@ function abrirModalRecibo(r,titulo){
   document.getElementById('rc-pag-end').value=r.pag_end||'';
   document.getElementById('rc-prep').value=r.prep||'DO';
   document.getElementById('rc-pix').checked=!!r.pix;
+  document.getElementById('rc-recebido').checked=reciboRecebido(r.id);
   document.getElementById('rc-tit-itens').textContent=ROT[r.tipo].itens;
   const itens=(r.itens&&r.itens.length)?r.itens:[{data:r.data||fmtData(new Date())}];
   document.getElementById('rc-itens').innerHTML=cabItens()+itens.map(linhaItemRecibo).join('');
@@ -1572,7 +1579,8 @@ function salvarRecibo(imprimir){
   let alvo;
   if(id){alvo=DB.recibos.find(x=>x.id==id);Object.assign(alvo,d);}
   else{d.id=novoId('rec');DB.recibos.push(d);alvo=d;}
-  salvarDB();fecharModal('modal-recibo');tipoRecibo=d.tipo;
+  marcarReciboRecebido(alvo.id,document.getElementById('rc-recebido').checked);
+  salvarDB();if(typeof renderReceber==='function')renderReceber();fecharModal('modal-recibo');tipoRecibo=d.tipo;
   document.querySelectorAll('.subaba').forEach(b=>b.classList.toggle('ativa',b.dataset.tipo===d.tipo));
   renderRecibos();toast('Recibo salvo!','sucesso');
   if(imprimir)imprimirRecibo(alvo.id);
@@ -3018,7 +3026,16 @@ const G_CAL_NOME='Gestor de TI';
 function gRedirectUri(){return location.origin+location.pathname.replace(/index\.html$/,'');}
 function gCid(){return((DB.config&&DB.config.g_client_id)||localStorage.getItem('g_cid')||'').trim();}
 function gSec(){return((DB.config&&DB.config.g_client_secret)||localStorage.getItem('g_sec')||'').trim();}
-function gTok(){try{return JSON.parse(localStorage.getItem('g_tok')||'null');}catch(e){return null;}}
+function gTok(){
+  let t=null;try{t=JSON.parse(localStorage.getItem('g_tok')||'null');}catch(e){}
+  const rtNuvem=((DB.config&&DB.config.g_rt)||'').trim();
+  if(rtNuvem&&(!t||t.rt!==rtNuvem))t={rt:rtNuvem}; // conexão feita em outro aparelho (ou mais nova)
+  return t;
+}
+function gPublicarConexao(rt){ // a conexão vai junto com os dados (repositório privado) e vale pra todos os aparelhos
+  if(!rt||DB.config.g_rt===rt)return;
+  DB.config.g_rt=rt;salvarLocal();agendarSalvarNuvem();if(conectado)nuvemSalvarAgora();
+}
 function gB64url(buf){let s='';new Uint8Array(buf).forEach(b=>s+=String.fromCharCode(b));return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
 function gHash(c){const s=[c.resumo,c.inicio,c.fim,c.local,c.descricao,c.cancelado?1:0].join('\u241f');let h=0x811c9dc5;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,0x01000193)>>>0;}return h.toString(16);}
 async function gConectar(){
@@ -3048,7 +3065,8 @@ async function gTrocarCodigo(){ // volta do login do Google (?code=...)
     if(!r.ok||!j.access_token){toast('Google: '+(j.error_description||j.error||'não consegui entrar'),'erro');return false;}
     if(!j.refresh_token)toast('Google conectado, mas sem acesso permanente. Desconecte e conecte de novo.','erro');
     localStorage.setItem('g_tok',JSON.stringify({at:j.access_token,exp:Date.now()+((j.expires_in||3600)-60)*1000,rt:j.refresh_token||null}));
-    toast('Google conectado! Sincronizando a agenda...','sucesso');gAtualizarBotao();return true;
+    if(j.refresh_token)gPublicarConexao(j.refresh_token);
+    toast('Google conectado! Já vale para os outros aparelhos também.','sucesso');gAtualizarBotao();return true;
   }catch(e){toast('Google: não consegui falar com o servidor ('+e.message+')','erro');return false;}
 }
 async function gAccessToken(){
@@ -3059,7 +3077,10 @@ async function gAccessToken(){
     const r=await fetch(G_TOKEN,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},
       body:new URLSearchParams({client_id:gCid(),client_secret:gSec(),grant_type:'refresh_token',refresh_token:t.rt}).toString()});
     const j=await r.json();
-    if(!r.ok||!j.access_token){if(j.error==='invalid_grant'){localStorage.setItem('g_tok',JSON.stringify({expirado:true}));gAtualizarBotao();}return null;}
+    if(!r.ok||!j.access_token){if(j.error==='invalid_grant'){
+      localStorage.setItem('g_tok',JSON.stringify({expirado:true}));
+      if(DB.config.g_rt===t.rt){DB.config.g_rt='';salvarLocal();agendarSalvarNuvem();}
+      gAtualizarBotao();}return null;}
     localStorage.setItem('g_tok',JSON.stringify({at:j.access_token,exp:Date.now()+((j.expires_in||3600)-60)*1000,rt:t.rt}));
     return j.access_token;
   }catch(e){return null;}
@@ -3139,6 +3160,8 @@ function gLigado(){const t=gTok();return!!(t&&!t.expirado&&(t.at||t.rt)&&gCid())
 function gAgendar(){if(!gLigado())return;clearTimeout(gTimer);gTimer=setTimeout(()=>gSincronizar(false),4000);}
 async function gSincronizar(avisar){
   if(gSincronizando||!gLigado())return;
+  {let loc=null;try{loc=JSON.parse(localStorage.getItem('g_tok')||'null');}catch(e){}
+   if(loc&&loc.rt&&!loc.expirado&&!DB.config.g_rt&&(!GH_TOKEN||nuvemPronta))gPublicarConexao(loc.rt);}
   gSincronizando=true;gAtualizarBotao();
   try{
     let calId=await gCalendarioId(),evs;
@@ -3198,7 +3221,7 @@ function gAtualizarBotao(){
   const t=gTok(),lig=gLigado();
   if(b)b.textContent=!gCid()?'📅 Ligar ao Google':(gSincronizando?'📅 Sincronizando...':(lig?'📅 Google ✓':'📅 Reconectar Google'));
   if(st){const u=localStorage.getItem('g_ult');
-    st.textContent=!gCid()?'Não configurado.':lig?('Conectado neste aparelho.'+(u?' Última sincronização: '+new Date(u).toLocaleString('pt-BR'):'')):'Desconectado neste aparelho — clique em Conectar Google.';}
+    st.textContent=!gCid()?'Não configurado.':lig?('Conectado (vale para todos os aparelhos).'+(u?' Última sincronização: '+new Date(u).toLocaleString('pt-BR'):'')):'Desconectado — clique em Conectar Google (em qualquer aparelho).';}
 }
 function gBotao(){if(!gCid()||!gSec()){showView('config');toast('Preencha o Client ID e o Client secret do Google e clique em Conectar.','erro');return;}
   if(gLigado())gSincronizar(true);else gConectar();}
@@ -3225,7 +3248,13 @@ function gImportarJson(input){
   };
   r.readAsText(f);
 }
-function gDesconectar(){localStorage.removeItem('g_tok');gAtualizarBotao();toast('Google desconectado neste aparelho.','sucesso');}
+function gDesconectar(){
+  if(!confirm('Desconectar o Google em TODOS os aparelhos? A agenda para de sincronizar até você conectar de novo.'))return;
+  const t=gTok();
+  if(t&&(t.rt||t.at))fetch('https://oauth2.googleapis.com/revoke',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'token='+encodeURIComponent(t.rt||t.at)}).catch(()=>{});
+  localStorage.removeItem('g_tok');DB.config.g_rt='';salvarLocal();agendarSalvarNuvem();if(conectado)nuvemSalvarAgora();
+  gAtualizarBotao();toast('Google desconectado em todos os aparelhos.','sucesso');
+}
 setInterval(()=>{if(document.visibilityState==='visible')gSincronizar(false);},120000);
 
 // ================== Exportar Excel (.xlsx) — gerado no navegador, sem biblioteca ==================
