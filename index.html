@@ -232,7 +232,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
       <a data-view="receber" onclick="showView('receber')">💵 <span class="txt">Contas a receber</span></a>
       <a data-view="config" onclick="showView('config')">⚙️ <span class="txt">Configurações</span></a>
     </nav>
-    <div class="sidebar-rodape">v7.3 · web</div>
+    <div class="sidebar-rodape">v7.4 · web</div>
   </aside>
   <nav class="tabbar" id="tabbar">
     <a data-view="agenda" class="ativo" onclick="showView('agenda')"><i>📅</i><span>Agenda</span></a>
@@ -829,6 +829,7 @@ function migrar(d){
   if(!d.receber_vencimentos||typeof d.receber_vencimentos!=='object')d.receber_vencimentos={};
   ['desc','ctrib','cnpj','mun','pix'].forEach(k=>{if(!d.config[k])d.config[k]=pad.config[k];});
   garantirEmitentes(d.config);
+  d.notas.forEach(n=>{if(n.status==='portal'&&n.servico_ids&&n.resumo)n.resumo=ajustarResumoOS(n.resumo);});
   d.seq=Object.assign({},pad.seq,d.seq||{});
   Object.keys(pad.seq).forEach(k=>{if(!d.seq[k]||isNaN(d.seq[k]))d.seq[k]=1;});
   return d;
@@ -1126,11 +1127,26 @@ function atualizarSelecaoOS(){
   if(m){m.checked=todos>0&&ids.length===todos;m.indeterminate=ids.length>0&&ids.length<todos;}
 }
 function marcarTodasOS(el){document.querySelectorAll('.chk-os').forEach(c=>c.checked=el.checked);atualizarSelecaoOS();}
-function mensagemNotaOS(c,mes,e){
+function mensagemNotaOS(c,mes,e,itens){
   e=e||emitCliente(c);
   const p=String(mes||'').split('-'), compet=(p[1]||'')+'/'+(p[0]||'');
   const venc=c.venc_dia?(String(c.venc_dia).padStart(2,'0')+'/'+compet):'';
-  return [(e.desc||DB.config.desc||'')+' REF. '+compet,'VENCIMENTO: '+venc,'DADOS PARA PAGAMENTO:',(e.pix||'')].join('\n');
+  const l=[(e.desc||DB.config.desc||'')+' REF. '+compet];
+  if(itens&&itens.length){ // as OS entram na descrição da nota, logo abaixo da referência
+    l.push(`OS INCLUIDAS (${itens.length}):`);
+    itens.forEach(s=>l.push(`  ${brdata(s.data)} - ${s.descricao||''} - R$ ${(parseFloat(s.valor)||0).toFixed(2)}`));
+  }
+  l.push('VENCIMENTO: '+venc,'DADOS PARA PAGAMENTO:',(e.pix||''));
+  return l.join('\n');
+}
+function ajustarResumoOS(txt){ // notas já geradas no formato antigo: move a lista de OS para dentro da descrição
+  const s=String(txt||''),a=s.indexOf('OS INCLUIDAS ('),d=s.indexOf('DISCRIMINACAO / MENSAGEM');
+  if(a<0||d<0||a>d)return s;
+  const bloco=s.slice(a,d).replace(/\s+$/,'');
+  const antes=s.slice(0,a).replace(/\n+$/,'\n\n'),resto=s.slice(d);
+  const i1=resto.indexOf('\n'),i2=i1<0?-1:resto.indexOf('\n',i1+1);
+  if(i2<0)return s;
+  return antes+resto.slice(0,i2)+'\n'+bloco+resto.slice(i2);
 }
 function resumoPortalOS(c,itens,total,mes,e){
   e=e||emitCliente(c);
@@ -1139,11 +1155,8 @@ function resumoPortalOS(c,itens,total,mes,e){
   if(e.ctrib)l.push(`CODIGO DE TRIBUTACAO: ${e.ctrib}`);
   if(c.email)l.push(`E-MAIL DO TOMADOR: ${c.email}`);
   l.push('');
-  l.push(`OS INCLUIDAS (${itens.length}):`);
-  itens.forEach(s=>l.push(`  ${brdata(s.data)} - ${s.descricao||''} - R$ ${(parseFloat(s.valor)||0).toFixed(2)}`));
-  l.push('');
   l.push('DISCRIMINACAO / MENSAGEM (cole no campo de descricao do servico):');
-  l.push(mensagemNotaOS(c,mes,e));
+  l.push(mensagemNotaOS(c,mes,e,itens));
   return l.join('\n');
 }
 function reciboDoAgendamento(){
