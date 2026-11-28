@@ -86,6 +86,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,'Helvetica Neue',Arial,sans-
 .acoes-cel{text-align:right;white-space:nowrap}
 .link-acao{color:var(--azul);cursor:pointer;margin-left:12px;font-size:13px}.link-acao.perigo{color:var(--vermelho)}
 .busca{padding:9px 12px;border:1px solid var(--borda);border-radius:8px;font-size:14px;width:280px;max-width:60vw}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .vazio{color:var(--cinza);padding:32px 20px;text-align:center;font-size:14px}
 .dash-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px}
 .dash-kpi{background:#fff;border-radius:var(--raio);padding:16px 18px;border:1px solid var(--borda);box-shadow:var(--sombra)}
@@ -195,6 +196,33 @@ body{font-family:'Segoe UI',system-ui,-apple-system,'Helvetica Neue',Arial,sans-
   .kpis .kpi:last-child:nth-child(odd){grid-column:span 2}
   .atalhos{flex-wrap:nowrap;overflow-x:auto;margin:0 -14px 16px;padding:0 14px 2px;scrollbar-width:none}.atalhos::-webkit-scrollbar{display:none}.atalhos .btn{flex:0 0 auto}
   .ini-per{width:100%}.ini-per input{width:100%}}
+/* Contratos */
+.ct-barra .os-filtros{align-items:flex-end}.ct-busca{flex:1;min-width:200px}.ct-busca input{width:100%}
+.ct-lote{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px;padding-top:14px;border-top:1px solid var(--borda)}
+.ct-lote-btns{display:flex;gap:8px;flex-wrap:wrap}
+.ct-cli b{display:block}.ct-cli small{color:var(--cinza);font-size:12px}
+.ct-rodape{display:flex;justify-content:space-between;align-items:center;padding:12px 4px;font-size:14px;color:var(--cinza)}
+.ct-rodape b{font-size:16px;color:var(--txt);font-variant-numeric:tabular-nums}
+.tabela tr.inativo td{color:var(--cinza)}.tabela tr.inativo .ct-cli b{color:var(--cinza)}
+@media(max-width:820px){
+  .ct-lote{position:sticky;bottom:calc(64px + env(safe-area-inset-bottom));z-index:5;background:#fff;margin:14px -16px -16px;padding:12px 16px;border-radius:0 0 10px 10px}
+  .ct-lote-btns{width:100%}.ct-lote-btns .btn{flex:1 1 0;padding:10px 8px;font-size:14px}
+  /* cartão de contrato */
+  #lista-contratos .tabela tr{display:grid;grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"chk cli st" "chk val val" "chk meta meta" "ac ac ac";gap:2px 12px;padding:14px}
+  #lista-contratos .tabela td{display:block;padding:0;text-align:left;width:auto}
+  #lista-contratos .tabela td:before{display:none}
+  #lista-contratos td.chk-cel{grid-area:chk;padding-top:2px}
+  #lista-contratos td.c-cli{grid-area:cli;font-size:15px}
+  #lista-contratos td.c-st{grid-area:st;text-align:right}
+  #lista-contratos td.c-val{grid-area:val;font-size:18px;font-weight:700;margin-top:6px;text-align:left}
+  #lista-contratos td.c-meta{grid-area:meta;font-size:13px;color:var(--cinza)}
+  #lista-contratos td.c-tipo,#lista-contratos td.c-venc,#lista-contratos td.c-cob{display:none}
+  #lista-contratos td.acoes-cel{grid-area:ac;margin-top:10px;padding-top:4px!important;text-align:right}
+  #lista-contratos .link-acao{padding:8px 4px}
+  .ct-rodape{padding:6px 2px 12px;flex-wrap:wrap;gap:4px}
+  .ct-barra .os-filtros .campo{flex:1 1 calc(50% - 5px);min-width:0}.ct-barra .os-filtros input,.ct-barra .os-filtros select{min-width:0;width:100%}.ct-barra .os-filtros .ct-busca{flex:1 1 100%;order:-1}
+}
+@media(min-width:821px){#lista-contratos .c-meta{display:none}}
 /* abas de seção (Contas: Recebimentos / Pagamentos) */
 .abas{display:inline-flex;background:var(--cinza-cl);border:1px solid var(--borda);border-radius:10px;padding:3px;gap:2px;margin-bottom:16px}
 .abas button{border:none;background:transparent;padding:8px 16px;border-radius:8px;font-size:14px;font-weight:600;color:var(--cinza);cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:7px}
@@ -411,16 +439,20 @@ body{font-family:'Segoe UI',system-ui,-apple-system,'Helvetica Neue',Arial,sans-
     </section>
 
     <section id="view-contratos" class="oculto">
-      <div class="topo"><h1>Contratos mensais</h1><div class="topo-acoes">
+      <div class="topo"><div><h1>Contratos mensais</h1><div class="sub" id="ct-resumo"></div></div><div class="topo-acoes">
         <button class="btn btn-primario" onclick="abrirNovoContrato()">+ Novo contrato</button>
       </div></div>
-      <div class="card no-print">
+      <div class="card no-print ct-barra">
         <div class="os-filtros">
-          <div class="campo">Compet&ecirc;ncia (m&ecirc;s a cobrar)<input type="month" id="ct-mes" onchange="fecharBloco('bloco-ct');renderContratos()"></div>
-          <button class="btn btn-nfse" id="btn-nfse-ct" onclick="emitirNFSeContratos()" disabled>&#129534; Emitir NFS-e</button>
-          <button class="btn btn-outlook" id="btn-com-ct" onclick="gerarComunicados()" disabled>&#9993;&#65039; Gerar comunicado</button>
+          <div class="campo">Compet&ecirc;ncia<input type="month" id="ct-mes" onchange="fecharBloco('bloco-ct');renderContratos()"></div>
+          <div class="campo ct-busca">Pesquisar cliente<input type="search" id="ct-busca" placeholder="Nome do cliente" oninput="renderContratos()"></div>
+          <div class="campo">Status<select id="ct-filtro-st" onchange="renderContratos()"><option value="">Todos</option><option value="pendente">Pendentes no m&ecirc;s</option><option value="portal">No portal</option><option value="feito">Faturados / enviados</option><option value="inativo">Inativos</option></select></div>
         </div>
-        <p class="dim" style="margin-top:8px">Marque os contratos que vai cobrar neste m&ecirc;s. Os de <b>NFS-e</b> preparam a nota e abrem o Emissor Nacional; os de <b>comunicado</b> geram o texto do e-mail com seus dados de pagamento.</p>
+        <div class="ct-lote">
+          <span class="dim" id="ct-sel-txt">Marque os contratos para cobrar em lote.</span>
+          <span class="ct-lote-btns"><button class="btn btn-nfse" id="btn-nfse-ct" onclick="emitirNFSeContratos()" disabled>&#129534; Emitir NFS-e</button>
+          <button class="btn btn-outlook" id="btn-com-ct" onclick="gerarComunicados()" disabled>&#9993;&#65039; Gerar comunicado</button></span>
+        </div>
       </div>
       <div id="lista-contratos"></div>
       <div id="bloco-ct" class="bloco-nfse oculto"><button class="btn btn-secundario" style="float:right;padding:4px 10px" onclick="fecharBloco('bloco-ct')">✕ Fechar</button><h3 id="bloco-ct-tit">Resultado</h3><div id="bloco-ct-info"></div></div>
@@ -1565,7 +1597,7 @@ function vencContrato(ct,mes){
   return String(dia).padStart(2,'0')+'/'+String(m).padStart(2,'0')+'/'+ano;
 }
 function cobrancaDe(ctId,mes){return DB.cobrancas.find(c=>c.contrato_id===ctId&&c.competencia===mes);}
-function contratosSelecionados(){return Array.from(document.querySelectorAll('.chk-ct:checked')).map(c=>+c.dataset.id);}
+function contratosSelecionados(){return Array.from(document.querySelectorAll('.chk-ct:checked:not(:disabled)')).map(c=>+c.dataset.id);}
 function atualizarSelecaoCT(){
   const ids=contratosSelecionados();
   const sel=DB.contratos.filter(c=>ids.includes(c.id));
@@ -1575,41 +1607,53 @@ function atualizarSelecaoCT(){
   const somaN=nf.reduce((a,c)=>a+(parseFloat(c.valor)||0),0);
   bn.disabled=!nf.length; bn.textContent=nf.length?`\u{1F9FE} Emitir NFS-e (${nf.length} \u00b7 R$ ${somaN.toFixed(2)})`:'\u{1F9FE} Emitir NFS-e';
   bc.disabled=!co.length; bc.textContent=co.length?`\u2709\uFE0F Gerar comunicado (${co.length})`:'\u2709\uFE0F Gerar comunicado';
-  const todos=document.querySelectorAll('.chk-ct').length,m=document.getElementById('chk-ct-todos');
+  const tx=document.getElementById('ct-sel-txt');if(tx)tx.textContent=ids.length?(ids.length+' selecionado(s) \u00b7 '+brl(sel.reduce((a,c)=>a+(parseFloat(c.valor)||0),0))):'Marque os contratos para cobrar em lote.';
+  const todos=document.querySelectorAll('.chk-ct:not(:disabled)').length,m=document.getElementById('chk-ct-todos');
   if(m){m.checked=todos>0&&ids.length===todos;m.indeterminate=ids.length>0&&ids.length<todos;}
 }
-function marcarTodosCT(el){document.querySelectorAll('.chk-ct').forEach(c=>c.checked=el.checked);atualizarSelecaoCT();}
+function marcarTodosCT(el){document.querySelectorAll('.chk-ct:not(:disabled)').forEach(c=>c.checked=el.checked);atualizarSelecaoCT();}
 const TIPOS_SERV_CT={desenvolvimento:'Desenvolvimento',ambiente:'TI / Ambiente'};
+function statusContratoMes(ct,mes){
+  if(!ct.ativo)return {k:'inativo',h:'<span class="tag tag-neutro">inativo</span>'};
+  const cob=cobrancaDe(ct.id,mes);
+  if(cob&&cob.status==='autorizada')return {k:'feito',h:`<span class="tag tag-ok">NF ${esc(cob.numero_nfse)}</span>`};
+  if(cob&&cob.status==='enviado')return {k:'feito',h:'<span class="tag tag-ok">comunicado gerado</span>'};
+  if(cob&&cob.status==='portal')return {k:'portal',h:'<span class="tag tag-info">no portal</span>'};
+  return {k:'pendente',h:'<span class="tag tag-pendente">pendente</span>'};
+}
 function renderContratos(){
   const box=document.getElementById('lista-contratos');if(!box)return;
   const inp=document.getElementById('ct-mes');if(!inp.value)inp.value=mesAtualStr();
   const mes=inp.value;
-  const lista=DB.contratos.slice().sort((a,b)=>{
-    const na=(DB.clientes.find(x=>x.id==a.cliente_id)||{}).nome||'',nb=(DB.clientes.find(x=>x.id==b.cliente_id)||{}).nome||'';
-    return (b.ativo?1:0)-(a.ativo?1:0)||na.localeCompare(nb);});
-  if(!lista.length){box.innerHTML='<p class="vazio">Nenhum contrato mensal cadastrado. Clique em "+ Novo contrato".</p>';atualizarSelecaoCT();return;}
-  let tot=0;
+  const nomeCli=ct=>(DB.clientes.find(x=>x.id==ct.cliente_id)||{}).nome||'';
+  const ativos=DB.contratos.filter(c=>c.ativo),tot=ativos.reduce((a,c)=>a+(parseFloat(c.valor)||0),0);
+  const res=document.getElementById('ct-resumo');
+  if(res)res.innerHTML=`${ativos.length} ativo(s) · total mensal ativo <b style="color:var(--txt)">${brl(tot)}</b>`;
+  const q=(document.getElementById('ct-busca').value||'').trim().toLowerCase();
+  const fst=document.getElementById('ct-filtro-st').value;
+  const lista=DB.contratos.slice().sort((a,b)=>(b.ativo?1:0)-(a.ativo?1:0)||nomeCli(a).localeCompare(nomeCli(b)))
+    .filter(ct=>(!q||nomeCli(ct).toLowerCase().includes(q))&&(!fst||statusContratoMes(ct,mes).k===fst));
+  if(!DB.contratos.length){box.innerHTML='<p class="vazio card">Nenhum contrato mensal cadastrado. Clique em "+ Novo contrato".</p>';atualizarSelecaoCT();return;}
+  if(!lista.length){box.innerHTML='<p class="vazio card">Nenhum contrato encontrado com esses filtros.</p>';atualizarSelecaoCT();return;}
   const rows=lista.map(ct=>{
     const c=DB.clientes.find(x=>x.id==ct.cliente_id)||{};
-    const cob=cobrancaDe(ct.id,mes);
-    if(ct.ativo)tot+=parseFloat(ct.valor)||0;
-    let selo='<span class="tag tag-pendente">pendente</span>';
-    if(cob&&cob.status==='autorizada')selo=`<span class="tag tag-autorizada">NF ${esc(cob.numero_nfse)}</span>`;
-    else if(cob&&cob.status==='portal')selo='<span class="tag tag-portal">no portal</span>';
-    else if(cob&&cob.status==='enviado')selo='<span class="tag tag-autorizada">comunicado gerado</span>';
+    const st=statusContratoMes(ct,mes);
     const tsv=TIPOS_SERV_CT[ct.tipo_servico]||'';
-    const tipo=ct.tipo==='comunicado'?'\u2709\uFE0F E-mail':'\u{1F9FE} NFS-e';
-    return `<tr${ct.ativo?'':' style="opacity:.5"'}><td class="chk-cel"><input type="checkbox" class="chk-ct" data-id="${ct.id}" onchange="atualizarSelecaoCT()"${ct.ativo?'':' disabled'}></td>`
-      +`<td data-rot="Cliente"><b>${esc(c.nome||'(sem cliente)')}</b>${ct.tipo!=='comunicado'?' <span class="dim" style="font-size:11px">· '+esc(nomeEmit(emitContrato(ct)))+'</span>':''}</td>`
-      +`<td data-rot="Tipo de servi\u00e7o">${tsv?esc(tsv):'<span class="dim">\u2014</span>'}</td>`
-      +`<td data-rot="Valor mensal">R$ ${(parseFloat(ct.valor)||0).toFixed(2)}</td>`
-      +`<td data-rot="Vencimento">${vencContrato(ct,mes)}</td>`
-      +`<td data-rot="Cobran\u00e7a">${tipo}</td>`
-      +`<td data-rot="${esc(nomeMesCompet(mes))}">${selo}</td>`
+    const cobr=ct.tipo==='comunicado'?'E-mail':'NFS-e';
+    const emit=ct.tipo!=='comunicado'?nomeEmit(emitContrato(ct)):'';
+    const venc=vencContrato(ct,mes);
+    return `<tr class="${ct.ativo?'':'inativo'}"><td class="chk-cel"><input type="checkbox" class="chk-ct" data-id="${ct.id}" aria-label="Selecionar ${esc(c.nome||'contrato')}" onchange="atualizarSelecaoCT()"${ct.ativo?'':' disabled'}></td>`
+      +`<td class="c-cli ct-cli" data-rot="Cliente"><b>${esc(c.nome||'(sem cliente)')}</b>${emit?'<small>NFS-e por '+esc(emit)+'</small>':''}</td>`
+      +`<td class="c-tipo" data-rot="Tipo de serviço">${tsv?esc(tsv):'<span class="dim">—</span>'}</td>`
+      +`<td class="c-val num" data-rot="Valor mensal">${brl(parseFloat(ct.valor)||0)}</td>`
+      +`<td class="c-venc" data-rot="Vencimento">${venc}</td>`
+      +`<td class="c-cob" data-rot="Cobrança">${cobr}</td>`
+      +`<td class="c-meta">Vence ${venc} · ${cobr}${tsv?' · '+esc(tsv):''}</td>`
+      +`<td class="c-st" data-rot="${esc(nomeMesCompet(mes))}">${st.h}</td>`
       +`<td class="acoes-cel"><span class="link-acao" onclick="editarContrato(${ct.id})">Editar</span></td></tr>`;
   }).join('');
-  box.innerHTML=`<table class="tabela"><thead><tr><th class="chk-cel"><input type="checkbox" id="chk-ct-todos" onchange="marcarTodosCT(this)" title="Marcar todos"></th><th>Cliente</th><th>Tipo de servi\u00e7o</th><th>Valor mensal</th><th>Vencimento</th><th>Cobran\u00e7a</th><th>${esc(nomeMesCompet(mes))}</th><th></th></tr></thead><tbody>${rows}</tbody></table>`
-    +`<div class="os-total">Total mensal ativo: R$ ${tot.toFixed(2)}</div>`;
+  box.innerHTML=`<table class="tabela"><thead><tr><th class="chk-cel"><input type="checkbox" id="chk-ct-todos" onchange="marcarTodosCT(this)" aria-label="Marcar todos" title="Marcar todos"></th><th>Cliente</th><th>Tipo de serviço</th><th class="num">Valor mensal</th><th>Vencimento</th><th>Cobrança</th><th class="c-meta"></th><th>Status · ${esc(nomeMesCompet(mes))}</th><th><span class="sr">Ações</span></th></tr></thead><tbody>${rows}</tbody></table>`
+    +`<div class="ct-rodape"><span>${lista.length} contrato(s) na lista</span><span>Total mensal ativo: <b>${brl(tot)}</b></span></div>`;
   atualizarSelecaoCT();
 }
 function selectClientes(elId,val){
