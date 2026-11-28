@@ -232,7 +232,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
       <a data-view="receber" onclick="showView('receber')">💵 <span class="txt">Contas a receber</span></a>
       <a data-view="config" onclick="showView('config')">⚙️ <span class="txt">Configurações</span></a>
     </nav>
-    <div class="sidebar-rodape">v7.4 · web</div>
+    <div class="sidebar-rodape">v7.5 · web</div>
   </aside>
   <nav class="tabbar" id="tabbar">
     <a data-view="agenda" class="ativo" onclick="showView('agenda')"><i>📅</i><span>Agenda</span></a>
@@ -614,6 +614,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
     <label>Como cobrar<select id="ct-tipo"><option value="nfse">NFS-e (nota fiscal)</option><option value="comunicado">Comunicado por e-mail</option></select></label>
     <label>NFS-e emitida por<select id="ct-emitente"></select></label>
     <label>Situa&ccedil;&atilde;o<select id="ct-ativo"><option value="1">Ativo</option><option value="0">Inativo</option></select></label>
+    <label>Tipo de servi&ccedil;o<select id="ct-tiposerv"><option value="">&mdash; selecione &mdash;</option><option value="desenvolvimento">Desenvolvimento</option><option value="ambiente">Ambiente</option></select></label>
     <label class="col2">Descri&ccedil;&atilde;o do servi&ccedil;o (vai na nota / no e-mail)<input id="ct-desc" placeholder="vazio = usa a descri&ccedil;&atilde;o padr&atilde;o das Configura&ccedil;&otilde;es"></label>
     <label class="col2">Observa&ccedil;&otilde;es<textarea id="ct-obs" rows="2"></textarea></label>
   </div>
@@ -1260,6 +1261,7 @@ function atualizarSelecaoCT(){
   if(m){m.checked=todos>0&&ids.length===todos;m.indeterminate=ids.length>0&&ids.length<todos;}
 }
 function marcarTodosCT(el){document.querySelectorAll('.chk-ct').forEach(c=>c.checked=el.checked);atualizarSelecaoCT();}
+const TIPOS_SERV_CT={desenvolvimento:'Desenvolvimento',ambiente:'Ambiente'};
 function renderContratos(){
   const box=document.getElementById('lista-contratos');if(!box)return;
   const inp=document.getElementById('ct-mes');if(!inp.value)inp.value=mesAtualStr();
@@ -1277,16 +1279,18 @@ function renderContratos(){
     if(cob&&cob.status==='autorizada')selo=`<span class="tag tag-autorizada">NF ${esc(cob.numero_nfse)}</span>`;
     else if(cob&&cob.status==='portal')selo='<span class="tag tag-portal">no portal</span>';
     else if(cob&&cob.status==='enviado')selo='<span class="tag tag-autorizada">comunicado gerado</span>';
+    const tsv=TIPOS_SERV_CT[ct.tipo_servico]||'';
     const tipo=ct.tipo==='comunicado'?'\u2709\uFE0F E-mail':'\u{1F9FE} NFS-e';
     return `<tr${ct.ativo?'':' style="opacity:.5"'}><td class="chk-cel"><input type="checkbox" class="chk-ct" data-id="${ct.id}" onchange="atualizarSelecaoCT()"${ct.ativo?'':' disabled'}></td>`
       +`<td data-rot="Cliente"><b>${esc(c.nome||'(sem cliente)')}</b>${ct.tipo!=='comunicado'?' <span class="dim" style="font-size:11px">· '+esc(nomeEmit(emitContrato(ct)))+'</span>':''}</td>`
+      +`<td data-rot="Tipo de servi\u00e7o">${tsv?esc(tsv):'<span class="dim">\u2014</span>'}</td>`
       +`<td data-rot="Valor mensal">R$ ${(parseFloat(ct.valor)||0).toFixed(2)}</td>`
       +`<td data-rot="Vencimento">${vencContrato(ct,mes)}</td>`
       +`<td data-rot="Cobran\u00e7a">${tipo}</td>`
       +`<td data-rot="${esc(nomeMesCompet(mes))}">${selo}</td>`
       +`<td class="acoes-cel"><span class="link-acao" onclick="editarContrato(${ct.id})">Editar</span></td></tr>`;
   }).join('');
-  box.innerHTML=`<table class="tabela"><thead><tr><th class="chk-cel"><input type="checkbox" id="chk-ct-todos" onchange="marcarTodosCT(this)" title="Marcar todos"></th><th>Cliente</th><th>Valor mensal</th><th>Vencimento</th><th>Cobran\u00e7a</th><th>${esc(nomeMesCompet(mes))}</th><th></th></tr></thead><tbody>${rows}</tbody></table>`
+  box.innerHTML=`<table class="tabela"><thead><tr><th class="chk-cel"><input type="checkbox" id="chk-ct-todos" onchange="marcarTodosCT(this)" title="Marcar todos"></th><th>Cliente</th><th>Tipo de servi\u00e7o</th><th>Valor mensal</th><th>Vencimento</th><th>Cobran\u00e7a</th><th>${esc(nomeMesCompet(mes))}</th><th></th></tr></thead><tbody>${rows}</tbody></table>`
     +`<div class="os-total">Total mensal ativo: R$ ${tot.toFixed(2)}</div>`;
   atualizarSelecaoCT();
 }
@@ -1299,7 +1303,7 @@ function abrirNovoContrato(){
   if(!DB.clientes.length){toast('Cadastre um cliente primeiro.','erro');return;}
   document.getElementById('ct-id').value='';selectClientes('ct-cliente','');
   document.getElementById('ct-valor').value='';document.getElementById('ct-venc').value='10';
-  document.getElementById('ct-tipo').value='nfse';document.getElementById('ct-ativo').value='1';
+  document.getElementById('ct-tipo').value='nfse';document.getElementById('ct-ativo').value='1';document.getElementById('ct-tiposerv').value='';
   document.getElementById('ct-desc').value='';document.getElementById('ct-obs').value='';
   optsEmitente('ct-emitente','','O mesmo do cliente');
   document.getElementById('modal-contrato-titulo').textContent='Novo contrato';
@@ -1310,7 +1314,7 @@ function editarContrato(id){
   const ct=DB.contratos.find(x=>x.id===id);if(!ct)return;
   document.getElementById('ct-id').value=ct.id;selectClientes('ct-cliente',ct.cliente_id);
   document.getElementById('ct-valor').value=ct.valor||'';document.getElementById('ct-venc').value=ct.venc_dia||'';
-  document.getElementById('ct-tipo').value=ct.tipo||'nfse';document.getElementById('ct-ativo').value=ct.ativo?'1':'0';
+  document.getElementById('ct-tipo').value=ct.tipo||'nfse';document.getElementById('ct-ativo').value=ct.ativo?'1':'0';document.getElementById('ct-tiposerv').value=ct.tipo_servico||'';
   document.getElementById('ct-desc').value=ct.descricao||'';document.getElementById('ct-obs').value=ct.obs||'';
   optsEmitente('ct-emitente',ct.emitente||'','O mesmo do cliente');
   document.getElementById('modal-contrato-titulo').textContent='Editar contrato';
@@ -1322,7 +1326,9 @@ function salvarContrato(){
   if(!cid){toast('Escolha o cliente.','erro');return;}
   const valor=parseFloat(document.getElementById('ct-valor').value)||0;
   if(valor<=0){toast('Informe o valor mensal.','erro');return;}
-  const d={cliente_id:cid,valor:valor,venc_dia:parseInt(document.getElementById('ct-venc').value)||10,
+  const tipoServ=document.getElementById('ct-tiposerv').value;
+  if(!tipoServ){toast('Selecione o tipo de servi\u00e7o.','erro');return;}
+  const d={cliente_id:cid,valor:valor,tipo_servico:tipoServ,venc_dia:parseInt(document.getElementById('ct-venc').value)||10,
     tipo:document.getElementById('ct-tipo').value,ativo:document.getElementById('ct-ativo').value==='1',
     descricao:document.getElementById('ct-desc').value.trim(),obs:document.getElementById('ct-obs').value.trim(),emitente:document.getElementById('ct-emitente').value};
   const id=document.getElementById('ct-id').value;
