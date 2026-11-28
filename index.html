@@ -156,6 +156,45 @@ body{font-family:'Segoe UI',system-ui,-apple-system,'Helvetica Neue',Arial,sans-
   .no-print{display:none!important}
 }
 .tabbar{display:none}
+/* Painel de Gestão */
+.ini-saud{font-size:13px;font-weight:600;color:var(--azul);margin-bottom:2px}
+.ini-per{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:600;color:var(--cinza)}
+.ini-per input{padding:8px 10px;border:1px solid var(--borda-forte);border-radius:8px;font-size:14px;font-family:inherit;background:#fff;color:var(--txt)}
+.kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px;margin-bottom:18px}
+.kpi{background:#fff;border:1px solid var(--borda);border-radius:var(--raio);padding:16px;box-shadow:var(--sombra);cursor:pointer;text-align:left;font-family:inherit;color:inherit;display:block;width:100%;transition:border-color .15s,box-shadow .15s}
+.kpi:hover{border-color:var(--borda-forte);box-shadow:var(--sombra-2)}
+.kpi .rot{font-size:13px;font-weight:600;color:var(--cinza);display:flex;align-items:center;gap:8px}
+.kpi .rot .ico{width:16px;height:16px}
+.kpi .val{font-size:22px;font-weight:700;margin-top:8px;font-variant-numeric:tabular-nums;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kpi .sub{font-size:12px;color:var(--cinza);margin-top:3px;min-height:16px}
+.kpi.alerta{border-color:#fedf89;background:var(--ambar-cl)}.kpi.alerta .val{color:var(--ambar-txt)}
+.atalhos{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.atalhos .btn{background:#fff;border:1px solid var(--borda-forte);color:var(--txt);font-weight:600}
+.atalhos .btn:hover{background:var(--cinza-cl)}
+.ini-grade{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px;align-items:start}
+.ini-col{display:flex;flex-direction:column;gap:18px;min-width:0}
+.bloco{background:#fff;border:1px solid var(--borda);border-radius:var(--raio);box-shadow:var(--sombra);overflow:hidden}
+.bloco-cab{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--borda)}
+.bloco-cab h2{font-size:15px;font-weight:700}
+.bloco-cab a{font-size:13px;font-weight:600;color:var(--azul);cursor:pointer;text-decoration:none}
+.bloco-vazio{padding:22px 16px;color:var(--cinza);font-size:14px;text-align:center}
+.lin{display:flex;align-items:center;gap:12px;padding:11px 16px;border-top:1px solid var(--cinza-cl);cursor:pointer;min-height:52px}
+.lin:first-child{border-top:none}.lin:hover{background:#f9fafb}
+.lin-main{flex:1;min-width:0}.lin-tit{font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lin-sub{font-size:12px;color:var(--cinza);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lin-dir{text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex:0 0 auto}
+.lin-val{font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.dia-cab{padding:9px 16px;font-size:12px;font-weight:700;color:var(--cinza);text-transform:uppercase;letter-spacing:.04em;background:#f9fafb;border-top:1px solid var(--borda)}
+.dia-cab:first-child{border-top:none}.dia-cab.hoje{color:var(--azul)}
+.hora{font-weight:700;font-size:14px;font-variant-numeric:tabular-nums;width:48px;flex:0 0 auto}
+.hora small{display:block;font-weight:500;font-size:11px;color:var(--cinza)}
+.marca-cor{width:4px;align-self:stretch;border-radius:4px;flex:0 0 auto}
+@media(max-width:1180px){.kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:980px){.ini-grade{grid-template-columns:1fr}}
+@media(max-width:820px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.kpi{padding:13px}.kpi .val{font-size:19px}
+  .kpis .kpi:last-child:nth-child(odd){grid-column:span 2}
+  .atalhos{flex-wrap:nowrap;overflow-x:auto;margin:0 -14px 16px;padding:0 14px 2px;scrollbar-width:none}.atalhos::-webkit-scrollbar{display:none}.atalhos .btn{flex:0 0 auto}
+  .ini-per{width:100%}.ini-per input{width:100%}}
 /* abas de seção (Contas: Recebimentos / Pagamentos) */
 .abas{display:inline-flex;background:var(--cinza-cl);border:1px solid var(--borda);border-radius:10px;padding:3px;gap:2px;margin-bottom:16px}
 .abas button{border:none;background:transparent;padding:8px 16px;border-radius:8px;font-size:14px;font-weight:600;color:var(--cinza);cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:7px}
@@ -311,12 +350,17 @@ body{font-family:'Segoe UI',system-ui,-apple-system,'Helvetica Neue',Arial,sans-
     </section>
 
     <section id="view-dash" class="oculto">
-      <div class="topo"><h1>Dashboard de servi&ccedil;os</h1></div>
+      <div class="topo"><div><div class="ini-saud" id="ini-saud">Ol&aacute;</div><h1>Painel de Gest&atilde;o</h1><div class="sub">Vis&atilde;o geral da sua opera&ccedil;&atilde;o de TI &middot; <span id="ini-hoje"></span></div></div>
+        <div class="topo-acoes"><label class="ini-per">Per&iacute;odo<input type="month" id="ini-mes" onchange="renderInicio()"></label></div></div>
+      <div class="abas" role="tablist"><button role="tab" data-aba="geral" class="ativa" onclick="abaInicio('geral')"><svg class="ico" aria-hidden="true"><use href="#i-home"/></svg>Vis&atilde;o geral</button><button role="tab" data-aba="serv" onclick="abaInicio('serv')"><svg class="ico" aria-hidden="true"><use href="#i-servicos"/></svg>Servi&ccedil;os por tipo</button></div>
+      <div id="ini-geral"></div>
+      <div id="ini-serv" class="oculto">
       <div class="card no-print"><div class="os-filtros">
         <div class="campo">Ano<select id="dash-ano" onchange="renderDash()"></select></div>
         <div class="campo">M&ecirc;s<select id="dash-mes" onchange="renderDash()"></select></div>
       </div><p class="dim" style="margin-top:8px">Soma o que foi cobrado: <b>notas fiscais</b> (de OS, de contratos e avulsas), <b>recibos de servi&ccedil;o</b> e <b>comunicados</b> de contrato. Notas canceladas ficam de fora. O tipo vem do contrato ou da OS; d&aacute; para corrigir na lista l&aacute; embaixo.</p></div>
       <div id="dash-corpo"></div>
+      </div>
     </section>
 
     <section id="view-clientes" class="oculto">
@@ -974,7 +1018,7 @@ function mudarEmitenteNota(){
 
 function esc(t){return(t==null?'':String(t)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 document.addEventListener('click',e=>{if(e.target.classList&&e.target.classList.contains('modal-overlay'))e.target.classList.add('oculto');});
-function rerenderTudo(){if(!document.getElementById('view-dash').classList.contains('oculto'))renderDash();renderCalendario();renderClientes();renderNotas();renderContratos();renderRecibos();renderEquip();renderContas();carregarClientesSelect();carregarConfigForm();}
+function rerenderTudo(){if(!document.getElementById('view-dash').classList.contains('oculto'))renderInicio();renderCalendario();renderClientes();renderNotas();renderContratos();renderRecibos();renderEquip();renderContas();carregarClientesSelect();carregarConfigForm();}
 
 // ================== Dashboard ==================
 const DASH_TIPOS=[['desenvolvimento','Desenvolvimento','#257de0'],['ambiente','TI / Ambiente','#f47230'],['sem','Sem tipo definido','#9ca3af']];
@@ -1096,6 +1140,80 @@ function graficoDash(L,tipos,ano,mesSel){
   });
 }
 
+// ================== Início: Painel de Gestão ==================
+let abaInicioAtual='geral';
+function abaInicio(a){abaInicioAtual=a;document.querySelectorAll('#view-dash .abas button').forEach(b=>{const on=b.dataset.aba===a;b.classList.toggle('ativa',on);b.setAttribute('aria-selected',on);});
+  document.getElementById('ini-geral').classList.toggle('oculto',a!=='geral');document.getElementById('ini-serv').classList.toggle('oculto',a!=='serv');
+  document.querySelector('#view-dash .ini-per').style.visibility=a==='geral'?'':'hidden';renderInicio();}
+function rotDia(iso){const hoje=fmtData(new Date()),am=new Date();am.setDate(am.getDate()+1);
+  const d=new Date(iso+'T12:00');const base=DIAS[d.getDay()]+', '+d.getDate()+' de '+MESES[d.getMonth()].toLowerCase();
+  return iso===hoje?'Hoje · '+base:(iso===fmtData(am)?'Amanhã · '+base:base);}
+function seloVenc(data,pago,rotPend){const hoje=fmtData(new Date());
+  if(pago)return '<span class="tag tag-ok">pago</span>';
+  if(data&&data<hoje)return '<span class="tag tag-atraso">atrasado</span>';
+  if(data===hoje)return '<span class="tag tag-pendente">vence hoje</span>';
+  return `<span class="tag tag-neutro">${rotPend||'pendente'}</span>`;}
+function renderInicio(){
+  if(abaInicioAtual==='serv'){renderDash();return;}
+  const box=document.getElementById('ini-geral');if(!box)return;
+  const agora=new Date(),hoje=fmtData(agora),h=agora.getHours();
+  document.getElementById('ini-saud').textContent=h<12?'Bom dia':(h<18?'Boa tarde':'Boa noite');
+  document.getElementById('ini-hoje').textContent=DIAS[agora.getDay()]+', '+agora.getDate()+' de '+MESES[agora.getMonth()].toLowerCase()+' de '+agora.getFullYear();
+  const inp=document.getElementById('ini-mes');if(!inp.value)inp.value=mesAtualStr();
+  const mes=inp.value,nomeMes=nomeMesCompet(mes);
+  // dados reais
+  const ativos=DB.contratos.filter(c=>c.ativo);
+  const receita=ativos.reduce((a,c)=>a+(parseFloat(c.valor)||0),0);
+  const rec=montarReceber(),recPend=rec.filter(i=>!i.recebido);
+  const recMes=recPend.filter(i=>String(i.data||'').slice(0,7)===mes);
+  const recVenc=recPend.filter(i=>i.data&&i.data<hoje);
+  const pagPend=DB.contas.filter(c=>c.status!=='pago');
+  const pagMes=pagPend.filter(c=>String(c.venc||'').slice(0,7)===mes);
+  const pagVenc=pagPend.filter(c=>c.venc&&c.venc<hoje);
+  const notasPortal=DB.notas.filter(n=>n.status==='portal');
+  const pend=recVenc.length+pagVenc.length+notasPortal.length;
+  const soma=(l,f)=>l.reduce((a,x)=>a+f(x),0);
+  const pl=(n,s,p)=>n+' '+(n===1?s:p);
+  const kpi=(ico,rot,val,sub,acao,cls)=>`<button class="kpi ${cls||''}" onclick="${acao}"><div class="rot"><svg class="ico" aria-hidden="true"><use href="#${ico}"/></svg>${rot}</div><div class="val">${val}</div><div class="sub">${sub}</div></button>`;
+  let o='<div class="kpis">';
+  o+=kpi('i-contratos','Receita mensal ativa',brl(receita),'soma dos contratos ativos',"irPara('contratos')");
+  o+=kpi('i-entrada','A receber',brl(soma(recMes,i=>i.valor)),pl(recMes.length,'lançamento','lançamentos')+' em '+nomeMes.toLowerCase(),"irParaContasMes('rec')");
+  o+=kpi('i-saida','A pagar',brl(soma(pagMes,c=>faltaConta(c))),pl(pagMes.length,'conta','contas')+' em '+nomeMes.toLowerCase(),"irParaContasMes('ca')");
+  o+=kpi('i-clientes','Contratos ativos',String(ativos.length),'de '+pl(DB.contratos.length,'contrato','contratos')+' cadastrados',"irPara('contratos')");
+  const partes=[];if(recVenc.length)partes.push(recVenc.length+' a receber atrasado(s)');if(pagVenc.length)partes.push(pagVenc.length+' conta(s) vencida(s)');if(notasPortal.length)partes.push(notasPortal.length+' nota(s) a emitir');
+  o+=kpi('i-notas','Pendências',String(pend),partes.join(' · ')||'nada exige atenção agora',pend?"irParaPendencia()":"",pend?'alerta':'');
+  o+='</div>';
+  // atalhos
+  o+=`<div class="atalhos" aria-label="Atalhos"><button class="btn" onclick="irPara('agenda');abrirNovoAgendamento()">+ Agendamento</button><button class="btn" onclick="irPara('clientes');abrirNovoCliente()">+ Cliente</button><button class="btn" onclick="irPara('os')">+ Ordem de serviço</button><button class="btn" onclick="irPara('contratos');abrirNovoContrato()">+ Contrato</button><button class="btn" onclick="irPara('recibos');abrirNovoRecibo()">+ Recibo</button><button class="btn" onclick="irParaContas('contas');abrirNovaConta()">+ Conta a pagar</button></div>`;
+  // agenda da semana
+  const fim=new Date();fim.setDate(fim.getDate()+6);const fimS=fmtData(fim);
+  const evs=DB.agendamentos.filter(e=>{const d=(e.inicio||'').slice(0,10);return d>=hoje&&d<=fimS&&e.status!=='cancelado';}).sort((a,b)=>(a.inicio||'').localeCompare(b.inicio||''));
+  let ag='',ult='';
+  evs.slice(0,14).forEach(e=>{const d=(e.inicio||'').slice(0,10);if(d!==ult){ag+=`<div class="dia-cab ${d===hoje?'hoje':''}">${esc(rotDia(d))}</div>`;ult=d;}
+    const c=DB.clientes.find(x=>String(x.id)===String(e.cliente_id));
+    const tit=e.tipo==='conta'?(e.titulo||'Conta'):(e.titulo||'');
+    const sub=e.tipo==='conta'?'Conta a pagar':(c?c.nome:(e.local||''));
+    const st=e.tipo==='conta'?'<span class="tag tag-pendente">conta</span>':(e.status==='concluido'?'<span class="tag tag-ok">concluído</span>':'');
+    ag+=`<div class="lin ag-item" onclick="abrirAgendamento(${e.id})"><span class="marca-cor" style="background:${corEvento(e)}"></span><span class="hora">${(e.inicio||'').slice(11,16)}<small>${durTxt(e)||''}</small></span><div class="lin-main"><div class="lin-tit">${esc(tit)}</div><div class="lin-sub">${esc(sub)}</div></div>${st?'<div class="lin-dir">'+st+'</div>':''}</div>`;});
+  if(evs.length>14)ag+=`<div class="bloco-vazio">+ ${evs.length-14} compromisso(s) na semana</div>`;
+  const blocoAg=`<section class="bloco"><div class="bloco-cab"><h2>Agenda da semana</h2><a onclick="irPara('agenda')" tabindex="0" role="button">Abrir agenda</a></div>${ag||'<div class="bloco-vazio">Nenhum compromisso nos próximos 7 dias.</div>'}</section>`;
+  // próximas cobranças
+  const cobs=recPend.slice().sort((a,b)=>String(a.data||'9').localeCompare(String(b.data||'9'))).slice(0,6);
+  const blocoRec=`<section class="bloco"><div class="bloco-cab"><h2>Próximas cobranças</h2><a onclick="irParaContas('receber')" tabindex="0" role="button">Ver todas</a></div>${cobs.map(i=>`<div class="lin" onclick="irParaContas('receber')"><div class="lin-main"><div class="lin-tit">${esc(i.cliente)}</div><div class="lin-sub">${esc(i.doc)} · vence ${brdata(i.data)}</div></div><div class="lin-dir"><span class="lin-val">${brl(i.valor)}</span>${seloVenc(i.data,false,'a receber')}</div></div>`).join('')||'<div class="bloco-vazio">Nenhuma cobrança pendente.</div>'}</section>`;
+  // próximas contas a pagar
+  const pags=pagPend.slice().sort((a,b)=>String(a.venc||'9').localeCompare(String(b.venc||'9'))).slice(0,6);
+  const blocoPag=`<section class="bloco"><div class="bloco-cab"><h2>Próximas contas a pagar</h2><a onclick="irParaContas('contas')" tabindex="0" role="button">Ver todas</a></div>${pags.map(c=>`<div class="lin" onclick="irParaContas('contas');editarConta(${c.id})"><div class="lin-main"><div class="lin-tit">${esc(c.nome||'')}</div><div class="lin-sub">vence ${brdata(c.venc)}${c.status==='parcial'?' · pago em parte':''}</div></div><div class="lin-dir"><span class="lin-val">${brl(faltaConta(c))}</span>${seloVenc(c.venc,false,'a pagar')}</div></div>`).join('')||'<div class="bloco-vazio">Nenhuma conta pendente.</div>'}</section>`;
+  o+=`<div class="ini-grade"><div class="ini-col">${blocoAg}</div><div class="ini-col">${blocoRec}${blocoPag}</div></div>`;
+  box.innerHTML=o;
+}
+function irParaContas(aba){showView(aba);window.scrollTo(0,0);}
+function irParaContasMes(px){irParaContas(px==='rec'?'receber':'contas');const m=document.getElementById(px+'-filtro-mes'),st=document.getElementById(px+'-filtro-status');
+  if(m){m.value=document.getElementById('ini-mes').value||mesAtualStr();if(st)st.value='pendente';mudouMesFiltro(px);}}
+function irParaPendencia(){const hoje=fmtData(new Date());
+  if(montarReceber().some(i=>!i.recebido&&i.data&&i.data<hoje)){irParaContas('receber');const s=document.getElementById('rec-filtro-venc');if(s){s.value='vencidas';mudouVenc('rec');}return;}
+  if(DB.contas.some(c=>c.status!=='pago'&&c.venc&&c.venc<hoje)){irParaContas('contas');const s=document.getElementById('ca-filtro-venc');if(s){s.value='vencidas';mudouVenc('ca');}return;}
+  irPara('notas');const s=document.getElementById('nt-filtro-status');if(s){s.value='portal';renderNotas();}}
+
 // ================== Navegação ==================
 const VIEW_NAV={receber:'contas'};
 const TAB_PRINC=['dash','agenda','clientes','contratos'];
@@ -1117,7 +1235,7 @@ function marcarNav(v){const n=VIEW_NAV[v]||v;
   document.querySelectorAll('.sidebar nav a,#menu-folha a').forEach(a=>{const on=a.dataset.view===n;a.classList.toggle('ativo',on);if(on)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
   document.querySelectorAll('.tabbar a').forEach(a=>{const on=a.dataset.view===n||(a.dataset.view==='mais'&&!TAB_PRINC.includes(n));a.classList.toggle('ativo',on);if(on)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
   if(v==='receber'||v==='contas')ultimaAbaContas=v;}
-function showView(v){['dash','agenda','clientes','notas','os','contratos','recibos','equip','contas','receber','config'].forEach(n=>document.getElementById('view-'+n).classList.toggle('oculto',n!==v));marcarNav(v);if(v==='dash')renderDash();if(v==='agenda')renderCalendario();if(v==='clientes')renderClientes();if(v==='notas')renderNotas();if(v==='os')renderOS();if(v==='contratos')renderContratos();if(v==='recibos')renderRecibos();if(v==='equip')renderEquip();if(v==='contas')renderContas();if(v==='receber')renderReceber();if(v==='config')carregarConfigForm();}
+function showView(v){['dash','agenda','clientes','notas','os','contratos','recibos','equip','contas','receber','config'].forEach(n=>document.getElementById('view-'+n).classList.toggle('oculto',n!==v));marcarNav(v);if(v==='dash')renderInicio();if(v==='agenda')renderCalendario();if(v==='clientes')renderClientes();if(v==='notas')renderNotas();if(v==='os')renderOS();if(v==='contratos')renderContratos();if(v==='recibos')renderRecibos();if(v==='equip')renderEquip();if(v==='contas')renderContas();if(v==='receber')renderReceber();if(v==='config')carregarConfigForm();}
 
 // ================== Clientes ==================
 function renderClientes(q){q=(q||'').toLowerCase();const lista=DB.clientes.filter(c=>!q||(c.nome||'').toLowerCase().includes(q)||(c.documento||'').includes(q)).sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));const tb=document.getElementById('lista-clientes');if(!lista.length){tb.innerHTML='<tr><td colspan="6" class="vazio">Nenhum cliente cadastrado.</td></tr>';return;}tb.innerHTML=lista.map(c=>`<tr><td data-rot="Nome"><b>${esc(c.nome)}</b></td><td data-rot="Tipo">${c.tipo_pessoa==='J'?'Jurídica':'Física'}</td><td data-rot="CPF/CNPJ">${esc(c.documento)||'—'}</td><td data-rot="Telefone">${esc(c.telefone)||'—'}</td><td data-rot="Município">${esc(c.municipio)||'—'}</td><td class="acoes-cel"><span class="link-acao" onclick="editarCliente(${c.id})">Editar</span><span class="link-acao perigo" onclick="excluirCliente(${c.id})">Excluir</span></td></tr>`).join('');}
