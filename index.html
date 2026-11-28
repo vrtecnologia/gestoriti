@@ -67,6 +67,18 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
 .link-acao{color:var(--azul);cursor:pointer;margin-left:12px;font-size:13px}.link-acao.perigo{color:var(--vermelho)}
 .busca{padding:9px 12px;border:1px solid var(--borda);border-radius:8px;font-size:14px;width:280px;max-width:60vw}
 .vazio{color:var(--cinza);padding:30px;text-align:center}
+.dash-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px}
+.dash-kpi{background:#fff;border-radius:12px;padding:16px 18px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.dash-kpi .rot{font-size:12px;font-weight:700;color:var(--cinza);text-transform:uppercase;letter-spacing:.03em;display:flex;align-items:center;gap:6px}
+.dash-kpi .val{font-size:24px;font-weight:700;margin-top:6px;font-variant-numeric:tabular-nums}
+.dash-kpi .sub{font-size:12px;color:var(--cinza);margin-top:2px}
+.dash-sw{display:inline-block;width:10px;height:10px;border-radius:3px;flex:0 0 auto}
+.dash-mat td,.dash-mat th{font-variant-numeric:tabular-nums}.dash-mat td.num,.dash-mat th.num{text-align:right}
+.dash-mat tr.tot td{font-weight:700;background:#f8fafc}
+.dash-graf{position:relative}.dash-graf svg{display:block;width:100%;height:auto;overflow:visible}
+.dash-tip{position:absolute;pointer-events:none;background:#0f172a;color:#fff;font-size:12px;padding:8px 10px;border-radius:8px;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.2);display:none;z-index:5}
+.dash-leg{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--cinza);margin-bottom:8px}.dash-leg span{display:flex;align-items:center;gap:6px}
+.dash-sel{padding:4px 6px;border:1px solid var(--borda);border-radius:6px;font-size:12px;background:#fff}
 .card{background:#fff;border-radius:12px;padding:22px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
 .card h2{font-size:17px;margin-bottom:14px}.card h3{font-size:14px;margin:18px 0 10px;color:var(--cinza);text-transform:uppercase;letter-spacing:.03em}
 .acoes-linha{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
@@ -129,6 +141,8 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
     padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -2px 12px rgba(0,0,0,.18)}
   .tabbar a{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:9px 0 8px;
     color:#94a3b8;text-decoration:none;font-size:11px;font-weight:600;cursor:pointer;border-top:3px solid transparent}
+  .tabbar{overflow-x:auto;scrollbar-width:none}.tabbar::-webkit-scrollbar{display:none}
+  .tabbar a{flex:1 0 58px;white-space:nowrap}
   .tabbar a i{font-style:normal;font-size:20px;line-height:1}
   .tabbar a.ativo{color:#fff;border-top-color:var(--azul);background:#1e293b}
   .barra-conta{padding:10px 0;margin-bottom:12px}
@@ -221,6 +235,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
   <aside class="sidebar">
     <div class="logo"><span class="logo-mark">TI</span><span class="logo-text">Gestor de TI</span></div>
     <nav>
+      <a data-view="dash" onclick="showView('dash')">📊 <span class="txt">Dashboard</span></a>
       <a data-view="agenda" class="ativo" onclick="showView('agenda')">📅 <span class="txt">Agenda</span></a>
       <a data-view="clientes" onclick="showView('clientes')">👥 <span class="txt">Clientes</span></a>
       <a data-view="notas" onclick="showView('notas')">🧾 <span class="txt">Notas Fiscais</span></a>
@@ -232,9 +247,10 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
       <a data-view="receber" onclick="showView('receber')">💵 <span class="txt">Contas a receber</span></a>
       <a data-view="config" onclick="showView('config')">⚙️ <span class="txt">Configurações</span></a>
     </nav>
-    <div class="sidebar-rodape">v7.5 · web</div>
+    <div class="sidebar-rodape">v7.6 · web</div>
   </aside>
   <nav class="tabbar" id="tabbar">
+    <a data-view="dash" onclick="showView('dash')"><i>📊</i><span>Painel</span></a>
     <a data-view="agenda" class="ativo" onclick="showView('agenda')"><i>📅</i><span>Agenda</span></a>
     <a data-view="clientes" onclick="showView('clientes')"><i>👥</i><span>Clientes</span></a>
     <a data-view="os" onclick="showView('os')"><i>📄</i><span>OS</span></a>
@@ -261,6 +277,15 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
       </div></div>
       <div class="legenda"><span><i style="background:#2563eb"></i> Agendado</span><span><i style="background:#16a34a"></i> Concluído</span><span><i style="background:#7c3aed"></i> Do Outlook</span><span><i style="background:#9ca3af"></i> Cancelado</span></div>
       <div id="calendario"></div>
+    </section>
+
+    <section id="view-dash" class="oculto">
+      <div class="topo"><h1>Dashboard de servi&ccedil;os</h1></div>
+      <div class="card no-print"><div class="os-filtros">
+        <div class="campo">Ano<select id="dash-ano" onchange="renderDash()"></select></div>
+        <div class="campo">M&ecirc;s<select id="dash-mes" onchange="renderDash()"></select></div>
+      </div><p class="dim" style="margin-top:8px">Soma o que foi cobrado: <b>notas fiscais</b> (de OS, de contratos e avulsas), <b>recibos de servi&ccedil;o</b> e <b>comunicados</b> de contrato. Notas canceladas ficam de fora. O tipo vem do contrato ou da OS; d&aacute; para corrigir na lista l&aacute; embaixo.</p></div>
+      <div id="dash-corpo"></div>
     </section>
 
     <section id="view-clientes" class="oculto">
@@ -301,6 +326,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
           <div class="campo" style="flex:1;min-width:240px">Serviço realizado<input id="os-desc" placeholder="Descrição do serviço realizado"></div>
           <div class="campo">Horas<input type="number" step="0.5" id="os-horas" style="width:90px" placeholder="1"></div>
           <div class="campo">Valor (R$)<input type="number" step="0.01" id="os-valor" style="width:120px" placeholder="0,00"></div>
+          <div class="campo">Tipo<select id="os-tiposerv"><option value="ambiente">TI / Ambiente</option><option value="desenvolvimento">Desenvolvimento</option></select></div>
           <button class="btn btn-primario" onclick="addServico()">+ Adicionar</button>
         </div>
       </div>
@@ -586,6 +612,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
     <label>Nome do pagador<span style="display:flex;gap:6px"><select id="rc-prep" style="width:74px;padding:9px 6px;border:1px solid var(--borda);border-radius:8px" onchange="montarDeclaracao()"><option>DO</option><option>DA</option><option>DE</option></select><input id="rc-pag-nome" oninput="montarDeclaracao()" placeholder="DR FULANO DE TAL" style="flex:1"></span></label>
     <label>CPF / CNPJ do pagador<input id="rc-pag-doc" oninput="montarDeclaracao()" placeholder="000.000.000-00"></label>
     <label class="col2">Endere&ccedil;o do pagador <span class="dim">(opcional &mdash; usado no texto de empresas)</span><input id="rc-pag-end" oninput="montarDeclaracao()" placeholder="ESTRADA X, 50"></label>
+    <label id="rc-tiposerv-wrap">Tipo de servi&ccedil;o<select id="rc-tiposerv"><option value="ambiente">TI / Ambiente</option><option value="desenvolvimento">Desenvolvimento</option></select></label>
   </div>
   <h3 id="rc-tit-itens">Itens do recibo</h3>
   <div id="rc-itens"></div>
@@ -614,7 +641,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
     <label>Como cobrar<select id="ct-tipo"><option value="nfse">NFS-e (nota fiscal)</option><option value="comunicado">Comunicado por e-mail</option></select></label>
     <label>NFS-e emitida por<select id="ct-emitente"></select></label>
     <label>Situa&ccedil;&atilde;o<select id="ct-ativo"><option value="1">Ativo</option><option value="0">Inativo</option></select></label>
-    <label>Tipo de servi&ccedil;o<select id="ct-tiposerv"><option value="">&mdash; selecione &mdash;</option><option value="desenvolvimento">Desenvolvimento</option><option value="ambiente">Ambiente</option></select></label>
+    <label>Tipo de servi&ccedil;o<select id="ct-tiposerv"><option value="">&mdash; selecione &mdash;</option><option value="desenvolvimento">Desenvolvimento</option><option value="ambiente">TI / Ambiente</option></select></label>
     <label class="col2">Descri&ccedil;&atilde;o do servi&ccedil;o (vai na nota / no e-mail)<input id="ct-desc" placeholder="vazio = usa a descri&ccedil;&atilde;o padr&atilde;o das Configura&ccedil;&otilde;es"></label>
     <label class="col2">Observa&ccedil;&otilde;es<textarea id="ct-obs" rows="2"></textarea></label>
   </div>
@@ -914,10 +941,130 @@ function mudarEmitenteNota(){
 
 function esc(t){return(t==null?'':String(t)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 document.addEventListener('click',e=>{if(e.target.classList&&e.target.classList.contains('modal-overlay'))e.target.classList.add('oculto');});
-function rerenderTudo(){renderCalendario();renderClientes();renderNotas();renderContratos();renderRecibos();renderEquip();renderContas();carregarClientesSelect();carregarConfigForm();}
+function rerenderTudo(){if(!document.getElementById('view-dash').classList.contains('oculto'))renderDash();renderCalendario();renderClientes();renderNotas();renderContratos();renderRecibos();renderEquip();renderContas();carregarClientesSelect();carregarConfigForm();}
+
+// ================== Dashboard ==================
+const DASH_TIPOS=[['desenvolvimento','Desenvolvimento','#257de0'],['ambiente','TI / Ambiente','#f47230'],['sem','Sem tipo definido','#9ca3af']];
+const DASH_FORMAS=[['nota','Nota fiscal'],['recibo','Recibo'],['comunicado','Comunicado']];
+function tipoServOS(s){return s&&s.tipo_servico==='desenvolvimento'?'desenvolvimento':'ambiente';}
+function tipoPorValor(pares){const t={};pares.forEach(([k,v])=>{t[k]=(t[k]||0)+(v||0)+1e-9;});return Object.keys(t).sort((a,b)=>t[b]-t[a])[0]||'ambiente';}
+function tipoContrato(ct){return ct&&TIPOS_SERV_CT[ct.tipo_servico]?ct.tipo_servico:'sem';}
+function tipoNota(n){
+  if(n.tipo_servico)return n.tipo_servico;
+  if(n.contrato_id){const ct=DB.contratos.find(x=>x.id===n.contrato_id);if(ct)return tipoContrato(ct);}
+  const cob=(DB.cobrancas||[]).find(c=>c.nota_id===n.id);
+  if(cob){const ct=DB.contratos.find(x=>x.id===cob.contrato_id);if(ct)return tipoContrato(ct);}
+  if(n.servico_ids&&n.servico_ids.length){const ss=DB.servicos.filter(s=>n.servico_ids.includes(s.id));if(ss.length)return tipoPorValor(ss.map(s=>[tipoServOS(s),parseFloat(s.valor)||0]));}
+  return 'ambiente';
+}
+function selTipoServ(v,onchange){return `<select class="dash-sel" onchange="${onchange}"><option value="ambiente"${v==='ambiente'?' selected':''}>TI / Ambiente</option><option value="desenvolvimento"${v==='desenvolvimento'?' selected':''}>Desenvolvimento</option>${v==='sem'?'<option value="sem" selected>Sem tipo</option>':''}</select>`;}
+function mudarTipoOS(id,v){const s=DB.servicos.find(x=>x.id===id);if(!s)return;s.tipo_servico=v;salvarDB();toast('Tipo da OS atualizado.','sucesso');}
+function mudarTipoNota(id,v){const n=DB.notas.find(x=>x.id===id);if(!n)return;n.tipo_servico=v;salvarDB();renderDash();toast('Tipo da nota atualizado.','sucesso');}
+function mudarTipoRecibo(id,v){const r=DB.recibos.find(x=>x.id===id);if(!r)return;r.tipo_servico=v;salvarDB();renderDash();toast('Tipo do recibo atualizado.','sucesso');}
+function lancamentosDash(){
+  const L=[],nomeCli=id=>(DB.clientes.find(c=>String(c.id)===String(id))||{}).nome||'';
+  DB.notas.forEach(n=>{
+    if(/cancel|rejeit/.test(String(n.status||'')))return;
+    const comp=competenciaNota(n)||'';
+    L.push({forma:'nota',tipo:tipoNota(n),mes:comp.slice(0,7),data:n.emitida_em||'',valor:parseFloat(n.valor)||0,
+      cli:nomeCli(n.cliente_id)||n.cliente_nome_xml||'',ref:n.numero_nfse?'NF '+n.numero_nfse:'NF a emitir (portal)',
+      sel:n.contrato_id||(DB.cobrancas||[]).some(c=>c.nota_id===n.id)?null:'mudarTipoNota('+JSON.stringify(n.id)+',this.value)'});
+  });
+  DB.recibos.forEach(r=>{
+    const d=String(r.data||'');
+    if(r.tipo==='venda'){L.push({forma:'venda',mes:d.slice(0,7),valor:totalRecibo(r)});return;}
+    L.push({forma:'recibo',tipo:r.tipo_servico==='desenvolvimento'?'desenvolvimento':'ambiente',mes:d.slice(0,7),data:d,valor:totalRecibo(r),
+      cli:r.pag_nome||nomeCli(r.cliente_id),ref:'Recibo '+(r.numero||''),sel:'mudarTipoRecibo('+JSON.stringify(r.id)+',this.value)'});
+  });
+  (DB.cobrancas||[]).forEach(c=>{
+    if(c.tipo!=='comunicado')return;
+    const ct=DB.contratos.find(x=>x.id===c.contrato_id);
+    L.push({forma:'comunicado',tipo:tipoContrato(ct),mes:String(c.competencia||'').slice(0,7),data:c.gerado_em||'',valor:parseFloat(c.valor)||0,
+      cli:nomeCli(ct&&ct.cliente_id),ref:'Comunicado '+nomeMesCompet(c.competencia),sel:null});
+  });
+  return L;
+}
+function brl(v){return 'R$ '+(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function renderDash(){
+  const box=document.getElementById('dash-corpo');if(!box)return;
+  const todos=lancamentosDash();
+  const selA=document.getElementById('dash-ano'),selM=document.getElementById('dash-mes');
+  const anoAt=String(new Date().getFullYear());
+  const anos=[...new Set(todos.map(l=>l.mes.slice(0,4)).filter(a=>/^\d{4}$/.test(a)).concat([anoAt]))].sort().reverse();
+  const aSel=selA.value||anoAt;
+  selA.innerHTML=anos.map(a=>`<option${a===aSel?' selected':''}>${a}</option>`).join('');
+  if(!selM.options.length)selM.innerHTML='<option value="">Ano inteiro</option>'+MESES.map((m,i)=>`<option value="${String(i+1).padStart(2,'0')}">${m}</option>`).join('');
+  const ano=selA.value,mes=selM.value,per=mes?ano+'-'+mes:ano;
+  const doAno=todos.filter(l=>l.mes.slice(0,4)===ano);
+  const L=doAno.filter(l=>l.mes.startsWith(per)&&l.forma!=='venda');
+  const vendas=doAno.filter(l=>l.mes.startsWith(per)&&l.forma==='venda').reduce((a,l)=>a+l.valor,0);
+  const soma=f=>L.filter(f).reduce((a,l)=>a+l.valor,0),cont=f=>L.filter(f).length;
+  const total=soma(()=>true);
+  const tiposUsados=DASH_TIPOS.filter(t=>t[0]!=='sem'||L.some(l=>l.tipo==='sem')||doAno.some(l=>l.tipo==='sem'));
+  const formasUsadas=DASH_FORMAS.filter(f=>f[0]!=='comunicado'||L.some(l=>l.forma==='comunicado'));
+  const pct=v=>total>0?Math.round(v/total*100)+'%':'—';
+  const nomePer=mes?MESES[+mes-1]+'/'+ano:'Ano de '+ano;
+  // KPIs
+  let h='<div class="dash-kpis">';
+  h+=`<div class="dash-kpi"><div class="rot">Total cobrado</div><div class="val">${brl(total)}</div><div class="sub">${nomePer} · ${L.length} lançamento(s)</div></div>`;
+  tiposUsados.forEach(([k,n,c])=>{const v=soma(l=>l.tipo===k);h+=`<div class="dash-kpi"><div class="rot"><i class="dash-sw" style="background:${c}"></i>${n}</div><div class="val">${brl(v)}</div><div class="sub">${pct(v)} do total · ${cont(l=>l.tipo===k)} lanç.</div></div>`;});
+  h+=`<div class="dash-kpi"><div class="rot">Vendas (recibo)</div><div class="val">${brl(vendas)}</div><div class="sub">fora do total de serviços</div></div>`;
+  h+='</div>';
+  // matriz tipo x forma
+  const cel=f=>{const v=soma(f),n=cont(f);return n?`${brl(v)}<div class="dim" style="font-size:11px">${n} lanç.</div>`:'<span class="dim">—</span>';};
+  h+=`<div class="card"><h3 style="margin-bottom:12px">Por tipo e forma de cobrança — ${esc(nomePer)}</h3><table class="tabela dash-mat"><thead><tr><th>Tipo de serviço</th>${formasUsadas.map(f=>`<th class="num">${f[1]}</th>`).join('')}<th class="num">Total</th></tr></thead><tbody>`;
+  tiposUsados.forEach(([k,n,c])=>{h+=`<tr><td data-rot="Tipo"><span style="display:inline-flex;align-items:center;gap:6px"><i class="dash-sw" style="background:${c}"></i><b>${n}</b></span></td>${formasUsadas.map(f=>`<td class="num" data-rot="${f[1]}">${cel(l=>l.tipo===k&&l.forma===f[0])}</td>`).join('')}<td class="num" data-rot="Total"><b>${brl(soma(l=>l.tipo===k))}</b></td></tr>`;});
+  h+=`<tr class="tot"><td data-rot="">Total</td>${formasUsadas.map(f=>`<td class="num" data-rot="${f[1]}">${brl(soma(l=>l.forma===f[0]))}</td>`).join('')}<td class="num" data-rot="Total">${brl(total)}</td></tr></tbody></table></div>`;
+  // grafico mensal do ano
+  h+=`<div class="card"><h3 style="margin-bottom:10px">Mês a mês — ${ano}</h3><div class="dash-leg">${tiposUsados.map(([k,n,c])=>`<span><i class="dash-sw" style="background:${c}"></i>${n}</span>`).join('')}</div><div class="dash-graf" id="dash-graf"></div></div>`;
+  // lista
+  const lista=L.slice().sort((a,b)=>(b.mes+b.data).localeCompare(a.mes+a.data));
+  h+=`<div class="card"><h3 style="margin-bottom:12px">Lançamentos — ${esc(nomePer)}</h3>`;
+  if(!lista.length)h+='<p class="vazio">Nada cobrado neste período.</p>';
+  else h+=`<table class="tabela"><thead><tr><th>Competência</th><th>Cliente</th><th>Documento</th><th>Tipo de serviço</th><th class="num" style="text-align:right">Valor</th></tr></thead><tbody>${lista.map(l=>{
+    const tp=DASH_TIPOS.find(t=>t[0]===l.tipo)||DASH_TIPOS[2];
+    const tipoH=l.sel?selTipoServ(l.tipo,l.sel):`<span style="display:inline-flex;align-items:center;gap:6px"><i class="dash-sw" style="background:${tp[2]}"></i>${tp[1]}</span>${l.forma!=='recibo'?' <span class="dim" style="font-size:11px">(do contrato)</span>':''}`;
+    return `<tr><td data-rot="Competência">${esc(nomeMesCompet(l.mes))}</td><td data-rot="Cliente">${esc(l.cli||'—')}</td><td data-rot="Documento">${esc(l.ref)}</td><td data-rot="Tipo">${tipoH}</td><td data-rot="Valor" style="text-align:right;font-variant-numeric:tabular-nums">${brl(l.valor)}</td></tr>`;}).join('')}</tbody></table>`;
+  h+='</div>';
+  box.innerHTML=h;
+  graficoDash(doAno.filter(l=>l.forma!=='venda'),tiposUsados,ano,mes);
+}
+function graficoDash(L,tipos,ano,mesSel){
+  const el=document.getElementById('dash-graf');if(!el)return;
+  const W=Math.max(Math.min(el.clientWidth||760,1000),300),H=W<500?220:260,ml=W<500?52:64,mr=8,mt=10,mb=28,pw=W-ml-mr,ph=H-mt-mb;
+  const dados=MESES.map((m,i)=>{const mm=ano+'-'+String(i+1).padStart(2,'0');const v={};tipos.forEach(t=>{v[t[0]]=L.filter(l=>l.mes===mm&&l.tipo===t[0]).reduce((a,l)=>a+l.valor,0);});return {i,mm,v,tot:tipos.reduce((a,t)=>a+v[t[0]],0)};});
+  const max=Math.max(...dados.map(d=>d.tot),0);
+  if(!max){el.innerHTML='<p class="vazio">Nenhum valor cobrado em '+ano+'.</p>';return;}
+  const passo=(()=>{const bruto=max/4,p=Math.pow(10,Math.floor(Math.log10(bruto)));return [1,2,2.5,5,10].map(m=>m*p).find(x=>x>=bruto);})();
+  const topo=Math.ceil(max/passo)*passo,y=v=>mt+ph-v/topo*ph,bw=pw/12,lb=Math.min(bw*0.6,34);
+  const k=v=>v>=1000?(v/1000).toLocaleString('pt-BR',{maximumFractionDigits:1})+' mil':String(Math.round(v));
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Valor cobrado por mês em ${ano}, por tipo de serviço">`;
+  for(let g=0;g<=topo+1e-6;g+=passo){s+=`<line x1="${ml}" x2="${W-mr}" y1="${y(g)}" y2="${y(g)}" stroke="${g?'#eef0f3':'#cbd5e1'}"/><text x="${ml-8}" y="${y(g)+4}" text-anchor="end" font-size="11" fill="#6b7280">R$ ${k(g)}</text>`;}
+  dados.forEach(d=>{
+    const cx=ml+bw*d.i+bw/2,x=cx-lb/2,foco=mesSel&&+mesSel===d.i+1;
+    if(foco)s+=`<rect x="${ml+bw*d.i+2}" y="${mt}" width="${bw-4}" height="${ph}" fill="#eff6ff" rx="6"/>`;
+    let base=0;const segs=tipos.filter(t=>d.v[t[0]]>0);
+    segs.forEach((t,j)=>{const v=d.v[t[0]],y1=y(base+v),y0=y(base),hgt=Math.max(y0-y1-(j>0?2:0),1);const ult=j===segs.length-1;
+      s+=ult?`<path d="M${x},${y0-(j>0?2:0)} V${y1+4} Q${x},${y1} ${x+4},${y1} H${x+lb-4} Q${x+lb},${y1} ${x+lb},${y1+4} V${y0-(j>0?2:0)} Z" fill="${t[2]}"/>`
+            :`<rect x="${x}" y="${y1}" width="${lb}" height="${hgt}" fill="${t[2]}"/>`;
+      base+=v;});
+    s+=`<text x="${cx}" y="${H-8}" text-anchor="middle" font-size="${W<500?10:11}" fill="${foco?'#111827':'#6b7280'}" font-weight="${foco?700:400}">${MESES[d.i].slice(0,3)}</text>`;
+    s+=`<rect x="${ml+bw*d.i}" y="${mt}" width="${bw}" height="${ph}" fill="transparent" data-i="${d.i}" style="cursor:pointer"/>`;
+  });
+  s+='</svg><div class="dash-tip" id="dash-tip"></div>';
+  el.innerHTML=s;
+  const tip=document.getElementById('dash-tip');
+  el.querySelectorAll('rect[data-i]').forEach(rc=>{
+    rc.addEventListener('mousemove',ev=>{const d=dados[+rc.dataset.i];
+      tip.innerHTML=`<b>${MESES[d.i]}/${ano}</b><br>`+tipos.map(t=>`<span class="dash-sw" style="background:${t[2]};margin-right:6px"></span>${t[1]}: ${brl(d.v[t[0]])}`).join('<br>')+`<br><b>Total: ${brl(d.tot)}</b>`;
+      tip.style.display='block';const bx=el.getBoundingClientRect();let lx=ev.clientX-bx.left+12;if(lx+tip.offsetWidth>bx.width)lx=ev.clientX-bx.left-tip.offsetWidth-12;tip.style.left=lx+'px';tip.style.top=(ev.clientY-bx.top-10)+'px';});
+    rc.addEventListener('mouseleave',()=>{tip.style.display='none';});
+    rc.addEventListener('click',()=>{document.getElementById('dash-mes').value=String(+rc.dataset.i+1).padStart(2,'0');renderDash();});
+  });
+}
 
 // ================== Navegação ==================
-function showView(v){['agenda','clientes','notas','os','contratos','recibos','equip','contas','receber','config'].forEach(n=>document.getElementById('view-'+n).classList.toggle('oculto',n!==v));document.querySelectorAll('.sidebar nav a,.tabbar a').forEach(a=>a.classList.toggle('ativo',a.dataset.view===v));if(v==='agenda')renderCalendario();if(v==='clientes')renderClientes();if(v==='notas')renderNotas();if(v==='os')renderOS();if(v==='contratos')renderContratos();if(v==='recibos')renderRecibos();if(v==='equip')renderEquip();if(v==='contas')renderContas();if(v==='receber')renderReceber();if(v==='config')carregarConfigForm();}
+function showView(v){['dash','agenda','clientes','notas','os','contratos','recibos','equip','contas','receber','config'].forEach(n=>document.getElementById('view-'+n).classList.toggle('oculto',n!==v));document.querySelectorAll('.sidebar nav a,.tabbar a').forEach(a=>a.classList.toggle('ativo',a.dataset.view===v));if(v==='dash')renderDash();if(v==='agenda')renderCalendario();if(v==='clientes')renderClientes();if(v==='notas')renderNotas();if(v==='os')renderOS();if(v==='contratos')renderContratos();if(v==='recibos')renderRecibos();if(v==='equip')renderEquip();if(v==='contas')renderContas();if(v==='receber')renderReceber();if(v==='config')carregarConfigForm();}
 
 // ================== Clientes ==================
 function renderClientes(q){q=(q||'').toLowerCase();const lista=DB.clientes.filter(c=>!q||(c.nome||'').toLowerCase().includes(q)||(c.documento||'').includes(q)).sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));const tb=document.getElementById('lista-clientes');if(!lista.length){tb.innerHTML='<tr><td colspan="6" class="vazio">Nenhum cliente cadastrado.</td></tr>';return;}tb.innerHTML=lista.map(c=>`<tr><td data-rot="Nome"><b>${esc(c.nome)}</b></td><td data-rot="Tipo">${c.tipo_pessoa==='J'?'Jurídica':'Física'}</td><td data-rot="CPF/CNPJ">${esc(c.documento)||'—'}</td><td data-rot="Telefone">${esc(c.telefone)||'—'}</td><td data-rot="Município">${esc(c.municipio)||'—'}</td><td class="acoes-cel"><span class="link-acao" onclick="editarCliente(${c.id})">Editar</span><span class="link-acao perigo" onclick="excluirCliente(${c.id})">Excluir</span></td></tr>`).join('');}
@@ -1188,7 +1335,7 @@ function puxarReciboDaOS(){
   const end=[c.logradouro,c.numero].filter(Boolean).join(', ');
   const r={tipo:'servico',data:itens[itens.length-1].data||fmtData(new Date()),numero:'',
     cliente_id:String(cid),pag_nome:c.nome||'',pag_doc:c.documento||'',pag_end:end,
-    prep:(c.tipo_pessoa==='J'?'DO':'DO'),pix:true,decl:'',
+    prep:(c.tipo_pessoa==='J'?'DO':'DO'),pix:true,decl:'',tipo_servico:tipoPorValor(itens.map(s=>[tipoServOS(s),parseFloat(s.valor)||0])),
     itens:itens.map(s=>({data:s.data,desc:s.descricao||'',qtd:fmtHoras(s.horas),valor:parseFloat(s.valor)||0}))};
   tipoRecibo='servico';
   document.querySelectorAll('.subaba').forEach(x=>x.classList.toggle('ativa',x.dataset.tipo==='servico'));
@@ -1261,7 +1408,7 @@ function atualizarSelecaoCT(){
   if(m){m.checked=todos>0&&ids.length===todos;m.indeterminate=ids.length>0&&ids.length<todos;}
 }
 function marcarTodosCT(el){document.querySelectorAll('.chk-ct').forEach(c=>c.checked=el.checked);atualizarSelecaoCT();}
-const TIPOS_SERV_CT={desenvolvimento:'Desenvolvimento',ambiente:'Ambiente'};
+const TIPOS_SERV_CT={desenvolvimento:'Desenvolvimento',ambiente:'TI / Ambiente'};
 function renderContratos(){
   const box=document.getElementById('lista-contratos');if(!box)return;
   const inp=document.getElementById('ct-mes');if(!inp.value)inp.value=mesAtualStr();
@@ -1642,6 +1789,8 @@ function abrirModalRecibo(r,titulo){
   const av=document.getElementById('rc-pix-aviso');
   av.innerHTML=pixPessoal()?('Vai sair: <b>'+esc(pixPessoal())+'</b>')
     :'\u26a0\ufe0f <b>PIX do CPF</b> ainda n\u00e3o preenchido em <a href="#" onclick="fecharModal(\'modal-recibo\');showView(\'config\');return false">Configura\u00e7\u00f5es</a>.';
+  document.getElementById('rc-tiposerv').value=r.tipo_servico||'ambiente';
+  document.getElementById('rc-tiposerv-wrap').style.display=(r.tipo||tipoRecibo)==='venda'?'none':'';
   totalRecibos();
   autoNumeroRecibo();
   if(!r.decl){dec.dataset.editado='';montarDeclaracao();}
@@ -1669,6 +1818,7 @@ function salvarRecibo(imprimir){
     prep:document.getElementById('rc-prep').value,
     pix:document.getElementById('rc-pix').checked,
     decl:document.getElementById('rc-decl').value.trim(),
+    tipo_servico:document.getElementById('rc-tiposerv').value||'ambiente',
     itens:itens};
   const id=document.getElementById('rc-id').value;
   let alvo;
@@ -2045,8 +2195,8 @@ function renderOS(){osSyncEmitente();
   const rows=itens.map(s=>{totV+=parseFloat(s.valor)||0;totH+=parseFloat(s.horas)||0;
     const nota=s.nota_id?DB.notas.find(n=>n.id===s.nota_id):null;
     const selo=nota?(nota.numero_nfse?`<span class="tag tag-autorizada">NF ${esc(nota.numero_nfse)}</span>`:'<span class="tag tag-portal">no portal</span>'):'';
-    return `<tr><td class="chk-cel"><input type="checkbox" class="chk-os" data-id="${s.id}" onchange="atualizarSelecaoOS()"></td><td data-rot="Data">${brdata(s.data)}</td><td data-rot="Serviço" class="cel-desc">${esc(s.descricao)}</td><td data-rot="Tempo">${fmtHoras(s.horas)}</td><td data-rot="Valor">R$ ${(parseFloat(s.valor)||0).toFixed(2)}</td><td data-rot="NFS-e">${selo}</td><td class="acoes-cel"><span class="link-acao" onclick="imprimirOS(${s.id})">🖨️ Imprimir</span><span class="link-acao" onclick="editServico(${s.id})">Editar</span><span class="link-acao perigo" onclick="excluirServico(${s.id})">Excluir</span></td></tr>`;}).join('');
-  box.innerHTML=`<table class="tabela"><thead><tr><th class="chk-cel"><input type="checkbox" id="chk-os-todos" onchange="marcarTodasOS(this)" title="Marcar todas"></th><th>Data</th><th>Serviço realizado</th><th>Tempo</th><th>Valor</th><th>NFS-e</th><th></th></tr></thead><tbody>${rows}</tbody></table><div class="os-total">Total de horas: ${String(totH).replace('.',',')}h &nbsp;·&nbsp; Total: R$ ${totV.toFixed(2)}</div>`;
+    return `<tr><td class="chk-cel"><input type="checkbox" class="chk-os" data-id="${s.id}" onchange="atualizarSelecaoOS()"></td><td data-rot="Data">${brdata(s.data)}</td><td data-rot="Serviço" class="cel-desc">${esc(s.descricao)}</td><td data-rot="Tempo">${fmtHoras(s.horas)}</td><td data-rot="Valor">R$ ${(parseFloat(s.valor)||0).toFixed(2)}</td><td data-rot="Tipo">${selTipoServ(tipoServOS(s),'mudarTipoOS('+s.id+',this.value)')}</td><td data-rot="NFS-e">${selo}</td><td class="acoes-cel"><span class="link-acao" onclick="imprimirOS(${s.id})">🖨️ Imprimir</span><span class="link-acao" onclick="editServico(${s.id})">Editar</span><span class="link-acao perigo" onclick="excluirServico(${s.id})">Excluir</span></td></tr>`;}).join('');
+  box.innerHTML=`<table class="tabela"><thead><tr><th class="chk-cel"><input type="checkbox" id="chk-os-todos" onchange="marcarTodasOS(this)" title="Marcar todas"></th><th>Data</th><th>Serviço realizado</th><th>Tempo</th><th>Valor</th><th>Tipo</th><th>NFS-e</th><th></th></tr></thead><tbody>${rows}</tbody></table><div class="os-total">Total de horas: ${String(totH).replace('.',',')}h &nbsp;·&nbsp; Total: R$ ${totV.toFixed(2)}</div>`;
   atualizarSelecaoOS();
 }
 function addServico(){
@@ -2055,7 +2205,7 @@ function addServico(){
   const data=document.getElementById('os-data').value||((document.getElementById('os-mes').value||mesDefaultOS())+'-01');
   const desc=document.getElementById('os-desc').value.trim();
   if(!desc){toast('Descreva o serviço.','erro');return;}
-  DB.servicos.push({id:novoId('serv'),cliente_id:cid,data:data,descricao:desc,horas:parseFloat(document.getElementById('os-horas').value)||0,valor:parseFloat(document.getElementById('os-valor').value)||0});
+  DB.servicos.push({id:novoId('serv'),cliente_id:cid,data:data,descricao:desc,horas:parseFloat(document.getElementById('os-horas').value)||0,valor:parseFloat(document.getElementById('os-valor').value)||0,tipo_servico:document.getElementById('os-tiposerv').value||'ambiente'});
   salvarDB();
   document.getElementById('os-desc').value='';document.getElementById('os-horas').value='';document.getElementById('os-valor').value='';document.getElementById('os-data').value='';
   renderOS(); toast('Serviço adicionado.','sucesso');
