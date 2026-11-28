@@ -61,7 +61,8 @@ body{font-family:'Segoe UI',system-ui,-apple-system,'Helvetica Neue',Arial,sans-
 .subabas{display:flex;gap:8px;margin-bottom:16px;border-bottom:2px solid var(--borda)}.subaba{background:none;border:none;padding:10px 16px;font-size:14px;font-weight:600;color:var(--cinza);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px}.subaba.ativa{color:var(--azul);border-bottom-color:var(--azul)}.rc-item{display:grid;grid-template-columns:130px 1fr 110px 120px 34px;gap:8px;align-items:start;margin-bottom:8px}.rc-item input,.rc-item textarea{padding:8px 10px;border:1px solid var(--borda);border-radius:8px;font-size:14px;font-family:inherit;width:100%}.rc-item .rm{background:#fef2f2;color:var(--vermelho);border:1px solid #fecaca;border-radius:8px;cursor:pointer;font-weight:700;height:38px}.rc-cab{display:grid;grid-template-columns:130px 1fr 110px 120px 34px;gap:8px;font-size:11px;font-weight:700;color:var(--cinza);text-transform:uppercase;margin-bottom:6px}.btn-outlook{background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe}.btn-outlook:hover{background:#e0e7ff}.eq-grupo{margin:18px 0 8px;font-size:15px;font-weight:700;color:var(--tinta);display:flex;align-items:center;gap:8px}.eq-grupo .cont{font-size:12px;font-weight:600;color:var(--cinza);background:var(--cinza-cl);padding:2px 8px;border-radius:10px}.eq-card{background:#fff;border-radius:12px;padding:14px 16px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.08);display:flex;gap:12px;align-items:flex-start;cursor:pointer;border-left:4px solid transparent}.eq-card:hover{box-shadow:0 2px 8px rgba(0,0,0,.12)}.eq-card.mp-ok{border-left-color:#10b981}.eq-card.mp-pend{border-left-color:#f59e0b}.eq-cod{font-family:ui-monospace,monospace;font-size:12px;font-weight:700;color:var(--azul);background:#eff6ff;padding:3px 8px;border-radius:6px;white-space:nowrap}.eq-main{flex:1;min-width:0}.eq-equip{font-weight:600;font-size:14px;margin-bottom:2px}.eq-meta{font-size:12px;color:var(--cinza);display:flex;flex-wrap:wrap;gap:4px 12px}.eq-mp{font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;white-space:nowrap}.eq-mp.ok{background:#d1fae5;color:#065f46}.eq-mp.pend{background:#fef3c7;color:#92400e}
 .legenda{display:flex;gap:18px;margin-bottom:14px;font-size:13px;color:var(--cinza);flex-wrap:wrap}
 .legenda i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:middle}
-#calendario{background:#fff;border-radius:12px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+#calendario{background:#fff;border-radius:var(--raio);padding:16px;border:1px solid var(--borda);box-shadow:var(--sombra)}
+#calendario .bloco{border:none;box-shadow:none;border-radius:0;margin:0 -16px -16px}
 .cal-cab{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px}
 .cal-nav{display:flex;align-items:center;gap:8px}.cal-nav h2{font-size:18px;margin-left:8px}.cal-nav .btn{padding:7px 12px}
 .cal-views{display:flex;gap:6px}
@@ -74,9 +75,9 @@ body{font-family:'Segoe UI',system-ui,-apple-system,'Helvetica Neue',Arial,sans-
 .cal-chips{display:flex;flex-direction:column;gap:2px;overflow-y:auto;flex:1;min-height:0;scrollbar-width:thin}.cal-chips::-webkit-scrollbar{width:5px}.cal-chips::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}
 .cal-chip{color:#fff;font-size:10px;padding:1px 5px;border-radius:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;flex:0 0 auto}
 .cal-chip:hover{opacity:.88}.cal-chip-h{font-weight:700;opacity:.9}
-.cal-lista{display:flex;flex-direction:column}
+.cal-lista{display:flex;flex-direction:column}.cal-lista .lin-tit{white-space:normal}.cal-lista .lin-sub{white-space:normal}.cal-lista-item.cancelado .lin-tit{text-decoration:line-through;color:var(--cinza)}
 .cal-lista-dia{font-size:13px;font-weight:700;color:var(--cinza);padding:14px 4px 6px;border-bottom:1px solid var(--borda);text-transform:capitalize}
-.cal-lista-item{display:flex;align-items:center;gap:12px;padding:11px 8px;border-bottom:1px solid var(--cinza-cl);cursor:pointer}
+.cal-lista-item{cursor:pointer}
 .cal-lista-item:hover{background:#f0f7ff}
 .cal-lista-hora{font-weight:700;width:48px}.cal-lista-cor{width:10px;height:10px;border-radius:50%}.cal-lista-tit{font-size:14px}
 .tabela{width:100%;background:#fff;border-radius:var(--raio);border-collapse:separate;border-spacing:0;overflow:hidden;border:1px solid var(--borda);box-shadow:var(--sombra)}
@@ -262,6 +263,11 @@ body{font-family:'Segoe UI',system-ui,-apple-system,'Helvetica Neue',Arial,sans-
   .tabbar a.ativo:after{content:'';position:absolute;top:0;left:28%;right:28%;height:3px;border-radius:0 0 3px 3px;background:var(--azul)}
   .topo{margin-bottom:14px}.topo h1{font-size:20px}.topo-acoes{width:100%}.topo-acoes>.btn-primario:last-child{margin-left:auto}
   .abas{display:flex;width:100%}.abas button{flex:1;justify-content:center}
+  .topo-acoes{gap:8px}.topo-acoes>.btn:not(.btn-primario),.topo-acoes>label.btn{flex:1 1 calc(50% - 4px);font-size:13px;padding:10px 8px;text-align:center}
+  .topo-acoes>.btn-primario{flex:1 1 100%}.topo-acoes>.busca{flex:1 1 100%}
+  .legenda{gap:6px 14px;font-size:12px}
+  #lista-clientes td:first-child{font-size:16px;font-weight:700;justify-content:flex-start;text-align:left;padding-top:10px}
+  #lista-clientes td:first-child:before{display:none}
   .card{padding:16px;border-radius:10px}
 
   /* toque confortavel + sem zoom automatico do iOS ao focar campo */
@@ -323,7 +329,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,'Helvetica Neue',Arial,sans-
   .cal-chips{flex-direction:row;flex-wrap:wrap;gap:3px;justify-content:center}
   .cal-chip{width:7px;height:7px;padding:0;border-radius:50%;font-size:0;overflow:hidden}
   .cal-chip-h{display:none}
-  .cal-lista-item{padding:14px 6px}
+  .cal-lista-item{padding:12px 14px}
   .cal-lista-tit{font-size:15px}
 
   .modal{width:100%;max-width:100%;border-radius:14px 14px 0 0;max-height:94vh;
@@ -354,7 +360,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,'Helvetica Neue',Arial,sans-
     <nav aria-label="Módulos">
 <div class="nav-grupo">Operação</div><a data-view="dash" onclick="irPara('dash')"><svg class="ico" aria-hidden="true"><use href="#i-home"/></svg><span class="txt">Início</span></a><a data-view="agenda" onclick="irPara('agenda')"><svg class="ico" aria-hidden="true"><use href="#i-agenda"/></svg><span class="txt">Agenda</span></a><a data-view="clientes" onclick="irPara('clientes')"><svg class="ico" aria-hidden="true"><use href="#i-clientes"/></svg><span class="txt">Clientes</span></a><a data-view="os" onclick="irPara('os')"><svg class="ico" aria-hidden="true"><use href="#i-os"/></svg><span class="txt">Ordens de serviço</span></a><a data-view="contratos" onclick="irPara('contratos')"><svg class="ico" aria-hidden="true"><use href="#i-contratos"/></svg><span class="txt">Contratos</span></a><a data-view="equip" onclick="irPara('equip')"><svg class="ico" aria-hidden="true"><use href="#i-equip"/></svg><span class="txt">Equipamentos</span></a><div class="nav-grupo">Financeiro</div><a data-view="notas" onclick="irPara('notas')"><svg class="ico" aria-hidden="true"><use href="#i-notas"/></svg><span class="txt">Notas fiscais</span></a><a data-view="recibos" onclick="irPara('recibos')"><svg class="ico" aria-hidden="true"><use href="#i-recibos"/></svg><span class="txt">Recibos</span></a><a data-view="contas" onclick="irPara('contas')"><svg class="ico" aria-hidden="true"><use href="#i-contas"/></svg><span class="txt">Contas</span></a><div class="nav-grupo">Sistema</div><a data-view="config" onclick="irPara('config')"><svg class="ico" aria-hidden="true"><use href="#i-config"/></svg><span class="txt">Configurações</span></a>
     </nav>
-    <div class="sidebar-rodape">v7.6 · web</div>
+    <div class="sidebar-rodape">v8.0 · web</div>
   </aside>
   <nav class="tabbar" id="tabbar" aria-label="Navegação principal"><a data-view="dash" onclick="irPara('dash')"><svg class="ico" aria-hidden="true"><use href="#i-home"/></svg><span>Início</span></a><a data-view="agenda" onclick="irPara('agenda')"><svg class="ico" aria-hidden="true"><use href="#i-agenda"/></svg><span>Agenda</span></a><a data-view="clientes" onclick="irPara('clientes')"><svg class="ico" aria-hidden="true"><use href="#i-clientes"/></svg><span>Clientes</span></a><a data-view="contratos" onclick="irPara('contratos')"><svg class="ico" aria-hidden="true"><use href="#i-contratos"/></svg><span>Contratos</span></a><a data-view="mais" onclick="abrirMenu()"><svg class="ico" aria-hidden="true"><use href="#i-mais"/></svg><span>Mais</span></a>
   </nav>
@@ -571,10 +577,10 @@ body{font-family:'Segoe UI',system-ui,-apple-system,'Helvetica Neue',Arial,sans-
         <h2>🧾 NFS-e (Padrão Nacional · MEI / gov.br)</h2>
         <div class="form-grid">
           <div class="col2"><p class="dim" style="margin:0 0 8px">Cada CNPJ que emite NFS-e. O <b>primeiro</b> é o padrão; no cadastro do cliente você escolhe por qual CNPJ ele é faturado.</p><div id="cfg-emitentes"></div></div>
-          <label class="col2">PIX do <b>CPF</b> &mdash; usado nos <b>recibos</b> e nos <b>contratos sem nota</b><input id="cfg-pix-cpf" placeholder="PIX CPF 000.000.000-00"></label>
+          <label class="col2"><span>PIX do <b>CPF</b> &mdash; usado nos <b>recibos</b> e nos <b>contratos sem nota</b></span><input id="cfg-pix-cpf" placeholder="PIX CPF 000.000.000-00"></label>
           <label>Seu nome (emitente dos recibos)<input id="cfg-emit-nome" placeholder="NOME COMPLETO"></label>
           <label>Seu CPF (emitente dos recibos)<input id="cfg-emit-cpf" placeholder="000.000.000-00"></label>
-          <label class="col2">Dados banc&aacute;rios — usados no <b>comunicado por e-mail</b> dos contratos<textarea id="cfg-banco" rows="6" placeholder="Banco:&#10;AG 0000&#10;Conta 00000-0&#10;Nome do titular&#10;Pix CPF/CNPJ ..."></textarea></label>
+          <label class="col2"><span>Dados banc&aacute;rios — usados no <b>comunicado por e-mail</b> dos contratos</span><textarea id="cfg-banco" rows="6" placeholder="Banco:&#10;AG 0000&#10;Conta 00000-0&#10;Nome do titular&#10;Pix CPF/CNPJ ..."></textarea></label>
         </div>
         <div class="acoes-linha">
           <button class="btn btn-primario" onclick="salvarConfig()">Salvar configurações</button>
@@ -1328,7 +1334,19 @@ function duracaoHoras(e){if(!e.inicio||!e.fim)return 0;var h=(new Date(e.fim)-ne
 function durTxt(e){var d=duracaoHoras(e);return d?(String(d).replace('.',',')+'h'):'';}
 function nomeCurto(e){if(e.tipo==='conta')return'\u{1F4B0} '+e.titulo;const c=DB.clientes.find(x=>x.id==e.cliente_id);return(c?c.nome+' - ':'')+e.titulo;}
 function renderMes(){const ref=calState.ref,primeiro=primeiroDiaMes(ref),ini=new Date(primeiro);ini.setDate(1-dowSeg(primeiro));const hoje=new Date();let h='<div class="cal-grade">'+DIAS_SEG.map(d=>`<div class="cal-cabdia">${d}</div>`).join('');for(let i=0;i<42;i++){const dia=new Date(ini);dia.setDate(ini.getDate()+i);const fora=dia.getMonth()!==ref.getMonth(),eh=mesmaData(dia,hoje);const fds=(dia.getDay()===0||dia.getDay()===6);const chips=eventosDoDia(dia).map(e=>`<div class="cal-chip" style="background:${corEvento(e)}" title="${esc(nomeCurto(e))}" onclick="event.stopPropagation();abrirAgendamento(${e.id})"><span class="cal-chip-h">${iconePeriodo(e)} ${(e.inicio||'').slice(11,16)}${durTxt(e)?' '+durTxt(e):''}</span> ${esc(nomeCurto(e))}</div>`).join('');h+=`<div class="cal-cel ${fora?'fora':''} ${eh?'hoje':''} ${fds?'fds':''}" onclick="abrirNovoAgendamento('${fmtData(dia)}')"><div class="cal-num">${dia.getDate()}</div><div class="cal-chips">${chips}</div></div>`;}return h+'</div>';}
-function renderLista(){const hojeStr=fmtData(new Date());const fut=DB.agendamentos.filter(e=>(e.inicio||'').slice(0,10)>=hojeStr).sort((a,b)=>(a.inicio||'').localeCompare(b.inicio||''));if(!fut.length)return'<p class="vazio">Nenhum agendamento futuro.</p>';let h='<div class="cal-lista">',ult='';fut.forEach(e=>{const dia=(e.inicio||'').slice(0,10);if(dia!==ult){const d=new Date(dia+'T12:00');h+=`<div class="cal-lista-dia">${DIAS[d.getDay()]}, ${d.getDate()} de ${MESES[d.getMonth()]}</div>`;ult=dia;}h+=`<div class="cal-lista-item" onclick="abrirAgendamento(${e.id})"><span class="cal-lista-hora">${iconePeriodo(e)} ${(e.inicio||'').slice(11,16)}${durTxt(e)?' \u00b7 '+durTxt(e):''}</span><span class="cal-lista-cor" style="background:${corEvento(e)}"></span><span class="cal-lista-tit">${esc(nomeCurto(e))}</span></div>`;});return h+'</div>';}
+function renderLista(){const hojeStr=fmtData(new Date());
+  const fut=DB.agendamentos.filter(e=>(e.inicio||'').slice(0,10)>=hojeStr).sort((a,b)=>(a.inicio||'').localeCompare(b.inicio||''));
+  if(!fut.length)return'<div class="bloco"><div class="bloco-vazio">Nenhum agendamento futuro. Toque em "+ Novo agendamento" para criar.</div></div>';
+  const rotSt=e=>e.tipo==='conta'?'<span class="tag tag-pendente">conta a pagar</span>':e.status==='concluido'?'<span class="tag tag-ok">concluído</span>':e.status==='cancelado'?'<span class="tag tag-neutro">cancelado</span>':e.origem==='outlook'?'<span class="tag tag-info">Outlook</span>':'';
+  let h='<div class="bloco cal-lista">',ult='';
+  fut.forEach(e=>{const dia=(e.inicio||'').slice(0,10);
+    if(dia!==ult){h+=`<div class="dia-cab ${dia===hojeStr?'hoje':''}">${esc(rotDia(dia))}</div>`;ult=dia;}
+    const c=DB.clientes.find(x=>String(x.id)===String(e.cliente_id));
+    const tit=e.tipo==='conta'?(e.titulo||'Conta'):(e.titulo||'');
+    const sub=[e.tipo==='conta'?'':(c?c.nome:''),e.local||'',e.tipo!=='conta'&&e.descricao&&e.descricao!==e.titulo?e.descricao:''].filter(Boolean).join(' · ');
+    const st=rotSt(e);
+    h+=`<div class="lin cal-lista-item${e.status==='cancelado'?' cancelado':''}" onclick="abrirAgendamento(${e.id})"><span class="marca-cor" style="background:${corEvento(e)}"></span><span class="hora">${(e.inicio||'').slice(11,16)}<small>${durTxt(e)||''}</small></span><div class="lin-main"><div class="lin-tit">${esc(tit)}</div>${sub?`<div class="lin-sub">${esc(sub)}</div>`:''}</div>${st?'<div class="lin-dir">'+st+'</div>':''}</div>`;});
+  return h+'</div>';}
 function fmtLocal(dt){return dt?dt.slice(0,16):'';}
 function abrirNovoAgendamento(dataStr){carregarClientesSelect();document.getElementById('ag-id').value='';['ag-titulo','ag-valor','ag-local','ag-descricao'].forEach(i=>document.getElementById(i).value='');document.getElementById('ag-cliente').value='';document.getElementById('ag-status').value='agendado';document.getElementById('modal-titulo').textContent='Novo agendamento';document.getElementById('btn-excluir-ag').style.display='none';document.getElementById('btn-outlook').style.display='none';document.getElementById('btn-recibo-ag').style.display='none';document.getElementById('bloco-recorrencia').style.display='';document.querySelectorAll('.dow').forEach(c=>c.checked=false);document.getElementById('ag-repetir-ate').value=(new Date().getFullYear())+'-12-31';const base=(dataStr||fmtData(new Date()))+'T09:00';document.getElementById('ag-inicio').value=base;document.getElementById('ag-horas').value='1';recalcFim();abrirModal('modal-agendamento');}
 function abrirAgendamento(id){const _ag=DB.agendamentos.find(x=>x.id===id);if(_ag&&_ag.tipo==='conta'){if(_ag.conta_id){showView('contas');editarConta(_ag.conta_id);}return;}carregarClientesSelect();const a=DB.agendamentos.find(x=>x.id===id);if(!a)return;document.getElementById('ag-id').value=a.id;document.getElementById('ag-titulo').value=a.titulo||'';document.getElementById('ag-cliente').value=a.cliente_id||'';document.getElementById('ag-inicio').value=fmtLocal(a.inicio);document.getElementById('ag-fim').value=fmtLocal(a.fim);(function(){const hi=new Date(a.inicio),hf=new Date(a.fim);let hh=(hf-hi)/3600000;if(!(hh>0))hh=1;document.getElementById('ag-horas').value=(Math.round(hh*2)/2);})();recalcFim();document.getElementById('ag-valor').value=a.valor||'';document.getElementById('ag-status').value=a.status||'agendado';document.getElementById('ag-local').value=a.local||'';document.getElementById('ag-descricao').value=a.descricao||'';document.getElementById('modal-titulo').textContent='Editar agendamento';document.getElementById('btn-excluir-ag').style.display='inline-block';document.getElementById('btn-outlook').style.display='inline-block';document.getElementById('btn-recibo-ag').style.display='inline-block';document.getElementById('bloco-recorrencia').style.display='none';abrirModal('modal-agendamento');}
