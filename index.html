@@ -13,29 +13,49 @@
 <link rel="manifest" id="mf">
 <title>Gestor de TI</title>
 <style>
-:root{--azul:#2563eb;--azul-esc:#1d4ed8;--verde:#16a34a;--roxo:#7c3aed;--cinza:#6b7280;--cinza-cl:#f3f4f6;--borda:#e5e7eb;--txt:#111827;--vermelho:#dc2626;--nfse:#0891b2;}
+:root{
+  /* paleta "Profissional e Limpo" */
+  --marinho:#0f172a;--marinho-2:#1e293b;--marinho-txt:#94a3b8;
+  --azul:#2563eb;--azul-esc:#1d4ed8;--azul-cl:#eff6ff;
+  --fundo:#f4f6f9;--sup:#ffffff;--borda:#e4e7ec;--borda-forte:#d0d5dd;
+  --txt:#101828;--cinza:#667085;--cinza-cl:#f2f4f7;--tinta:#101828;
+  --verde:#16a34a;--verde-cl:#ecfdf3;--verde-txt:#067647;
+  --ambar:#d97706;--ambar-cl:#fffaeb;--ambar-txt:#93370d;
+  --vermelho:#dc2626;--vermelho-cl:#fef3f2;--vermelho-txt:#b42318;
+  --roxo:#7c3aed;--nfse:#0891b2;
+  --raio:10px;--sombra:0 1px 2px rgba(16,24,40,.05);--sombra-2:0 4px 16px rgba(16,24,40,.08);
+}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);background:#f8fafc}
+html{-webkit-text-size-adjust:100%}
+body{font-family:'Segoe UI',system-ui,-apple-system,'Helvetica Neue',Arial,sans-serif;color:var(--txt);background:var(--fundo);line-height:1.45;-webkit-font-smoothing:antialiased}
+:focus-visible{outline:2px solid var(--azul);outline-offset:2px;border-radius:6px}
+.ico{width:18px;height:18px;flex:0 0 auto;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;vertical-align:middle}
 .app{display:flex;min-height:100vh}
-.sidebar{width:230px;background:#0f172a;color:#cbd5e1;display:flex;flex-direction:column;position:fixed;height:100vh;z-index:20}
-.logo{padding:20px 18px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #1e293b}
-.logo-mark{background:var(--azul);color:#fff;font-weight:700;padding:6px 8px;border-radius:8px;font-size:14px}
+.sidebar{width:236px;background:var(--marinho);color:#cbd5e1;display:flex;flex-direction:column;position:fixed;height:100vh;z-index:20;overflow-y:auto}
+.logo{padding:18px 18px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--marinho-2)}
+.logo-mark{background:var(--azul);color:#fff;font-weight:700;padding:6px 8px;border-radius:8px;font-size:13px;line-height:1}
 .logo-text{font-size:15px;font-weight:600;color:#fff}
-.sidebar nav{display:flex;flex-direction:column;padding:12px 0;flex:1}
-.sidebar nav a{color:#cbd5e1;text-decoration:none;padding:12px 20px;font-size:14px;cursor:pointer;transition:.15s}
-.sidebar nav a:hover{background:#1e293b;color:#fff}
-.sidebar nav a.ativo{background:#1e293b;color:#fff;border-left:3px solid var(--azul)}
-.sidebar-rodape{padding:14px 20px;font-size:12px;color:#475569}
-.conteudo{margin-left:230px;flex:1;padding:0 32px 32px;width:calc(100% - 230px)}
-.barra-conta{display:flex;align-items:center;gap:10px;justify-content:flex-end;padding:12px 0;border-bottom:1px solid var(--borda);margin-bottom:18px;flex-wrap:wrap}
-.barra-conta .pill{font-size:13px;padding:5px 12px;border-radius:99px;background:#dcfce7;color:#166534;font-weight:600}
-.barra-conta .pill.off{background:#fef2f2;color:#991b1b}
+.sidebar nav{display:flex;flex-direction:column;padding:10px 10px;flex:1;gap:2px}
+.nav-grupo{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#64748b;padding:14px 10px 6px}
+.sidebar nav a{color:#cbd5e1;text-decoration:none;padding:9px 10px;font-size:14px;cursor:pointer;transition:background .15s,color .15s;border-radius:8px;display:flex;align-items:center;gap:10px}
+.sidebar nav a:hover{background:var(--marinho-2);color:#fff}
+.sidebar nav a.ativo{background:var(--azul);color:#fff}
+.sidebar-rodape{padding:14px 20px;font-size:12px;color:#475569;border-top:1px solid var(--marinho-2)}
+.conteudo{margin-left:236px;flex:1;padding:0 32px 40px;width:calc(100% - 236px);min-width:0}
+.barra-conta{display:flex;align-items:center;gap:10px;justify-content:flex-end;padding:12px 0;border-bottom:1px solid var(--borda);margin-bottom:22px;flex-wrap:wrap}
+.barra-conta .pill{font-size:12px;padding:5px 12px;border-radius:99px;background:var(--verde-cl);color:var(--verde-txt);font-weight:600;display:inline-flex;align-items:center;gap:6px}
+.barra-conta .pill:before{content:'';width:7px;height:7px;border-radius:50%;background:currentColor}
+.barra-conta .pill.off{background:var(--vermelho-cl);color:var(--vermelho-txt)}
+.so-mob{display:none!important}
+.btn-ico{background:transparent;border:1px solid var(--borda);border-radius:8px;width:38px;height:38px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;color:var(--txt)}
+.btn-ico:hover{background:var(--cinza-cl)}
 .topo{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:12px}
-.topo h1{font-size:22px;font-weight:700}
+.topo h1{font-size:22px;font-weight:700;letter-spacing:-.01em}
+.topo .sub{font-size:14px;color:var(--cinza);margin-top:2px;font-weight:400}
 .topo-acoes{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.btn{border:none;border-radius:8px;padding:9px 15px;font-size:14px;cursor:pointer;font-weight:600;transition:.15s}
+.btn{border:none;border-radius:8px;padding:9px 15px;font-size:14px;cursor:pointer;font-weight:600;transition:background .15s,border-color .15s,opacity .15s;font-family:inherit;line-height:1.25;display:inline-flex;align-items:center;justify-content:center;gap:6px}
 .btn-primario{background:var(--azul);color:#fff}.btn-primario:hover{background:var(--azul-esc)}
-.btn-secundario{background:#fff;color:var(--txt);border:1px solid var(--borda)}.btn-secundario:hover{background:var(--cinza-cl)}
+.btn-secundario{background:#fff;color:var(--txt);border:1px solid var(--borda-forte)}.btn-secundario:hover{background:var(--cinza-cl)}
 .btn-perigo{background:#fef2f2;color:var(--vermelho);border:1px solid #fecaca}.btn-perigo:hover{background:#fee2e2}
 .btn-nfse{background:var(--nfse);color:#fff}.btn-nfse:hover{opacity:.9}.btn:disabled{opacity:.45;cursor:not-allowed}.chk-cel{width:34px;text-align:center}.chk-os,#chk-os-todos{width:17px;height:17px;cursor:pointer;accent-color:var(--nfse)}
 .subabas{display:flex;gap:8px;margin-bottom:16px;border-bottom:2px solid var(--borda)}.subaba{background:none;border:none;padding:10px 16px;font-size:14px;font-weight:600;color:var(--cinza);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px}.subaba.ativa{color:var(--azul);border-bottom-color:var(--azul)}.rc-item{display:grid;grid-template-columns:130px 1fr 110px 120px 34px;gap:8px;align-items:start;margin-bottom:8px}.rc-item input,.rc-item textarea{padding:8px 10px;border:1px solid var(--borda);border-radius:8px;font-size:14px;font-family:inherit;width:100%}.rc-item .rm{background:#fef2f2;color:var(--vermelho);border:1px solid #fecaca;border-radius:8px;cursor:pointer;font-weight:700;height:38px}.rc-cab{display:grid;grid-template-columns:130px 1fr 110px 120px 34px;gap:8px;font-size:11px;font-weight:700;color:var(--cinza);text-transform:uppercase;margin-bottom:6px}.btn-outlook{background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe}.btn-outlook:hover{background:#e0e7ff}.eq-grupo{margin:18px 0 8px;font-size:15px;font-weight:700;color:var(--tinta);display:flex;align-items:center;gap:8px}.eq-grupo .cont{font-size:12px;font-weight:600;color:var(--cinza);background:var(--cinza-cl);padding:2px 8px;border-radius:10px}.eq-card{background:#fff;border-radius:12px;padding:14px 16px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.08);display:flex;gap:12px;align-items:flex-start;cursor:pointer;border-left:4px solid transparent}.eq-card:hover{box-shadow:0 2px 8px rgba(0,0,0,.12)}.eq-card.mp-ok{border-left-color:#10b981}.eq-card.mp-pend{border-left-color:#f59e0b}.eq-cod{font-family:ui-monospace,monospace;font-size:12px;font-weight:700;color:var(--azul);background:#eff6ff;padding:3px 8px;border-radius:6px;white-space:nowrap}.eq-main{flex:1;min-width:0}.eq-equip{font-weight:600;font-size:14px;margin-bottom:2px}.eq-meta{font-size:12px;color:var(--cinza);display:flex;flex-wrap:wrap;gap:4px 12px}.eq-mp{font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;white-space:nowrap}.eq-mp.ok{background:#d1fae5;color:#065f46}.eq-mp.pend{background:#fef3c7;color:#92400e}
@@ -59,16 +79,16 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
 .cal-lista-item{display:flex;align-items:center;gap:12px;padding:11px 8px;border-bottom:1px solid var(--cinza-cl);cursor:pointer}
 .cal-lista-item:hover{background:#f0f7ff}
 .cal-lista-hora{font-weight:700;width:48px}.cal-lista-cor{width:10px;height:10px;border-radius:50%}.cal-lista-tit{font-size:14px}
-.tabela{width:100%;background:#fff;border-radius:12px;border-collapse:collapse;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06)}
-.tabela th{text-align:left;padding:12px 14px;background:#f8fafc;font-size:12px;text-transform:uppercase;color:var(--cinza);letter-spacing:.03em}
-.tabela td{padding:12px 14px;border-top:1px solid var(--borda);font-size:14px}
+.tabela{width:100%;background:#fff;border-radius:var(--raio);border-collapse:separate;border-spacing:0;overflow:hidden;border:1px solid var(--borda);box-shadow:var(--sombra)}
+.tabela th{text-align:left;padding:11px 14px;background:#f9fafb;font-size:12px;font-weight:600;text-transform:uppercase;color:var(--cinza);letter-spacing:.04em;border-bottom:1px solid var(--borda)}
+.tabela td{padding:13px 14px;border-top:1px solid var(--cinza-cl);font-size:14px;vertical-align:middle}.tabela tbody tr:first-child td{border-top:none}.tabela .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 .tabela tr:hover td{background:#f9fafb}
 .acoes-cel{text-align:right;white-space:nowrap}
 .link-acao{color:var(--azul);cursor:pointer;margin-left:12px;font-size:13px}.link-acao.perigo{color:var(--vermelho)}
 .busca{padding:9px 12px;border:1px solid var(--borda);border-radius:8px;font-size:14px;width:280px;max-width:60vw}
-.vazio{color:var(--cinza);padding:30px;text-align:center}
+.vazio{color:var(--cinza);padding:32px 20px;text-align:center;font-size:14px}
 .dash-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px}
-.dash-kpi{background:#fff;border-radius:12px;padding:16px 18px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.dash-kpi{background:#fff;border-radius:var(--raio);padding:16px 18px;border:1px solid var(--borda);box-shadow:var(--sombra)}
 .dash-kpi .rot{font-size:12px;font-weight:700;color:var(--cinza);text-transform:uppercase;letter-spacing:.03em;display:flex;align-items:center;gap:6px}
 .dash-kpi .val{font-size:24px;font-weight:700;margin-top:6px;font-variant-numeric:tabular-nums}
 .dash-kpi .sub{font-size:12px;color:var(--cinza);margin-top:2px}
@@ -79,7 +99,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
 .dash-tip{position:absolute;pointer-events:none;background:#0f172a;color:#fff;font-size:12px;padding:8px 10px;border-radius:8px;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.2);display:none;z-index:5}
 .dash-leg{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--cinza);margin-bottom:8px}.dash-leg span{display:flex;align-items:center;gap:6px}
 .dash-sel{padding:4px 6px;border:1px solid var(--borda);border-radius:6px;font-size:12px;background:#fff}
-.card{background:#fff;border-radius:12px;padding:22px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.card{background:var(--sup);border-radius:var(--raio);padding:20px 22px;margin-bottom:20px;border:1px solid var(--borda);box-shadow:var(--sombra)}
 .card h2{font-size:17px;margin-bottom:14px}.card h3{font-size:14px;margin:18px 0 10px;color:var(--cinza);text-transform:uppercase;letter-spacing:.03em}
 .acoes-linha{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
 .dim{color:var(--cinza);font-size:13px}
@@ -88,21 +108,23 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .form-grid label{display:flex;flex-direction:column;font-size:13px;font-weight:600;color:#374151;gap:5px}
 .form-grid .col2{grid-column:span 2}
-.form-grid input,.form-grid select,.form-grid textarea{padding:9px 11px;border:1px solid var(--borda);border-radius:8px;font-size:14px;font-family:inherit;font-weight:400}
+.form-grid input,.form-grid select,.form-grid textarea{padding:9px 11px;border:1px solid var(--borda-forte);background:#fff;color:var(--txt);border-radius:8px;font-size:14px;font-family:inherit;font-weight:400}
 .form-grid input:focus,.form-grid select:focus,.form-grid textarea:focus{outline:none;border-color:var(--azul);box-shadow:0 0 0 3px rgba(37,99,235,.12)}
 .modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,.55);display:flex;align-items:center;justify-content:center;z-index:50}
 .oculto{display:none!important}
-.modal{background:#fff;border-radius:14px;width:560px;max-width:94vw;max-height:92vh;overflow-y:auto;padding:22px}
+.modal{background:#fff;border-radius:14px;box-shadow:0 20px 50px rgba(16,24,40,.25);width:560px;max-width:94vw;max-height:92vh;overflow-y:auto;padding:22px}
 .modal-largo{width:720px}
 .modal-topo{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}.modal-topo h2{font-size:18px}
 .fechar{background:none;border:none;font-size:18px;cursor:pointer;color:var(--cinza)}
 .modal-rodape{display:flex;gap:10px;margin-top:20px;align-items:center;flex-wrap:wrap}
 .bloco-nfse{background:#ecfeff;border:1px solid #a5f3fc;border-radius:8px;padding:14px;margin-top:16px;font-size:13px}
 .bloco-nfse h3{font-size:13px;color:#155e75;margin-bottom:8px}
-.tag{display:inline-block;padding:3px 10px;border-radius:99px;font-size:12px;font-weight:600;text-transform:capitalize}
-.tag-autorizada,.tag-simulada{background:#dcfce7;color:#166534}
-.tag-rejeitada,.tag-cancelada{background:#fee2e2;color:#991b1b}
-.tag-pendente,.tag-portal{background:#fef9c3;color:#854d0e}
+.tag{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:99px;font-size:12px;font-weight:600;white-space:nowrap;border:1px solid transparent}
+.tag:before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.85}
+.tag-autorizada,.tag-simulada,.tag-ok{background:var(--verde-cl);color:var(--verde-txt);border-color:#abefc6}
+.tag-rejeitada,.tag-cancelada,.tag-atraso{background:var(--vermelho-cl);color:var(--vermelho-txt);border-color:#fecdca}
+.tag-pendente,.tag-portal{background:var(--ambar-cl);color:var(--ambar-txt);border-color:#fedf89}
+.tag-neutro{background:var(--cinza-cl);color:#344054;border-color:var(--borda)}.tag-info{background:var(--azul-cl);color:#1849a9;border-color:#b2ddff}
 .toast{position:fixed;bottom:24px;right:24px;background:#0f172a;color:#fff;padding:13px 18px;border-radius:10px;font-size:14px;opacity:0;transform:translateY(10px);transition:.25s;z-index:100;pointer-events:none;max-width:340px}
 .toast.mostra{opacity:1;transform:translateY(0)}.toast.erro{background:#991b1b}.toast.sucesso{background:#166534}
 .lock{position:fixed;inset:0;background:#0f172a;display:flex;align-items:center;justify-content:center;z-index:200}
@@ -117,7 +139,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
 .lock-erro{color:var(--vermelho);font-size:13px;margin-bottom:8px;min-height:18px}
 .os-filtros{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
 .os-filtros .campo{display:flex;flex-direction:column;gap:5px;font-size:13px;font-weight:600;color:#374151}
-.os-filtros input,.os-filtros select{padding:9px 11px;border:1px solid var(--borda);border-radius:8px;font-size:14px;font-weight:400}
+.os-filtros input,.os-filtros select{padding:9px 11px;background:#fff;color:var(--txt);font-family:inherit;border:1px solid var(--borda-forte);border-radius:8px;font-size:14px;font-weight:400}
 .os-total{font-size:17px;font-weight:700;text-align:right;padding:14px 4px}
 #os-print{position:fixed;left:-99999px;top:0}
 .os-doc{font-family:Arial,sans-serif;color:#000;max-width:760px;margin:0 auto}
@@ -134,19 +156,45 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
   .no-print{display:none!important}
 }
 .tabbar{display:none}
+/* abas de seção (Contas: Recebimentos / Pagamentos) */
+.abas{display:inline-flex;background:var(--cinza-cl);border:1px solid var(--borda);border-radius:10px;padding:3px;gap:2px;margin-bottom:16px}
+.abas button{border:none;background:transparent;padding:8px 16px;border-radius:8px;font-size:14px;font-weight:600;color:var(--cinza);cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:7px}
+.abas button.ativa{background:#fff;color:var(--txt);box-shadow:0 1px 2px rgba(16,24,40,.1)}
+/* folha "Mais" / menu */
+.folha-fundo{position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:60;display:flex;align-items:flex-end;justify-content:center}
+.folha{background:#fff;width:100%;max-width:520px;border-radius:16px 16px 0 0;padding:10px 16px calc(18px + env(safe-area-inset-bottom));max-height:86vh;overflow-y:auto}
+.folha-pega{width:40px;height:4px;border-radius:4px;background:var(--borda-forte);margin:2px auto 10px}
+.folha-cab{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}.folha-cab h2{font-size:17px}
+.folha .nav-grupo{color:var(--cinza);padding:12px 4px 6px}
+.folha-grade{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.folha-grade a{display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 6px;border-radius:12px;border:1px solid var(--borda);background:#fff;color:var(--txt);font-size:13px;font-weight:600;text-align:center;cursor:pointer;text-decoration:none}
+.folha-grade a .ico{width:22px;height:22px;color:var(--azul)}
+.folha-grade a.ativo{border-color:var(--azul);background:var(--azul-cl)}
+@media(min-width:821px){.folha-fundo{align-items:center}.folha{border-radius:16px}}
 @media(max-width:820px){
   .sidebar{display:none}
-  .conteudo{margin-left:0;width:100%;padding:0 12px calc(76px + env(safe-area-inset-bottom))}
-  .tabbar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:40;background:#0f172a;
-    padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -2px 12px rgba(0,0,0,.18)}
-  .tabbar a{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:9px 0 8px;
-    color:#94a3b8;text-decoration:none;font-size:11px;font-weight:600;cursor:pointer;border-top:3px solid transparent}
-  .tabbar{overflow-x:auto;scrollbar-width:none}.tabbar::-webkit-scrollbar{display:none}
-  .tabbar a{flex:1 0 58px;white-space:nowrap}
-  .tabbar a i{font-style:normal;font-size:20px;line-height:1}
-  .tabbar a.ativo{color:#fff;border-top-color:var(--azul);background:#1e293b}
-  .barra-conta{padding:10px 0;margin-bottom:12px}
-  .topo h1{font-size:19px}
+  .so-mob{display:inline-flex!important}.so-desk{display:none!important}
+  .conteudo{margin-left:0;width:100%;padding:0 14px calc(84px + env(safe-area-inset-bottom))}
+  /* barra superior compacta */
+  .barra-conta{position:sticky;top:0;z-index:30;background:var(--marinho);color:#fff;margin:0 -14px 16px;
+    padding:calc(8px + env(safe-area-inset-top)) 12px 8px;border-bottom:none;flex-wrap:nowrap;gap:8px}
+  .barra-conta .btn-ico{border-color:transparent;color:#e2e8f0;width:40px;height:40px}
+  .barra-conta .btn-ico:hover{background:var(--marinho-2)}
+  .barra-conta .btn-secundario{background:transparent;color:#e2e8f0;border-color:#334155;padding:8px 10px}
+  .barra-conta .marca{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:15px;flex:1;min-width:0}
+  .barra-conta .pill{font-size:0;padding:0;width:12px;height:12px;background:transparent;gap:0}
+  .barra-conta .pill:before{width:9px;height:9px;background:#4ade80}
+  .barra-conta .pill.off:before{background:#f87171}
+  /* navegação inferior: 5 destinos */
+  .tabbar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:40;background:#fff;border-top:1px solid var(--borda);
+    padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -4px 16px rgba(16,24,40,.06)}
+  .tabbar a{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 0 7px;min-height:56px;justify-content:center;
+    color:var(--cinza);text-decoration:none;font-size:11px;font-weight:600;cursor:pointer;position:relative}
+  .tabbar a .ico{width:22px;height:22px}
+  .tabbar a.ativo{color:var(--azul)}
+  .tabbar a.ativo:after{content:'';position:absolute;top:0;left:28%;right:28%;height:3px;border-radius:0 0 3px 3px;background:var(--azul)}
+  .topo{margin-bottom:14px}.topo h1{font-size:20px}.topo-acoes{width:100%}.topo-acoes>.btn-primario:last-child{margin-left:auto}
+  .abas{display:flex;width:100%}.abas button{flex:1;justify-content:center}
   .card{padding:16px;border-radius:10px}
 
   /* toque confortavel + sem zoom automatico do iOS ao focar campo */
@@ -215,9 +263,9 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
     padding:18px 16px calc(18px + env(safe-area-inset-bottom))}
   .modal-overlay{align-items:flex-end}
   .modal-rodape .btn{flex:1 1 calc(50% - 5px)}
-  .toast{left:12px;right:12px;bottom:calc(76px + env(safe-area-inset-bottom));max-width:none}
+  .toast{left:12px;right:12px;bottom:calc(84px + env(safe-area-inset-bottom));max-width:none}
 }
-@media(max-width:400px){.tabbar a{font-size:10px}.tabbar a i{font-size:18px}}
+@media(max-width:360px){.tabbar a{font-size:10px}}
 </style>
 </head>
 <body>
@@ -231,43 +279,26 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
     <button onclick="desbloquear()">Entrar</button>
   </div>
 </div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="i-home" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/></symbol><symbol id="i-agenda" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="17" rx="2"/><path d="M16 2.5v4M8 2.5v4M3 10h18"/></symbol><symbol id="i-clientes" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20.5v-.5a6 6 0 0 1 6-6h1a6 6 0 0 1 6 6v.5"/><path d="M16 4.3a3.5 3.5 0 0 1 0 7.4M21.5 20.5v-.5a6 6 0 0 0-3.5-5.4"/></symbol><symbol id="i-notas" viewBox="0 0 24 24"><path d="M14 2.5H6.5a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V8z"/><path d="M14 2.5V8h5.5M8.5 13h7M8.5 17h7"/></symbol><symbol id="i-os" viewBox="0 0 24 24"><rect x="8" y="2.5" width="8" height="4" rx="1"/><path d="M16 4.5h2a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-13a2 2 0 0 1 2-2h2"/><path d="M9 12h6M9 16h4"/></symbol><symbol id="i-contratos" viewBox="0 0 24 24"><path d="M14 2.5H6.5a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V8z"/><path d="M14 2.5V8h5.5"/><path d="m9 15 2 2 4-4"/></symbol><symbol id="i-recibos" viewBox="0 0 24 24"><path d="M5 2.5v19l2.5-1.5 2.5 1.5 2-1.5 2 1.5 2.5-1.5 2.5 1.5v-19l-2.5 1.5L14 2.5 12 4 10 2.5 7.5 4z"/><path d="M8.5 9h7M8.5 13h7M8.5 17h4"/></symbol><symbol id="i-equip" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="11" rx="2"/><path d="M2 20h20M9.5 15l-.5 5M14.5 15l.5 5"/></symbol><symbol id="i-contas" viewBox="0 0 24 24"><path d="M19 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-3"/><path d="M21 8h-5a3 3 0 0 0 0 6h5z"/><circle cx="16" cy="11" r=".6"/></symbol><symbol id="i-config" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></symbol><symbol id="i-mais" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></symbol><symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6.5h16M4 12h16M4 17.5h16"/></symbol><symbol id="i-lock" viewBox="0 0 24 24"><rect x="4.5" y="11" width="15" height="10" rx="2"/><path d="M8 11V7.5a4 4 0 0 1 8 0V11"/></symbol><symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol><symbol id="i-entrada" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7 7 7-7"/></symbol><symbol id="i-saida" viewBox="0 0 24 24"><path d="M12 5v14M5 12l7-7 7 7"/></symbol><symbol id="i-servicos" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M8 17v-5M13 17V8M18 17v-9"/></symbol></svg>
+<div id="menu-folha" class="folha-fundo oculto" onclick="if(event.target===this)fecharMenu()"><div class="folha" role="dialog" aria-modal="true" aria-label="Todos os módulos"><div class="folha-pega"></div><div class="folha-cab"><h2>Módulos</h2><button class="btn-ico" onclick="fecharMenu()" aria-label="Fechar"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg></button></div><div class="nav-grupo">Operação</div><div class="folha-grade"><a data-view="dash" onclick="fecharMenu();irPara('dash')"><svg class="ico" aria-hidden="true"><use href="#i-home"/></svg><span>Início</span></a><a data-view="agenda" onclick="fecharMenu();irPara('agenda')"><svg class="ico" aria-hidden="true"><use href="#i-agenda"/></svg><span>Agenda</span></a><a data-view="clientes" onclick="fecharMenu();irPara('clientes')"><svg class="ico" aria-hidden="true"><use href="#i-clientes"/></svg><span>Clientes</span></a><a data-view="os" onclick="fecharMenu();irPara('os')"><svg class="ico" aria-hidden="true"><use href="#i-os"/></svg><span>Ordens de serviço</span></a><a data-view="contratos" onclick="fecharMenu();irPara('contratos')"><svg class="ico" aria-hidden="true"><use href="#i-contratos"/></svg><span>Contratos</span></a><a data-view="equip" onclick="fecharMenu();irPara('equip')"><svg class="ico" aria-hidden="true"><use href="#i-equip"/></svg><span>Equipamentos</span></a></div><div class="nav-grupo">Financeiro</div><div class="folha-grade"><a data-view="notas" onclick="fecharMenu();irPara('notas')"><svg class="ico" aria-hidden="true"><use href="#i-notas"/></svg><span>Notas fiscais</span></a><a data-view="recibos" onclick="fecharMenu();irPara('recibos')"><svg class="ico" aria-hidden="true"><use href="#i-recibos"/></svg><span>Recibos</span></a><a data-view="contas" onclick="fecharMenu();irPara('contas')"><svg class="ico" aria-hidden="true"><use href="#i-contas"/></svg><span>Contas</span></a></div><div class="nav-grupo">Sistema</div><div class="folha-grade"><a data-view="config" onclick="fecharMenu();irPara('config')"><svg class="ico" aria-hidden="true"><use href="#i-config"/></svg><span>Configurações</span></a></div></div></div>
 <div class="app">
   <aside class="sidebar">
     <div class="logo"><span class="logo-mark">TI</span><span class="logo-text">Gestor de TI</span></div>
-    <nav>
-      <a data-view="dash" onclick="showView('dash')">📊 <span class="txt">Dashboard</span></a>
-      <a data-view="agenda" class="ativo" onclick="showView('agenda')">📅 <span class="txt">Agenda</span></a>
-      <a data-view="clientes" onclick="showView('clientes')">👥 <span class="txt">Clientes</span></a>
-      <a data-view="notas" onclick="showView('notas')">🧾 <span class="txt">Notas Fiscais</span></a>
-      <a data-view="os" onclick="showView('os')">📄 <span class="txt">OS</span></a>
-      <a data-view="contratos" onclick="showView('contratos')">📋 <span class="txt">Contratos</span></a>
-      <a data-view="recibos" onclick="showView('recibos')">🧾 <span class="txt">Recibos</span></a>
-      <a data-view="equip" onclick="showView('equip')">💻 <span class="txt">Equipamentos</span></a>
-      <a data-view="contas" onclick="showView('contas')">💰 <span class="txt">Contas a pagar</span></a>
-      <a data-view="receber" onclick="showView('receber')">💵 <span class="txt">Contas a receber</span></a>
-      <a data-view="config" onclick="showView('config')">⚙️ <span class="txt">Configurações</span></a>
+    <nav aria-label="Módulos">
+<div class="nav-grupo">Operação</div><a data-view="dash" onclick="irPara('dash')"><svg class="ico" aria-hidden="true"><use href="#i-home"/></svg><span class="txt">Início</span></a><a data-view="agenda" onclick="irPara('agenda')"><svg class="ico" aria-hidden="true"><use href="#i-agenda"/></svg><span class="txt">Agenda</span></a><a data-view="clientes" onclick="irPara('clientes')"><svg class="ico" aria-hidden="true"><use href="#i-clientes"/></svg><span class="txt">Clientes</span></a><a data-view="os" onclick="irPara('os')"><svg class="ico" aria-hidden="true"><use href="#i-os"/></svg><span class="txt">Ordens de serviço</span></a><a data-view="contratos" onclick="irPara('contratos')"><svg class="ico" aria-hidden="true"><use href="#i-contratos"/></svg><span class="txt">Contratos</span></a><a data-view="equip" onclick="irPara('equip')"><svg class="ico" aria-hidden="true"><use href="#i-equip"/></svg><span class="txt">Equipamentos</span></a><div class="nav-grupo">Financeiro</div><a data-view="notas" onclick="irPara('notas')"><svg class="ico" aria-hidden="true"><use href="#i-notas"/></svg><span class="txt">Notas fiscais</span></a><a data-view="recibos" onclick="irPara('recibos')"><svg class="ico" aria-hidden="true"><use href="#i-recibos"/></svg><span class="txt">Recibos</span></a><a data-view="contas" onclick="irPara('contas')"><svg class="ico" aria-hidden="true"><use href="#i-contas"/></svg><span class="txt">Contas</span></a><div class="nav-grupo">Sistema</div><a data-view="config" onclick="irPara('config')"><svg class="ico" aria-hidden="true"><use href="#i-config"/></svg><span class="txt">Configurações</span></a>
     </nav>
     <div class="sidebar-rodape">v7.6 · web</div>
   </aside>
-  <nav class="tabbar" id="tabbar">
-    <a data-view="dash" onclick="showView('dash')"><i>📊</i><span>Painel</span></a>
-    <a data-view="agenda" class="ativo" onclick="showView('agenda')"><i>📅</i><span>Agenda</span></a>
-    <a data-view="clientes" onclick="showView('clientes')"><i>👥</i><span>Clientes</span></a>
-    <a data-view="os" onclick="showView('os')"><i>📄</i><span>OS</span></a>
-    <a data-view="contratos" onclick="showView('contratos')"><i>📋</i><span>Contratos</span></a>
-    <a data-view="recibos" onclick="showView('recibos')"><i>🧾</i><span>Recibos</span></a>
-    <a data-view="equip" onclick="showView('equip')"><i>💻</i><span>Equip.</span></a>
-    <a data-view="contas" onclick="showView('contas')"><i>💰</i><span>Contas</span></a>
-    <a data-view="receber" onclick="showView('receber')"><i>💵</i><span>Receber</span></a>
-    <a data-view="notas" onclick="showView('notas')"><i>🧾</i><span>Notas</span></a>
-    <a data-view="config" onclick="showView('config')"><i>⚙️</i><span>Config</span></a>
+  <nav class="tabbar" id="tabbar" aria-label="Navegação principal"><a data-view="dash" onclick="irPara('dash')"><svg class="ico" aria-hidden="true"><use href="#i-home"/></svg><span>Início</span></a><a data-view="agenda" onclick="irPara('agenda')"><svg class="ico" aria-hidden="true"><use href="#i-agenda"/></svg><span>Agenda</span></a><a data-view="clientes" onclick="irPara('clientes')"><svg class="ico" aria-hidden="true"><use href="#i-clientes"/></svg><span>Clientes</span></a><a data-view="contratos" onclick="irPara('contratos')"><svg class="ico" aria-hidden="true"><use href="#i-contratos"/></svg><span>Contratos</span></a><a data-view="mais" onclick="abrirMenu()"><svg class="ico" aria-hidden="true"><use href="#i-mais"/></svg><span>Mais</span></a>
   </nav>
   <main class="conteudo">
-    <div class="barra-conta">
-      <span id="conta-status" class="pill off">Sincronização desligada</span>
-      <button class="btn btn-secundario oculto" id="btn-sync" onclick="nuvemCarregar(true)">🔄 Atualizar</button>
-      <button class="btn btn-secundario" onclick="bloquear()" title="Bloquear o acesso">🔒</button>
-    </div>
+    <header class="barra-conta">
+      <button class="btn-ico so-mob" onclick="abrirMenu()" aria-label="Abrir menu"><svg class="ico" aria-hidden="true"><use href="#i-menu"/></svg></button>
+      <span class="marca so-mob"><span class="logo-mark">TI</span>Gestor de TI</span>
+      <span id="conta-status" class="pill off" role="status">Sincronização desligada</span>
+      <button class="btn btn-secundario oculto" id="btn-sync" onclick="nuvemCarregar(true)">🔄 <span class="so-desk">Atualizar</span></button>
+      <button class="btn-ico" onclick="bloquear()" title="Bloquear o acesso" aria-label="Bloquear o acesso"><svg class="ico" aria-hidden="true"><use href="#i-lock"/></svg></button>
+    </header>
 
     <section id="view-agenda">
       <div class="topo"><h1>Agenda</h1><div class="topo-acoes">
@@ -388,9 +419,10 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
     </section>
 
     <section id="view-contas" class="oculto">
-      <div class="topo"><h1>Contas a pagar</h1><div class="topo-acoes">
+      <div class="topo"><div><h1>Contas</h1><div class="sub">Pagamentos: o que você tem a pagar</div></div><div class="topo-acoes">
         <button class="btn btn-primario" onclick="abrirNovaConta()">+ Nova conta</button>
       </div></div>
+      <div class="abas" role="tablist"><button role="tab" class="" aria-selected="false" onclick="abaContas('receber')"><svg class="ico" aria-hidden="true"><use href="#i-entrada"/></svg>Recebimentos</button><button role="tab" class="ativa" aria-selected="true" onclick="abaContas('contas')"><svg class="ico" aria-hidden="true"><use href="#i-saida"/></svg>Pagamentos</button></div>
       <div class="card no-print"><div class="os-filtros">
         <div class="campo">M&ecirc;s<input type="month" id="ca-filtro-mes" onchange="mudouMesFiltro('ca')"></div>
         <div class="campo">Vencimento<select id="ca-filtro-venc" onchange="mudouVenc('ca')"><option value="">Todos</option><option value="vencidas">Vencidas</option><option value="hoje">Vence hoje</option><option value="7">Próximos 7 dias</option><option value="30">Próximos 30 dias</option><option value="periodo">Período…</option></select></div><div class="campo" id="ca-venc-per" style="display:none">De / até<span style="display:flex;gap:6px"><input type="date" id="ca-venc-de" onchange="renderVencP('ca')"><input type="date" id="ca-venc-ate" onchange="renderVencP('ca')"></span></div>
@@ -405,9 +437,10 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt);
     </section>
 
     <section id="view-receber" class="oculto">
-      <div class="topo"><h1>Contas a receber</h1><div class="topo-acoes">
+      <div class="topo"><div><h1>Contas</h1><div class="sub">Recebimentos: notas, comunicados e recibos a receber</div></div><div class="topo-acoes">
         <button class="btn btn-secundario" onclick="sincReceber(true)">🔄 Atualizar</button>
       </div></div>
+      <div class="abas" role="tablist"><button role="tab" class="ativa" aria-selected="true" onclick="abaContas('receber')"><svg class="ico" aria-hidden="true"><use href="#i-entrada"/></svg>Recebimentos</button><button role="tab" class="" aria-selected="false" onclick="abaContas('contas')"><svg class="ico" aria-hidden="true"><use href="#i-saida"/></svg>Pagamentos</button></div>
       <div class="card no-print"><div class="os-filtros">
         <div class="campo">M&ecirc;s<input type="month" id="rec-filtro-mes" onchange="mudouMesFiltro('rec')"></div>
         <div class="campo">Vencimento<select id="rec-filtro-venc" onchange="mudouVenc('rec')"><option value="">Todos</option><option value="vencidas">Vencidas</option><option value="hoje">Vence hoje</option><option value="7">Próximos 7 dias</option><option value="30">Próximos 30 dias</option><option value="periodo">Período…</option></select></div><div class="campo" id="rec-venc-per" style="display:none">De / até<span style="display:flex;gap:6px"><input type="date" id="rec-venc-de" onchange="renderVencP('rec')"><input type="date" id="rec-venc-ate" onchange="renderVencP('rec')"></span></div>
@@ -1064,7 +1097,27 @@ function graficoDash(L,tipos,ano,mesSel){
 }
 
 // ================== Navegação ==================
-function showView(v){['dash','agenda','clientes','notas','os','contratos','recibos','equip','contas','receber','config'].forEach(n=>document.getElementById('view-'+n).classList.toggle('oculto',n!==v));document.querySelectorAll('.sidebar nav a,.tabbar a').forEach(a=>a.classList.toggle('ativo',a.dataset.view===v));if(v==='dash')renderDash();if(v==='agenda')renderCalendario();if(v==='clientes')renderClientes();if(v==='notas')renderNotas();if(v==='os')renderOS();if(v==='contratos')renderContratos();if(v==='recibos')renderRecibos();if(v==='equip')renderEquip();if(v==='contas')renderContas();if(v==='receber')renderReceber();if(v==='config')carregarConfigForm();}
+const VIEW_NAV={receber:'contas'};
+const TAB_PRINC=['dash','agenda','clientes','contratos'];
+let ultimaAbaContas='receber';
+function irPara(v){if(v==='contas')v=ultimaAbaContas;showView(v);window.scrollTo(0,0);}
+function abaContas(v){showView(v);}
+// teclado: itens clicáveis que não são botões ganham foco e respondem a Enter/Espaço; Esc fecha modal/menu
+const SEL_CLICAVEL='[data-view],.link-acao,.cal-chip,.cal-cel,.cal-lista-item,.eq-card,.ag-item';
+function prepararClicaveis(raiz){(raiz||document).querySelectorAll(SEL_CLICAVEL).forEach(el=>{if(!el.hasAttribute('tabindex')){el.tabIndex=0;if(!el.getAttribute('role'))el.setAttribute('role','button');}});}
+new MutationObserver(()=>prepararClicaveis()).observe(document.body,{childList:true,subtree:true});
+document.addEventListener('keydown',e=>{
+  if((e.key==='Enter'||e.key===' ')&&e.target.matches&&e.target.matches(SEL_CLICAVEL)&&!/^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(e.target.tagName)){e.preventDefault();e.target.click();return;}
+  if(e.key==='Escape'){const f=document.getElementById('menu-folha');if(f&&!f.classList.contains('oculto')){fecharMenu();return;}
+    const abertos=[...document.querySelectorAll('.modal-overlay:not(.oculto)')];if(abertos.length)abertos[abertos.length-1].classList.add('oculto');}
+});
+function abrirMenu(){const f=document.getElementById('menu-folha');f.classList.remove('oculto');const a=f.querySelector('a.ativo')||f.querySelector('a');if(a)a.focus();}
+function fecharMenu(){document.getElementById('menu-folha').classList.add('oculto');}
+function marcarNav(v){const n=VIEW_NAV[v]||v;
+  document.querySelectorAll('.sidebar nav a,#menu-folha a').forEach(a=>{const on=a.dataset.view===n;a.classList.toggle('ativo',on);if(on)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
+  document.querySelectorAll('.tabbar a').forEach(a=>{const on=a.dataset.view===n||(a.dataset.view==='mais'&&!TAB_PRINC.includes(n));a.classList.toggle('ativo',on);if(on)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
+  if(v==='receber'||v==='contas')ultimaAbaContas=v;}
+function showView(v){['dash','agenda','clientes','notas','os','contratos','recibos','equip','contas','receber','config'].forEach(n=>document.getElementById('view-'+n).classList.toggle('oculto',n!==v));marcarNav(v);if(v==='dash')renderDash();if(v==='agenda')renderCalendario();if(v==='clientes')renderClientes();if(v==='notas')renderNotas();if(v==='os')renderOS();if(v==='contratos')renderContratos();if(v==='recibos')renderRecibos();if(v==='equip')renderEquip();if(v==='contas')renderContas();if(v==='receber')renderReceber();if(v==='config')carregarConfigForm();}
 
 // ================== Clientes ==================
 function renderClientes(q){q=(q||'').toLowerCase();const lista=DB.clientes.filter(c=>!q||(c.nome||'').toLowerCase().includes(q)||(c.documento||'').includes(q)).sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));const tb=document.getElementById('lista-clientes');if(!lista.length){tb.innerHTML='<tr><td colspan="6" class="vazio">Nenhum cliente cadastrado.</td></tr>';return;}tb.innerHTML=lista.map(c=>`<tr><td data-rot="Nome"><b>${esc(c.nome)}</b></td><td data-rot="Tipo">${c.tipo_pessoa==='J'?'Jurídica':'Física'}</td><td data-rot="CPF/CNPJ">${esc(c.documento)||'—'}</td><td data-rot="Telefone">${esc(c.telefone)||'—'}</td><td data-rot="Município">${esc(c.municipio)||'—'}</td><td class="acoes-cel"><span class="link-acao" onclick="editarCliente(${c.id})">Editar</span><span class="link-acao perigo" onclick="excluirCliente(${c.id})">Excluir</span></td></tr>`).join('');}
@@ -3614,7 +3667,7 @@ function importarBackup(input){const f=input.files[0];if(!f)return;const r=new F
 
 // ================== Início ==================
 limparContasPagasDaAgenda();
-carregarClientesSelect();renderCalendario();
+carregarClientesSelect();renderCalendario();showView('dash');prepararClicaveis();
 gTrocarCodigo().then(()=>{gAtualizarBotao();setTimeout(()=>gSincronizar(false),1500);});
 if(GH_REPO&&GH_TOKEN){ conectarNuvem(); }
 </script>
