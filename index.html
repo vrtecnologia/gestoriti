@@ -191,6 +191,8 @@ body.menu-recolhido .sb-rodape{justify-content:center;margin:0 10px;padding:12px
 .lock-card button{width:100%;padding:11px;background:var(--azul);color:#fff;border:none;border-radius:8px;font-weight:600;font-size:15px;cursor:pointer}
 .lock-card button:hover{background:var(--azul-esc)}
 .lock-erro{color:var(--vermelho);font-size:13px;margin-bottom:8px;min-height:18px}
+.lock-info{background:var(--azul-cl);border:1px solid #b2ddff;color:#1849a9;font-size:13px;line-height:1.45;padding:10px 12px;border-radius:8px;margin-bottom:12px}
+.lock-card button:disabled{opacity:.7;cursor:wait}
 .os-filtros{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
 .os-filtros .campo{display:flex;flex-direction:column;gap:5px;font-size:13px;font-weight:600;color:#374151}
 .os-filtros input,.os-filtros select{padding:9px 11px;background:#fff;color:var(--txt);font-family:inherit;border:1px solid var(--borda-forte);border-radius:8px;font-size:14px;font-weight:400}
@@ -398,11 +400,14 @@ body.menu-recolhido .sb-rodape{justify-content:center;margin:0 10px;padding:12px
 <div id="lock" class="lock">
   <div class="lock-card">
     <h1><span class="lm">TI</span> Gestor de TI</h1>
-    <p>Acesso restrito. Entre com seu usuário e senha.</p>
-    <div class="lock-erro" id="lock-erro"></div>
-    <input id="lock-user" placeholder="Usuário" autocomplete="username">
+    <p id="lock-sub">Acesso restrito. Entre com seu usuário e senha.</p>
+    <div class="lock-info oculto" id="lock-info"></div>
+    <div class="lock-erro" id="lock-erro" role="alert"></div>
+    <input id="lock-user" placeholder="Usuário" autocomplete="username" onkeydown="if(event.key==='Enter')desbloquear()">
     <input id="lock-pass" type="password" placeholder="Senha" autocomplete="current-password" onkeydown="if(event.key==='Enter')desbloquear()">
-    <button onclick="desbloquear()">Entrar</button>
+    <input id="lock-pass2" class="oculto" type="password" placeholder="Confirme a senha" autocomplete="new-password" onkeydown="if(event.key==='Enter')desbloquear()">
+    <input id="lock-token" class="oculto" type="password" placeholder="Token do GitHub (github_pat_...)" autocomplete="off" onkeydown="if(event.key==='Enter')desbloquear()">
+    <button id="lock-btn" onclick="desbloquear()">Entrar</button>
   </div>
 </div>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="i-busca" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol><symbol id="i-recolher" viewBox="0 0 24 24"><path d="m11 17-5-5 5-5M18 17l-5-5 5-5"/></symbol><symbol id="i-dash" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="9" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="5" rx="1.5"/><rect x="13.5" y="11.5" width="7" height="9" rx="1.5"/><rect x="3.5" y="15.5" width="7" height="5" rx="1.5"/></symbol><symbol id="i-pagar" viewBox="0 0 24 24"><rect x="2.5" y="5.5" width="19" height="13" rx="2"/><path d="M2.5 10h19M6.5 15h4"/></symbol><symbol id="i-receber" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></symbol><symbol id="i-dots" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/></symbol><symbol id="i-sync" viewBox="0 0 24 24"><path d="M21 12a9 9 0 0 1-15.5 6.2L3 16"/><path d="M3 12a9 9 0 0 1 15.5-6.2L21 8"/><path d="M21 3v5h-5M3 21v-5h5"/></symbol><symbol id="i-home" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/></symbol><symbol id="i-agenda" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="17" rx="2"/><path d="M16 2.5v4M8 2.5v4M3 10h18"/></symbol><symbol id="i-clientes" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20.5v-.5a6 6 0 0 1 6-6h1a6 6 0 0 1 6 6v.5"/><path d="M16 4.3a3.5 3.5 0 0 1 0 7.4M21.5 20.5v-.5a6 6 0 0 0-3.5-5.4"/></symbol><symbol id="i-notas" viewBox="0 0 24 24"><path d="M14 2.5H6.5a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V8z"/><path d="M14 2.5V8h5.5M8.5 13h7M8.5 17h7"/></symbol><symbol id="i-os" viewBox="0 0 24 24"><rect x="8" y="2.5" width="8" height="4" rx="1"/><path d="M16 4.5h2a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-13a2 2 0 0 1 2-2h2"/><path d="M9 12h6M9 16h4"/></symbol><symbol id="i-contratos" viewBox="0 0 24 24"><path d="M14 2.5H6.5a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V8z"/><path d="M14 2.5V8h5.5"/><path d="m9 15 2 2 4-4"/></symbol><symbol id="i-recibos" viewBox="0 0 24 24"><path d="M5 2.5v19l2.5-1.5 2.5 1.5 2-1.5 2 1.5 2.5-1.5 2.5 1.5v-19l-2.5 1.5L14 2.5 12 4 10 2.5 7.5 4z"/><path d="M8.5 9h7M8.5 13h7M8.5 17h4"/></symbol><symbol id="i-equip" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="11" rx="2"/><path d="M2 20h20M9.5 15l-.5 5M14.5 15l.5 5"/></symbol><symbol id="i-contas" viewBox="0 0 24 24"><path d="M19 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-3"/><path d="M21 8h-5a3 3 0 0 0 0 6h5z"/><circle cx="16" cy="11" r=".6"/></symbol><symbol id="i-config" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></symbol><symbol id="i-mais" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></symbol><symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6.5h16M4 12h16M4 17.5h16"/></symbol><symbol id="i-lock" viewBox="0 0 24 24"><rect x="4.5" y="11" width="15" height="10" rx="2"/><path d="M8 11V7.5a4 4 0 0 1 8 0V11"/></symbol><symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol><symbol id="i-entrada" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7 7 7-7"/></symbol><symbol id="i-saida" viewBox="0 0 24 24"><path d="M12 5v14M5 12l7-7 7 7"/></symbol><symbol id="i-servicos" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M8 17v-5M13 17V8M18 17v-9"/></symbol></svg>
@@ -421,8 +426,8 @@ body.menu-recolhido .sb-rodape{justify-content:center;margin:0 10px;padding:12px
     </div>
     <nav id="sb-nav" aria-label="Módulos"><div class="sb-grupo"><div class="nav-grupo">Principal</div><a data-view="dash" data-tip="Dashboard" data-busca="dashboard inicio painel resumo indicadores servicos" onclick="irPara('dash')"><svg class="ico" aria-hidden="true"><use href="#i-dash"/></svg><span class="txt">Dashboard</span><span class="sb-badge oculto" data-badge="dash"></span></a><a data-view="agenda" data-tip="Agenda" data-busca="agenda calendario compromissos agendamento google" onclick="irPara('agenda')"><svg class="ico" aria-hidden="true"><use href="#i-agenda"/></svg><span class="txt">Agenda</span><span class="sb-badge oculto" data-badge="agenda"></span></a><a data-view="clientes" data-tip="Clientes" data-busca="clientes cadastro tomador cnpj cpf" onclick="irPara('clientes')"><svg class="ico" aria-hidden="true"><use href="#i-clientes"/></svg><span class="txt">Clientes</span><span class="sb-badge oculto" data-badge="clientes"></span></a><a data-view="os" data-tip="Ordens de serviço" data-busca="ordens de serviço os servicos atendimento" onclick="irPara('os')"><svg class="ico" aria-hidden="true"><use href="#i-os"/></svg><span class="txt">Ordens de serviço</span><span class="sb-badge oculto" data-badge="os"></span></a><a data-view="contratos" data-tip="Contratos" data-busca="contratos mensalidade cobranca recorrente" onclick="irPara('contratos')"><svg class="ico" aria-hidden="true"><use href="#i-contratos"/></svg><span class="txt">Contratos</span><span class="sb-badge oculto" data-badge="contratos"></span></a><a data-view="equip" data-tip="Equipamentos" data-busca="equipamentos computador notebook patrimonio inventario" onclick="irPara('equip')"><svg class="ico" aria-hidden="true"><use href="#i-equip"/></svg><span class="txt">Equipamentos</span><span class="sb-badge oculto" data-badge="equip"></span></a></div><div class="sb-grupo"><div class="nav-grupo">Financeiro</div><a data-view="notas" data-tip="Notas fiscais" data-busca="notas fiscais nfse nota fiscal emissor" onclick="irPara('notas')"><svg class="ico" aria-hidden="true"><use href="#i-notas"/></svg><span class="txt">Notas fiscais</span><span class="sb-badge oculto" data-badge="notas"></span></a><a data-view="recibos" data-tip="Recibos" data-busca="recibos recibo venda servico" onclick="irPara('recibos')"><svg class="ico" aria-hidden="true"><use href="#i-recibos"/></svg><span class="txt">Recibos</span><span class="sb-badge oculto" data-badge="recibos"></span></a><a data-view="contas" data-tip="Contas a pagar" data-busca="contas a pagar despesas pagamentos boletos vencimento" onclick="irPara('contas')"><svg class="ico" aria-hidden="true"><use href="#i-pagar"/></svg><span class="txt">Contas a pagar</span><span class="sb-badge oculto" data-badge="contas"></span></a><a data-view="receber" data-tip="Contas a receber" data-busca="contas a receber recebimentos cobrancas atrasados" onclick="irPara('receber')"><svg class="ico" aria-hidden="true"><use href="#i-receber"/></svg><span class="txt">Contas a receber</span><span class="sb-badge oculto" data-badge="receber"></span></a></div><div class="sb-grupo"><div class="nav-grupo">Sistema</div><a data-view="config" data-tip="Configurações" data-busca="configurações ajustes sincronizacao github google backup emitente" onclick="irPara('config')"><svg class="ico" aria-hidden="true"><use href="#i-config"/></svg><span class="txt">Configurações</span><span class="sb-badge oculto" data-badge="config"></span></a></div><div class="sb-vazio oculto" id="sb-vazio">Nenhum módulo encontrado.</div></nav>
     <div class="sb-rodape">
-      <img class="sb-vr" src="data:image/png;base64,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" alt="VR Tecnologia" data-tip="VR Tecnologia · v8.2">
-      <div class="sb-rod-txt"><strong>VR Tecnologia</strong><span>Gestor de TI · v8.2</span></div>
+      <img class="sb-vr" src="data:image/png;base64,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" alt="VR Tecnologia" data-tip="VR Tecnologia · v8.3">
+      <div class="sb-rod-txt"><strong>VR Tecnologia</strong><span>Gestor de TI · v8.3</span></div>
       <button class="sb-opcoes" onclick="alternarOpcoesMenu(event)" aria-label="Opções" aria-haspopup="menu" aria-expanded="false"><svg class="ico" aria-hidden="true"><use href="#i-dots"/></svg></button>
       <div class="sb-pop oculto" id="sb-pop" role="menu">
         <button role="menuitem" onclick="fecharOpcoesMenu();nuvemCarregar(true)"><svg class="ico" aria-hidden="true"><use href="#i-sync"/></svg>Sincronizar agora</button>
@@ -632,15 +637,15 @@ body.menu-recolhido .sb-rodape{justify-content:center;margin:0 10px;padding:12px
           <label class="col2">Repositório de dados (formato: usuario/repositorio)
             <input id="cfg-repo" placeholder="ex.: vrtecnologia/gestor-dados">
           </label>
-          <label class="col2">Token de acesso do GitHub
-            <input id="cfg-token" type="password" placeholder="cole aqui o token (github_pat_...)">
+          <label class="col2">Trocar token do GitHub
+            <input id="cfg-token" type="password" autocomplete="off" placeholder="guardado criptografado neste aparelho — cole um novo só para trocar">
           </label>
         </div>
         <div class="acoes-linha">
           <button class="btn btn-primario" onclick="conectarGitHub()">Conectar / Testar</button>
           <button class="btn btn-secundario" onclick="nuvemCarregar(true)">🔄 Baixar dados da nuvem</button>
         </div>
-        <p class="dim" style="margin-top:10px">O token fica salvo só neste aparelho. No iPhone, você cola o mesmo repositório e token. O passo a passo está no guia.</p>
+        <p class="dim" style="margin-top:10px">🔒 O token fica guardado <b>criptografado com a sua senha</b> só neste aparelho (não está no código do site) e os dados vão para o GitHub <b>criptografados</b>. Para trocar o token, cole o novo acima e clique em Conectar / Testar.</p>
       </div>
 
       <div class="card">
@@ -871,29 +876,116 @@ const LOGO_URL='data:image/jpeg;base64,/9j/7gAOQWRvYmUAZAAAAAAB/9sAxQAMCAgICAgMC
 // ================== Tela de acesso (tranca leve) ==================
 const LOCK_USER='vrtecnologia';
 const REPO_PADRAO='vrtecnologia/gestor-dados';
-const ENC={"salt":"HAXCy7zk9TkhAoxoSL7nOQ==","iv":"YvCuzJYjB5Ix61Ae","ct":"TtlD4n51Ld27WoHl608cK+LlnA4b+QfGokCshMiDo3KbK1ave0uQt2qYExXJqPt0Y4lD2jiIqst4N8MfrpmP71ppR+USzi6emPEVD6ck3alNfF49kvGg/1u3b42aXnLlImPlUODYd9kPFFlz8g==","iter":210000};
+// Segurança (v8.3): o token NÃO fica mais no código público. Ele fica num cofre neste aparelho,
+// criptografado com a sua senha; e o dados.json vai pro GitHub criptografado (AES-256-GCM).
+// A chave (derivada da senha) fica guardada no IndexedDB como CryptoKey não exportável.
+const SEG={k:null,salt:null,iter:600000};
+const COFRE_LS='ti_cofre',CIFRA_PREFIXO='GTI-CIFRADO-1\n';
+// arquivo novo: a versão antiga do app só conhece dados.json, então nunca grava por cima do criptografado
+const ARQ_NUVEM='dados.cifrado.json',ARQ_LEGADO='dados.json';
+let nuvemTravada=false;
 function b64ToBytes(b){return Uint8Array.from(atob(b),c=>c.charCodeAt(0));}
-async function derivarChave(pass){const km=await crypto.subtle.importKey('raw',new TextEncoder().encode(pass),'PBKDF2',false,['deriveKey']);return crypto.subtle.deriveKey({name:'PBKDF2',salt:b64ToBytes(ENC.salt),iterations:ENC.iter,hash:'SHA-256'},km,{name:'AES-GCM',length:256},false,['decrypt']);}
+function bytesToB64(u8){let s='';for(let i=0;i<u8.length;i+=0x8000)s+=String.fromCharCode.apply(null,u8.subarray(i,i+0x8000));return btoa(s);}
+async function derivarChaveDados(senha,saltB64,iter){
+  const km=await crypto.subtle.importKey('raw',new TextEncoder().encode(senha),'PBKDF2',false,['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2',salt:b64ToBytes(saltB64),iterations:iter,hash:'SHA-256'},km,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);}
+async function cifrarTexto(k,txt){const iv=crypto.getRandomValues(new Uint8Array(12));
+  const ct=new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM',iv},k,new TextEncoder().encode(txt)));return{iv:bytesToB64(iv),ct:bytesToB64(ct)};}
+async function decifrarTexto(k,iv,ct){return new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:b64ToBytes(iv)},k,b64ToBytes(ct)));}
+// IndexedDB: guarda a chave (não exportável) para não pedir senha toda vez
+function idbAbrir(){return new Promise((res,rej)=>{const r=indexedDB.open('gti-seg',1);r.onupgradeneeded=()=>r.result.createObjectStore('k');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});}
+async function idbOp(modo,fn){const d=await idbAbrir();return new Promise((res,rej)=>{const tx=d.transaction('k',modo);const q=fn(tx.objectStore('k'));tx.oncomplete=()=>res(q&&q.result);tx.onerror=()=>rej(tx.error);});}
+async function idbGet(key){try{return await idbOp('readonly',st=>st.get(key));}catch(e){return null;}}
+async function idbSet(key,v){try{await idbOp('readwrite',st=>st.put(v,key));}catch(e){console.warn('idb',e);}}
+async function idbDel(key){try{await idbOp('readwrite',st=>st.delete(key));}catch(e){}}
+// cofre do token (neste aparelho)
+function lerCofre(){try{return JSON.parse(localStorage.getItem(COFRE_LS)||'null');}catch(e){return null;}}
+async function gravarCofre(k,salt,iter,token,repo){const c=await cifrarTexto(k,token);
+  localStorage.setItem(COFRE_LS,JSON.stringify({v:1,iter,salt,iv:c.iv,ct:c.ct,repo}));}
+function nuvemConfigurada(){return !!(GH_TOKEN||lerCofre()||localStorage.getItem('ti_gh_token'));}
+// dados.json criptografado
+async function cifrarDB(obj){const c=await cifrarTexto(SEG.k,JSON.stringify(obj));
+  return CIFRA_PREFIXO+JSON.stringify({gti_cifrado:1,alg:'AES-256-GCM',kdf:'PBKDF2-SHA256',iter:SEG.iter,salt:SEG.salt,iv:c.iv,dados:c.ct});}
+function ehCifrado(txt){return String(txt).startsWith(CIFRA_PREFIXO);}
+function lerEnvelope(txt){return JSON.parse(String(txt).slice(CIFRA_PREFIXO.length));}
+async function abrirConteudoNuvem(txt){
+  if(!ehCifrado(txt))return{dados:JSON.parse(txt),legado:true};
+  const env=lerEnvelope(txt);
+  if(!SEG.k)throw new Error('sem chave');
+  return{dados:JSON.parse(await decifrarTexto(SEG.k,env.iv,env.dados)),legado:false};}
+// conteúdo de arquivo do GitHub (usa o blob se o arquivo passar de 1 MB)
+async function conteudoGH(j){
+  if(j.content&&j.encoding==='base64')return b64dec(j.content.replace(/\s/g,''));
+  const r=await fetch(j.git_url,{headers:ghHeaders(),cache:'no-store'});if(!r.ok)throw new Error('blob '+r.status);
+  const b=await r.json();return b64dec(String(b.content||'').replace(/\s/g,''));}
+// ----- tela de acesso -----
+function lockMsg(tipo,txt){const e=document.getElementById('lock-erro'),i=document.getElementById('lock-info');
+  if(tipo==='erro'){e.textContent=txt;}else{e.textContent='';i.innerHTML=txt;i.classList.toggle('oculto',!txt);}}
+function lockCampo(id,ver){document.getElementById(id).classList.toggle('oculto',!ver);}
+function prepararTelaLogin(){
+  const cofre=lerCofre(),legado=localStorage.getItem('ti_gh_token');
+  lockCampo('lock-token',!cofre&&!legado);
+  if(!cofre&&legado)lockMsg('info','<b>Atualização de segurança.</b> Entre com sua senha: o token sai do código público e seus dados passam a ir criptografados para a nuvem.');
+  else if(!cofre)lockMsg('info','<b>Primeiro acesso neste aparelho.</b> Informe usuário, senha e o token do GitHub (só desta vez).');
+  document.getElementById('lock').classList.remove('oculto');}
+async function liberarAcesso(k,salt,iter,token,repo){
+  SEG.k=k;SEG.salt=salt;SEG.iter=iter;GH_TOKEN=token;GH_REPO=repo||GH_REPO;nuvemTravada=false;
+  localStorage.setItem('ti_gh_repo',GH_REPO);localStorage.removeItem('ti_gh_token');localStorage.removeItem('ti_unlocked');
+  await idbSet('chave',k);
+  document.getElementById('lock').classList.add('oculto');
+  ['lock-pass','lock-pass2','lock-token'].forEach(id=>document.getElementById(id).value='');
+  conectarNuvem();}
 async function desbloquear(){
   const u=(document.getElementById('lock-user').value||'').trim().toLowerCase();
   const p=document.getElementById('lock-pass').value||'';
-  if(u!==LOCK_USER){document.getElementById('lock-erro').textContent='Usuário ou senha incorretos.';document.getElementById('lock-pass').value='';return;}
+  const btn=document.getElementById('lock-btn');
+  const falha=t=>{lockMsg('erro',t);document.getElementById('lock-pass').value='';document.getElementById('lock-pass2').value='';};
+  if(u!==LOCK_USER||!p){falha('Usuário ou senha incorretos.');return;}
+  btn.disabled=true;btn.textContent='Verificando...';lockMsg('erro','');
   try{
-    const key=await derivarChave(p);
-    const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:b64ToBytes(ENC.iv)},key,b64ToBytes(ENC.ct));
-    const token=new TextDecoder().decode(pt);
-    GH_TOKEN=token; GH_REPO=localStorage.getItem('ti_gh_repo')||REPO_PADRAO;
-    localStorage.setItem('ti_gh_token',token); localStorage.setItem('ti_gh_repo',GH_REPO); localStorage.setItem('ti_unlocked','1');
-    document.getElementById('lock').classList.add('oculto');
-    conectarNuvem();
-  }catch(e){document.getElementById('lock-erro').textContent='Usuário ou senha incorretos.';document.getElementById('lock-pass').value='';}
+    const cofre=lerCofre();
+    if(cofre){ // aparelho já configurado: a senha abre o cofre
+      const k=await derivarChaveDados(p,cofre.salt,cofre.iter);let token;
+      try{token=await decifrarTexto(k,cofre.iv,cofre.ct);}catch(e){falha('Usuário ou senha incorretos.');return;}
+      await liberarAcesso(k,cofre.salt,cofre.iter,token,cofre.repo);return;}
+    // aparelho novo ou atualização: precisa do token (o antigo deste aparelho, ou colado agora)
+    const token=(document.getElementById('lock-token').value||'').trim()||localStorage.getItem('ti_gh_token')||'';
+    if(!token){lockCampo('lock-token',true);falha('Cole o token do GitHub para configurar este aparelho.');return;}
+    const repo=localStorage.getItem('ti_gh_repo')||REPO_PADRAO;
+    GH_TOKEN=token;GH_REPO=repo;
+    const rr=await fetch(GH+'/repos/'+repo,{headers:ghHeaders(),cache:'no-store'});
+    if(!rr.ok){GH_TOKEN='';falha(rr.status===401?'Token inválido ou expirado.':'Este token não tem acesso ao repositório '+repo+'.');return;}
+    const r=await fetch(GH+'/repos/'+repo+'/contents/'+ARQ_NUVEM,{headers:ghHeaders(),cache:'no-store'});
+    if(r.status!==200&&r.status!==404){GH_TOKEN='';falha('Não consegui ler os dados (erro '+r.status+').');return;}
+    if(r.status===200){const txt=await conteudoGH(await r.json());
+      if(ehCifrado(txt)){ // nuvem já protegida: a senha precisa abrir os dados
+        const env=lerEnvelope(txt),k=await derivarChaveDados(p,env.salt,env.iter);
+        try{await decifrarTexto(k,env.iv,env.dados);}catch(e){GH_TOKEN='';falha('Senha incorreta: ela não abre os dados da nuvem.');return;}
+        await gravarCofre(k,env.salt,env.iter,token,repo);await liberarAcesso(k,env.salt,env.iter,token,repo);return;}}
+    // nuvem ainda sem criptografia: esta senha passa a proteger os dados
+    const p2el=document.getElementById('lock-pass2');
+    if(p2el.classList.contains('oculto')){lockCampo('lock-pass2',true);lockMsg('info','<b>Confirme a senha.</b> Ela vai proteger seus dados na nuvem. Guarde bem: sem ela, os dados da nuvem não podem ser abertos (o backup em arquivo continua valendo).');p2el.focus();return;}
+    if(p2el.value!==p){falha('As senhas não conferem.');return;}
+    const salt=bytesToB64(crypto.getRandomValues(new Uint8Array(16))),iter=SEG.iter;
+    const k=await derivarChaveDados(p,salt,iter);
+    await gravarCofre(k,salt,iter,token,repo);await liberarAcesso(k,salt,iter,token,repo);
+  }catch(e){GH_TOKEN='';falha('Não foi possível entrar: '+(e.message||e));}
+  finally{btn.disabled=false;btn.textContent='Entrar';}
 }
-function bloquear(){localStorage.removeItem('ti_unlocked');localStorage.removeItem('ti_gh_token');location.reload();}
-if(localStorage.getItem('ti_unlocked')==='1'&&localStorage.getItem('ti_gh_token')){document.getElementById('lock').classList.add('oculto');}
+function bloquear(){SEG.k=null;GH_TOKEN='';localStorage.removeItem('ti_unlocked');localStorage.removeItem('ti_gh_token');idbDel('chave').finally(()=>location.reload());}
+// ao abrir: se o aparelho já tem cofre + chave guardada, entra direto (como antes)
+async function iniciarSeguranca(){
+  const cofre=lerCofre();
+  if(cofre){const k=await idbGet('chave');
+    if(k){try{const token=await decifrarTexto(k,cofre.iv,cofre.ct);
+      SEG.k=k;SEG.salt=cofre.salt;SEG.iter=cofre.iter;GH_TOKEN=token;GH_REPO=cofre.repo||GH_REPO;
+      document.getElementById('lock').classList.add('oculto');conectarNuvem();return;}catch(e){await idbDel('chave');}}}
+  prepararTelaLogin();
+}
 
 // ================== Sincronização (GitHub) ==================
 let GH_REPO=localStorage.getItem('ti_gh_repo')||'vrtecnologia/gestor-dados';
-let GH_TOKEN=localStorage.getItem('ti_gh_token')||'';
+let GH_TOKEN=''; // só existe em memória, depois de abrir o cofre
 let ghSha=null, conectado=false, saveTimer=null, carregando=false;
 const GH='https://api.github.com';
 function ghHeaders(){return{Authorization:'Bearer '+GH_TOKEN,'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'};}
@@ -913,24 +1005,51 @@ async function conectarNuvem(){
     else{conectado=false;atualizarBarra();toast('Não consegui conectar (erro '+r.status+').','erro');}
   }catch(e){conectado=false;atualizarBarra();toast('Erro de conexão: '+e.message,'erro');}
 }
-function conectarGitHub(){
-  GH_REPO=(document.getElementById('cfg-repo').value||'').trim().replace(/^https?:\/\/github.com\//,'').replace(/\.git$/,'');
-  GH_TOKEN=(document.getElementById('cfg-token').value||'').trim();
-  localStorage.setItem('ti_gh_repo',GH_REPO); localStorage.setItem('ti_gh_token',GH_TOKEN);
-  if(!GH_REPO||!GH_TOKEN){toast('Preencha o repositório e o token.','erro');return;}
-  toast('Conectando...'); conectarNuvem();
+async function conectarGitHub(){
+  if(!SEG.k){toast('Entre com sua senha primeiro (clique no cadeado).','erro');return;}
+  const repo=(document.getElementById('cfg-repo').value||'').trim().replace(/^https?:\/\/github.com\//,'').replace(/\.git$/,'');
+  const novo=(document.getElementById('cfg-token').value||'').trim();
+  if(!repo){toast('Preencha o repositório.','erro');return;}
+  const tokAntes=GH_TOKEN,repoAntes=GH_REPO;GH_REPO=repo;if(novo)GH_TOKEN=novo;
+  try{const r=await fetch(GH+'/repos/'+GH_REPO,{headers:ghHeaders(),cache:'no-store'});
+    if(!r.ok){GH_TOKEN=tokAntes;GH_REPO=repoAntes;toast(r.status===401?'Token inválido ou expirado. Nada foi alterado.':'Esse token não tem acesso a '+repo+'. Nada foi alterado.','erro');return;}
+  }catch(e){GH_TOKEN=tokAntes;GH_REPO=repoAntes;toast('Erro de conexão: '+e.message,'erro');return;}
+  await gravarCofre(SEG.k,SEG.salt,SEG.iter,GH_TOKEN,GH_REPO);localStorage.setItem('ti_gh_repo',GH_REPO);
+  document.getElementById('cfg-token').value='';
+  toast(novo?'Token trocado e guardado criptografado neste aparelho.':'Conectando...','sucesso');conectarNuvem();
 }
 function atualizarBarra(){
   const st=document.getElementById('conta-status'), bSync=document.getElementById('btn-sync'), det=document.getElementById('sync-detalhe');
   if(conectado){st.textContent='☁️ Sincronizado ('+GH_REPO+')';st.className='pill';bSync.classList.remove('oculto');if(det)det.innerHTML='<span class="ok-box" style="display:inline-block">Conectado ao repositório <b>'+esc(GH_REPO)+'</b>. Seus dados estão sendo salvos na nuvem.</span>';}
   else{st.textContent='Sincronização desligada';st.className='pill off';bSync.classList.add('oculto');}
 }
+async function apagarArquivoGH(path,sha,msg){try{const r=await fetch(GH+'/repos/'+GH_REPO+'/contents/'+path,{method:'DELETE',headers:{...ghHeaders(),'Content-Type':'application/json'},body:JSON.stringify({message:msg||('Remove '+path),sha})});return r.ok;}catch(e){return false;}}
+// 1ª vez: converte o dados.json (texto puro) em dados.cifrado.json e apaga o antigo
+async function migrarLegado(){
+  const r=await fetch(GH+'/repos/'+GH_REPO+'/contents/'+ARQ_LEGADO,{headers:ghHeaders(),cache:'no-store'});
+  if(r.status!==200)return null;
+  const j=await r.json();let dados;
+  try{const txt=await conteudoGH(j);if(ehCifrado(txt))return null;dados=JSON.parse(txt);}catch(e){console.warn('legado',e);return false;}
+  const se=syncEst();
+  if(!(se.sujo&&se.sha===j.sha)){DB=migrar(dados);limparContasPagasDaAgenda();salvarLocal();rerenderTudo();} // se este aparelho tem alterações não enviadas sobre a mesma versão, elas valem
+  ghSha=null;
+  const ok=await nuvemSalvarAgora();
+  if(!ok){toast('Não consegui criptografar os dados na nuvem agora. Nada foi apagado; tento de novo depois.','erro');return false;}
+  await apagarArquivoGH(ARQ_LEGADO,j.sha,'Dados migrados para dados.cifrado.json (criptografado)');
+  toast('Pronto: seus dados na nuvem agora estão criptografados.','sucesso');return true;}
+// se um aparelho com a versão antiga recriar o dados.json (texto puro), apaga e avisa
+async function vigiarLegado(){if(!conectado)return;
+  try{const r=await fetch(GH+'/repos/'+GH_REPO+'/contents/'+ARQ_LEGADO,{headers:ghHeaders(),cache:'no-store'});
+    if(r.status!==200)return;const j=await r.json();
+    if(await apagarArquivoGH(ARQ_LEGADO,j.sha,'Remove dados sem criptografia gravados por versão antiga'))
+      toast('Um aparelho com a versão antiga do app gravou dados sem criptografia. Apaguei esse arquivo. Feche e abra o app nesse aparelho para atualizar.','erro');
+  }catch(e){}}
 async function nuvemCarregar(avisar){
   if(!conectado||carregando)return; carregando=true;
   try{
-    const r=await fetch(GH+'/repos/'+GH_REPO+'/contents/dados.json',{headers:ghHeaders(),cache:'no-store'});
-    if(r.status===200){const j=await r.json();if(!avisar&&ghSha&&j.sha===ghSha&&!syncEst().sujo){carregando=false;setTimeout(checarInboxCaldav,300);return;}nuvemPronta=true;const se=syncEst();if(se.sujo&&se.sha&&j.sha===se.sha){ghSha=j.sha;carregando=false;const ok=await nuvemSalvarAgora();if(ok&&avisar)toast('Alterações deste aparelho enviadas pra nuvem.','sucesso');setTimeout(checarInboxCaldav,300);return;}if(se.sujo&&se.sha&&j.sha!==se.sha)toast('Outro aparelho alterou os dados enquanto este tinha alterações não enviadas. Carreguei a versão mais recente — confira sua última alteração.','erro');ghSha=j.sha;syncGrava({sha:j.sha,sujo:false});const dados=JSON.parse(b64dec(j.content));DB=migrar(dados);limparContasPagasDaAgenda();salvarLocal();rerenderTudo();if(avisar)toast('Dados atualizados da nuvem.','sucesso');setTimeout(checarInboxCaldav,300);setTimeout(()=>gSincronizar(false),1200);}
-    else if(r.status===404){nuvemPronta=true;ghSha=null;syncGrava({sujo:true});await nuvemSalvarAgora();if(avisar)toast('Nuvem iniciada com os dados deste aparelho.','sucesso');}
+    const r=await fetch(GH+'/repos/'+GH_REPO+'/contents/'+ARQ_NUVEM,{headers:ghHeaders(),cache:'no-store'});
+    if(r.status===200){const j=await r.json();if(!avisar&&ghSha&&j.sha===ghSha&&!syncEst().sujo){carregando=false;setTimeout(checarInboxCaldav,300);return;}nuvemPronta=true;const se=syncEst();if(se.sujo&&se.sha&&j.sha===se.sha){ghSha=j.sha;carregando=false;const ok=await nuvemSalvarAgora();if(ok&&avisar)toast('Alterações deste aparelho enviadas pra nuvem.','sucesso');setTimeout(checarInboxCaldav,300);return;}if(se.sujo&&se.sha&&j.sha!==se.sha)toast('Outro aparelho alterou os dados enquanto este tinha alterações não enviadas. Carreguei a versão mais recente — confira sua última alteração.','erro');let aberto;try{aberto=await abrirConteudoNuvem(await conteudoGH(j));}catch(e){nuvemTravada=true;carregando=false;console.warn('abrir nuvem',e);toast('Não consegui abrir os dados da nuvem com a chave deste aparelho. Nada foi enviado nem apagado. Clique no cadeado e entre de novo.','erro');return;}nuvemTravada=false;ghSha=j.sha;syncGrava({sha:j.sha,sujo:false});const dados=aberto.dados;DB=migrar(dados);if(aberto.legado)setTimeout(async()=>{if(await nuvemSalvarAgora())toast('Pronto: seus dados na nuvem agora estão criptografados.','sucesso');},400);setTimeout(vigiarLegado,800);limparContasPagasDaAgenda();salvarLocal();rerenderTudo();if(avisar)toast('Dados atualizados da nuvem.','sucesso');setTimeout(checarInboxCaldav,300);setTimeout(()=>gSincronizar(false),1200);}
+    else if(r.status===404){nuvemPronta=true;ghSha=null;const mig=await migrarLegado();if(mig===null){syncGrava({sujo:true});await nuvemSalvarAgora();if(avisar)toast('Nuvem iniciada com os dados deste aparelho.','sucesso');}}
     else if(avisar)toast('Não consegui baixar (erro '+r.status+').','erro');
   }catch(e){if(avisar)toast('Erro ao baixar: '+e.message,'erro');}
   carregando=false;
@@ -938,12 +1057,13 @@ async function nuvemCarregar(avisar){
 let salvarPendente=false;
 function agendarSalvarNuvem(){syncGrava({sujo:true});if(!conectado)return;salvarPendente=true;clearTimeout(saveTimer);saveTimer=setTimeout(nuvemSalvarAgora,1500);}
 async function nuvemSalvarAgora(){
-  if(!conectado)return false;
+  if(!conectado||nuvemTravada)return false;
+  if(!SEG.k){console.warn('sem chave: não envia dados sem criptografia');return false;}
   clearTimeout(saveTimer);salvarPendente=false;
-  const body={message:'Atualizar dados '+fmtData(new Date()),content:b64enc(JSON.stringify(DB,null,2))};
+  const body={message:'Atualizar dados '+fmtData(new Date()),content:b64enc(await cifrarDB(DB))};
   if(ghSha)body.sha=ghSha;
   try{
-    const r=await fetch(GH+'/repos/'+GH_REPO+'/contents/dados.json',{method:'PUT',headers:{...ghHeaders(),'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const r=await fetch(GH+'/repos/'+GH_REPO+'/contents/'+ARQ_NUVEM,{method:'PUT',headers:{...ghHeaders(),'Content-Type':'application/json'},body:JSON.stringify(body)});
     if(r.ok){const j=await r.json();ghSha=j.content.sha;syncGrava({sha:ghSha,sujo:false});return true;}
     if(r.status===409){
       // Outro aparelho salvou antes. NÃO grava por cima (era isso que apagava dados):
@@ -2486,7 +2606,7 @@ function excluirNota(id){
 }
 
 // ================== Config ==================
-function carregarConfigForm(){const c=DB.config;if(document.getElementById('cfg-g-cid')){document.getElementById('cfg-g-cid').value=gCid();document.getElementById('cfg-g-sec').value=gSec();document.getElementById('cfg-g-origem').value=location.origin;document.getElementById('cfg-g-redirect').value=gRedirectUri();gAtualizarBotao();}document.getElementById('cfg-banco').value=c.banco||'';document.getElementById('cfg-pix-cpf').value=c.pix_cpf||'';document.getElementById('cfg-emit-nome').value=c.emit_nome||'';document.getElementById('cfg-emit-cpf').value=c.emit_cpf||'';renderCfgEmitentes();document.getElementById('cfg-repo').value=GH_REPO;document.getElementById('cfg-token').value=GH_TOKEN;}
+function carregarConfigForm(){const c=DB.config;if(document.getElementById('cfg-g-cid')){document.getElementById('cfg-g-cid').value=gCid();document.getElementById('cfg-g-sec').value=gSec();document.getElementById('cfg-g-origem').value=location.origin;document.getElementById('cfg-g-redirect').value=gRedirectUri();gAtualizarBotao();}document.getElementById('cfg-banco').value=c.banco||'';document.getElementById('cfg-pix-cpf').value=c.pix_cpf||'';document.getElementById('cfg-emit-nome').value=c.emit_nome||'';document.getElementById('cfg-emit-cpf').value=c.emit_cpf||'';renderCfgEmitentes();document.getElementById('cfg-repo').value=GH_REPO;document.getElementById('cfg-token').value='';}
 function salvarConfig(){DB.config=Object.assign({},DB.config,{banco:document.getElementById('cfg-banco').value,pix_cpf:document.getElementById('cfg-pix-cpf').value,emit_nome:document.getElementById('cfg-emit-nome').value,emit_cpf:document.getElementById('cfg-emit-cpf').value});lerCfgEmitentes();salvarDB();toast('Configurações salvas.','sucesso');}
 
 // ================== Importar agenda do Outlook (.ics) ==================
@@ -3123,7 +3243,7 @@ function pagarParcial(id){
 let nuvemPronta=false;
 function rolarSaldosCartao(){
   // Virou o mês e a fatura do cartão ficou com saldo: o que falta soma na próxima fatura do mesmo cartão.
-  if(GH_TOKEN&&!nuvemPronta)return 0; // espera os dados mais novos da nuvem (evita somar duas vezes)
+  if(nuvemConfigurada()&&!nuvemPronta)return 0; // espera os dados mais novos da nuvem (evita somar duas vezes)
   const mesAtual=mesAtualStr();let n=0;
   DB.contas.filter(c=>c.status==='parcial'&&String(c.venc||'').slice(0,7)<mesAtual)
     .sort((a,b)=>(a.venc||'').localeCompare(b.venc||'')).forEach(c=>{
@@ -3796,7 +3916,7 @@ function gAgendar(){if(!gLigado())return;clearTimeout(gTimer);gTimer=setTimeout(
 async function gSincronizar(avisar){
   if(gSincronizando||!gLigado())return;
   {let loc=null;try{loc=JSON.parse(localStorage.getItem('g_tok')||'null');}catch(e){}
-   if(loc&&loc.rt&&!loc.expirado&&!DB.config.g_rt&&(!GH_TOKEN||nuvemPronta))gPublicarConexao(loc.rt);}
+   if(loc&&loc.rt&&!loc.expirado&&!DB.config.g_rt&&(!nuvemConfigurada()||nuvemPronta))gPublicarConexao(loc.rt);}
   gSincronizando=true;gAtualizarBotao();
   try{
     let calId=await gCalendarioId(),evs;
@@ -3974,7 +4094,7 @@ function importarBackup(input){const f=input.files[0];if(!f)return;const r=new F
 limparContasPagasDaAgenda();
 carregarClientesSelect();renderCalendario();iniciarMenu();showView('dash');prepararClicaveis();
 gTrocarCodigo().then(()=>{gAtualizarBotao();setTimeout(()=>gSincronizar(false),1500);});
-if(GH_REPO&&GH_TOKEN){ conectarNuvem(); }
+iniciarSeguranca();
 </script>
 <script>
 (function(){
